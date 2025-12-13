@@ -2,42 +2,85 @@ import { useState } from 'react'
 
 const Dashboard = () => {
   const [activeNav, setActiveNav] = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-xl">U</span>
+      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="w-6 h-6 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {sidebarOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg md:text-xl">U</span>
             </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">
-                Universal Smart Signage Generator
+            <div className="min-w-0 flex-1">
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 truncate">
+                <span className="hidden sm:inline">Universal Smart Signage Generator</span>
+                <span className="sm:hidden">Smart Signage</span>
               </h1>
-              <p className="text-xs md:text-sm text-gray-600">
+              <p className="hidden sm:block text-xs md:text-sm text-gray-600 truncate">
                 Professional EHS, Safety & Industrial Signage System
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-3 md:px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-xs md:text-sm font-medium">
+          <div className="hidden sm:flex items-center gap-2 flex-wrap flex-shrink-0">
+            <span className="px-3 md:px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-xs md:text-sm font-medium whitespace-nowrap">
               Multi-Language
             </span>
-            <span className="px-3 md:px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium">
+            <span className="px-3 md:px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium whitespace-nowrap">
               AI Powered
             </span>
-            <span className="px-3 md:px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium">
+            <span className="px-3 md:px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium whitespace-nowrap">
               ISO 7010
             </span>
           </div>
         </div>
       </header>
 
-      <div className="flex flex-col md:flex-row">
+      <div className="flex relative">
+        {/* Mobile Overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-gray-100 min-h-[calc(100vh-80px)] p-4 border-r border-gray-200">
+        <aside
+          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 bg-gray-100 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] p-4 border-r border-gray-200 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
+        >
           <nav className="space-y-2">
             {/* Dashboard */}
             <div
@@ -46,7 +89,10 @@ const Dashboard = () => {
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-700 hover:bg-gray-200'
               }`}
-              onClick={() => setActiveNav('dashboard')}
+              onClick={() => {
+                setActiveNav('dashboard')
+                setSidebarOpen(false)
+              }}
             >
               <div className="flex items-center gap-3">
                 <svg
@@ -80,7 +126,10 @@ const Dashboard = () => {
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-200'
                 }`}
-                onClick={() => setActiveNav('generator')}
+                onClick={() => {
+                  setActiveNav('generator')
+                  setSidebarOpen(false)
+                }}
               >
                 <div className="flex items-center gap-3">
                   <svg
@@ -108,7 +157,10 @@ const Dashboard = () => {
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-200'
                 }`}
-                onClick={() => setActiveNav('templates')}
+                onClick={() => {
+                  setActiveNav('templates')
+                  setSidebarOpen(false)
+                }}
               >
                 <div className="flex items-center gap-3">
                   <svg
@@ -136,7 +188,10 @@ const Dashboard = () => {
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-200'
                 }`}
-                onClick={() => setActiveNav('ai-generator')}
+                onClick={() => {
+                  setActiveNav('ai-generator')
+                  setSidebarOpen(false)
+                }}
               >
                 <div className="flex items-center gap-3">
                   <svg
@@ -174,7 +229,10 @@ const Dashboard = () => {
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-200'
                 }`}
-                onClick={() => setActiveNav('authorized')}
+                onClick={() => {
+                  setActiveNav('authorized')
+                  setSidebarOpen(false)
+                }}
               >
                 <div className="flex items-center gap-3">
                   <svg
@@ -202,7 +260,10 @@ const Dashboard = () => {
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-200'
                 }`}
-                onClick={() => setActiveNav('emergency')}
+                onClick={() => {
+                  setActiveNav('emergency')
+                  setSidebarOpen(false)
+                }}
               >
                 <div className="flex items-center gap-3">
                   <svg
@@ -242,24 +303,24 @@ const Dashboard = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 w-full min-w-0">
           {/* Welcome Section */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               Welcome to Universal Smart Signage Generator
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Create professional ISO 7010-compliant safety signage in minutes.
             </p>
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-            <div className="bg-white rounded-xl border-2 border-blue-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-xl border-2 border-blue-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-blue-600"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -273,15 +334,15 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
-              <div className="text-sm text-gray-600">Total Signages</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">0</div>
+              <div className="text-xs sm:text-sm text-gray-600">Total Signages</div>
             </div>
 
-            <div className="bg-white rounded-xl border-2 border-purple-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <div className="bg-white rounded-xl border-2 border-purple-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-purple-600"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -295,15 +356,15 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
-              <div className="text-sm text-gray-600">Uploaded Images</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">0</div>
+              <div className="text-xs sm:text-sm text-gray-600">Uploaded Images</div>
             </div>
 
-            <div className="bg-white rounded-xl border-2 border-yellow-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+            <div className="bg-white rounded-xl border-2 border-yellow-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-yellow-600"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -317,15 +378,15 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
-              <div className="text-sm text-gray-600">Favorites</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">0</div>
+              <div className="text-xs sm:text-sm text-gray-600">Favorites</div>
             </div>
 
-            <div className="bg-white rounded-xl border-2 border-green-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="bg-white rounded-xl border-2 border-green-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-green-600"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-green-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -339,14 +400,14 @@ const Dashboard = () => {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
-              <div className="text-sm text-gray-600">This Week</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">0</div>
+              <div className="text-xs sm:text-sm text-gray-600">This Week</div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="mb-6 md:mb-8">
+            <div className="flex items-center gap-2 mb-4 md:mb-6">
               <svg
                 className="w-5 h-5 text-yellow-500"
                 fill="none"
@@ -360,13 +421,13 @@ const Dashboard = () => {
                   d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
-              <h3 className="text-2xl font-bold text-gray-900">Quick Actions</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Quick Actions</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              <button className="bg-blue-600 text-white rounded-xl p-6 text-left hover:bg-blue-700 transition-colors">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <button className="bg-blue-600 text-white rounded-xl p-4 sm:p-6 text-left hover:bg-blue-700 transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -379,18 +440,18 @@ const Dashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="font-semibold text-lg mb-1">
+                <div className="font-semibold text-base sm:text-lg mb-1">
                   Create Safety Signage
                 </div>
-                <div className="text-sm opacity-90">
+                <div className="text-xs sm:text-sm opacity-90">
                   Design professional safety signs.
                 </div>
               </button>
 
-              <button className="bg-purple-600 text-white rounded-xl p-6 text-left hover:bg-purple-700 transition-colors">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <button className="bg-purple-600 text-white rounded-xl p-4 sm:p-6 text-left hover:bg-purple-700 transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -403,18 +464,18 @@ const Dashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="font-semibold text-lg mb-1">
+                <div className="font-semibold text-base sm:text-lg mb-1">
                   AI Signage Generator
                 </div>
-                <div className="text-sm opacity-90">
+                <div className="text-xs sm:text-sm opacity-90">
                   Auto-generate with AI.
                 </div>
               </button>
 
-              <button className="bg-blue-800 text-white rounded-xl p-6 text-left hover:bg-blue-900 transition-colors">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <button className="bg-blue-800 text-white rounded-xl p-4 sm:p-6 text-left hover:bg-blue-900 transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -427,18 +488,18 @@ const Dashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="font-semibold text-lg mb-1">
+                <div className="font-semibold text-base sm:text-lg mb-1">
                   Browse Templates
                 </div>
-                <div className="text-sm opacity-90">
+                <div className="text-xs sm:text-sm opacity-90">
                   Choose from 500+ templates.
                 </div>
               </button>
 
-              <button className="bg-green-600 text-white rounded-xl p-6 text-left hover:bg-green-700 transition-colors">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <button className="bg-green-600 text-white rounded-xl p-4 sm:p-6 text-left hover:bg-green-700 transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -451,8 +512,8 @@ const Dashboard = () => {
                     />
                   </svg>
                 </div>
-                <div className="font-semibold text-lg mb-1">Upload Image</div>
-                <div className="text-sm opacity-90">
+                <div className="font-semibold text-base sm:text-lg mb-1">Upload Image</div>
+                <div className="text-xs sm:text-sm opacity-90">
                   Upload and edit photos.
                 </div>
               </button>
@@ -460,8 +521,8 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Signages */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="mb-6 md:mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 md:mb-6">
               <div className="flex items-center gap-2">
                 <svg
                   className="w-5 h-5 text-gray-600"
@@ -476,14 +537,14 @@ const Dashboard = () => {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <h3 className="text-2xl font-bold text-gray-900">Recent Signages</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Recent Signages</h3>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="relative">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <input
                     type="text"
                     placeholder="Search..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full sm:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                   <svg
                     className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
@@ -499,7 +560,7 @@ const Dashboard = () => {
                     />
                   </svg>
                 </div>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                <button className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 whitespace-nowrap text-sm">
                   <svg
                     className="w-5 h-5 text-gray-600"
                     fill="none"
@@ -513,14 +574,14 @@ const Dashboard = () => {
                       d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                     />
                   </svg>
-                  <span className="text-gray-700">Filter</span>
+                  <span className="text-gray-700 hidden sm:inline">Filter</span>
                 </button>
               </div>
             </div>
-            <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-16 text-center">
+            <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-8 sm:p-12 md:p-16 text-center">
               <div className="flex flex-col items-center justify-center">
                 <svg
-                  className="w-24 h-24 text-gray-300 mb-4"
+                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-300 mb-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -532,15 +593,15 @@ const Dashboard = () => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <h4 className="text-xl font-semibold text-gray-700 mb-2">
+                <h4 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
                   No signages yet.
                 </h4>
-                <p className="text-gray-500 mb-6">
+                <p className="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6">
                   Start creating professional safety signage now.
                 </p>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <button className="bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm sm:text-base">
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -559,24 +620,24 @@ const Dashboard = () => {
           </div>
 
           {/* New to Platform Section */}
-          <div className="bg-blue-900 rounded-xl p-8 text-white relative overflow-hidden">
+          <div className="bg-blue-900 rounded-xl p-6 sm:p-8 text-white relative overflow-hidden">
             <div className="relative z-10">
-              <h3 className="text-2xl font-bold mb-2">New to the platform?</h3>
-              <p className="text-blue-100 mb-6">
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">New to the platform?</h3>
+              <p className="text-sm sm:text-base text-blue-100 mb-4 sm:mb-6">
                 Learn how to create professional safety signage in just 3 easy steps.
               </p>
-              <div className="flex items-center gap-4">
-                <button className="bg-white text-blue-900 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                <button className="bg-white text-blue-900 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors text-sm sm:text-base">
                   Watch Tutorial
                 </button>
-                <button className="bg-blue-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                <button className="bg-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm sm:text-base">
                   View Documentation
                 </button>
               </div>
             </div>
-            <div className="absolute right-8 top-8 opacity-20">
+            <div className="absolute right-4 sm:right-8 top-4 sm:top-8 opacity-20">
               <svg
-                className="w-32 h-32 text-white"
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
