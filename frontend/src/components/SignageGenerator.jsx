@@ -607,50 +607,50 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden">
+        <main className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-3 sm:p-4 md:p-6 lg:p-8 min-w-0 overflow-x-hidden">
           {/* Form Section */}
-          <div className="flex-1 lg:max-w-2xl xl:max-w-3xl space-y-6 lg:space-y-8 overflow-y-auto max-h-[calc(100vh-120px)] lg:max-h-[calc(100vh-140px)] pr-2">
+          <div className="flex-1 lg:max-w-2xl xl:max-w-3xl space-y-4 sm:space-y-6 lg:space-y-8 overflow-y-auto max-h-[calc(100vh-120px)] lg:max-h-[calc(100vh-140px)] pr-1 sm:pr-2">
             {/* Signage Type */}
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">Signage Type</h2>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Signage Type</h2>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
                   onClick={() => setSignageType('safety')}
-                  className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+                  className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
                     signageType === 'safety'
                       ? 'border-red-500 bg-red-50 shadow-lg'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ${
+                  <div className="flex flex-col items-center gap-2 sm:gap-3">
+                    <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
                       signageType === 'safety' ? 'bg-red-500' : 'bg-gray-200'
                     }`}>
                       ⚠️
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-lg text-gray-900">Safety Signage</div>
-                      <div className="text-sm text-gray-600 mt-1">Danger, Warning, etc.</div>
+                      <div className="font-bold text-sm sm:text-base lg:text-lg text-gray-900">Safety Signage</div>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Danger, Warning, etc.</div>
                     </div>
                   </div>
                 </button>
                 <button
                   onClick={() => setSignageType('identification')}
-                  className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+                  className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
                     signageType === 'identification'
                       ? 'border-blue-500 bg-blue-50 shadow-lg'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ${
+                  <div className="flex flex-col items-center gap-2 sm:gap-3">
+                    <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
                       signageType === 'identification' ? 'bg-blue-500' : 'bg-gray-200'
                     }`}>
                       📍
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-lg text-gray-900">Identification</div>
-                      <div className="text-sm text-gray-600 mt-1">Area labels</div>
+                      <div className="font-bold text-sm sm:text-base lg:text-lg text-gray-900">Identification</div>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Area labels</div>
                     </div>
                   </div>
                 </button>
@@ -659,9 +659,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Identification Templates */}
             {signageType === 'identification' && (
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">Colorful Templates</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Colorful Templates</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-h-96 overflow-y-auto pr-1 sm:pr-2">
                   {templates.map((template) => (
                     <button
                       key={template.id}
@@ -672,11 +672,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           icon: template.icon
                         })
                       }}
-                      className={`${template.color} p-4 rounded-xl text-white hover:opacity-90 transition-opacity shadow-md hover:shadow-lg`}
+                      className={`${template.color} p-3 sm:p-4 rounded-lg sm:rounded-xl text-white hover:opacity-90 transition-opacity shadow-md hover:shadow-lg min-h-[100px] sm:min-h-[120px]`}
                     >
-                      <div className="text-3xl mb-2">{template.icon}</div>
-                      <div className="font-bold text-sm mb-1">{template.name}</div>
-                      <div className="text-xs opacity-90">{template.subtitle}</div>
+                      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{template.icon}</div>
+                      <div className="font-bold text-xs sm:text-sm mb-1">{template.name}</div>
+                      <div className="text-[10px] sm:text-xs opacity-90 line-clamp-2">{template.subtitle}</div>
                     </button>
                   ))}
                 </div>
@@ -685,8 +685,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Signage Configuration - Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md space-y-6">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Signage Configuration</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Signage Configuration</h2>
               
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -697,7 +697,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., INLET AREA - HIGH RISK ZONE"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 />
               </div>
 
@@ -768,11 +768,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     onChange={(e) => setNewHazard(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addHazard()}
                     placeholder="Add hazard (e.g., H₂S Gas Present)"
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                   />
                   <button
                     onClick={addHazard}
-                    className="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-md hover:shadow-lg"
+                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] text-lg sm:text-xl"
                   >
                     +
                   </button>
@@ -799,8 +799,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Customize Signage - Identification */}
             {signageType === 'identification' && (
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md space-y-6">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Customize Signage</h2>
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4 sm:space-y-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Customize Signage</h2>
                 
                 {/* Area Name */}
                 <div>
@@ -828,7 +828,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </div>
 
                 {/* Color Pickers */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Background</label>
                     <div className="flex gap-2">
@@ -836,13 +836,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         type="color"
                         value={identificationData.backgroundColor}
                         onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
-                        className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-gray-300 cursor-pointer flex-shrink-0"
                       />
                       <input
                         type="text"
                         value={identificationData.backgroundColor}
                         onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
-                        className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                        className="flex-1 px-2 sm:px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm"
                       />
                     </div>
                   </div>
@@ -853,13 +853,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         type="color"
                         value={identificationData.textColor}
                         onChange={(e) => setIdentificationData({ ...identificationData, textColor: e.target.value })}
-                        className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-gray-300 cursor-pointer flex-shrink-0"
                       />
                       <input
                         type="text"
                         value={identificationData.textColor}
                         onChange={(e) => setIdentificationData({ ...identificationData, textColor: e.target.value })}
-                        className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                        className="flex-1 px-2 sm:px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm"
                       />
                     </div>
                   </div>
@@ -870,13 +870,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         type="color"
                         value={identificationData.iconBgColor}
                         onChange={(e) => setIdentificationData({ ...identificationData, iconBgColor: e.target.value })}
-                        className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-gray-300 cursor-pointer flex-shrink-0"
                       />
                       <input
                         type="text"
                         value={identificationData.iconBgColor}
                         onChange={(e) => setIdentificationData({ ...identificationData, iconBgColor: e.target.value })}
-                        className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                        className="flex-1 px-2 sm:px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm"
                       />
                     </div>
                   </div>
@@ -948,12 +948,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Image Position</label>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {['Top', 'Center', 'Bottom', 'Background'].map((pos) => (
                             <button
                               key={pos}
                               onClick={() => setIdentificationData({ ...identificationData, imagePosition: pos })}
-                              className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 transition-all text-xs sm:text-sm min-h-[44px] ${
                                 identificationData.imagePosition === pos
                                   ? 'bg-blue-600 text-white border-blue-600'
                                   : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
@@ -982,7 +982,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </div>
 
                 {/* Font and Icon Size */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Font: {identificationData.fontSize}px
@@ -1077,13 +1077,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </div>
 
                 {/* Paper Size and Orientation */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Paper Size</label>
                     <select
                       value={formData.size}
                       onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     >
                       <option value="A4">A4 (210 x 297 mm)</option>
                       <option value="A3">A3 (297 x 420 mm)</option>
@@ -1096,7 +1096,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <div className="flex gap-2">
                       <button
                         onClick={() => setIdentificationData({ ...identificationData, orientation: 'Landscape' })}
-                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all ${
+                        className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all text-sm sm:text-base min-h-[44px] ${
                           identificationData.orientation === 'Landscape'
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
@@ -1106,7 +1106,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       </button>
                       <button
                         onClick={() => setIdentificationData({ ...identificationData, orientation: 'Portrait' })}
-                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all ${
+                        className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all text-sm sm:text-base min-h-[44px] ${
                           identificationData.orientation === 'Portrait'
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
@@ -1119,14 +1119,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </div>
 
                 {/* Export Buttons */}
-                <div className="flex gap-3">
-                  <button className="flex-1 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
                     Export PNG
                   </button>
-                  <button className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
+                  <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
                     Export PDF
                   </button>
-                  <button className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg">
+                  <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
                     Print
                   </button>
                 </div>
@@ -1135,12 +1135,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* PPE Required - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                   PPE Required (Multi-Select)
                 </h2>
-                <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-semibold self-start sm:self-auto">
                   {formData.ppe.length} Selected
                 </span>
               </div>
@@ -1170,11 +1170,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       </svg>
                     </button>
                     {expandedPPECategories.includes(category) && (
-                      <div className="p-4 grid grid-cols-2 gap-3 bg-white border-t-2 border-gray-100">
+                      <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 bg-white border-t-2 border-gray-100">
                         {items.map((item) => (
                           <label
                             key={item.id}
-                            className="flex items-center gap-2.5 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 bg-white"
+                            className="flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 bg-white min-h-[44px]"
                           >
                             <input
                               type="checkbox"
@@ -1182,8 +1182,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               onChange={() => togglePPE(item.id)}
                               className="w-5 h-5 text-blue-600 rounded border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 cursor-pointer flex-shrink-0"
                             />
-                            <span className="text-xl flex-shrink-0">{item.icon}</span>
-                            <span className="text-sm font-medium text-gray-700 flex-1 leading-tight">{item.name}</span>
+                            <span className="text-lg sm:text-xl flex-shrink-0">{item.icon}</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-700 flex-1 leading-tight">{item.name}</span>
                           </label>
                         ))}
                       </div>
@@ -1196,8 +1196,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Safety Procedures - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4">Safety Procedures</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Safety Procedures</h2>
               <div className="flex gap-2 mb-3">
                 <input
                   type="text"
@@ -1205,11 +1205,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   onChange={(e) => setNewProcedure(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addProcedure()}
                   placeholder="Add procedure (e.g., Gas test required)"
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 />
                 <button
                   onClick={addProcedure}
-                  className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
+                  className="px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] text-lg sm:text-xl"
                 >
                   +
                 </button>
@@ -1235,21 +1235,21 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Permit Required - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                 <div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">Permit Required</h2>
-                  <p className="text-sm text-gray-600">Enable if a permit is needed for this area</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">Permit Required</h2>
+                  <p className="text-xs sm:text-sm text-gray-600">Enable if a permit is needed for this area</p>
                 </div>
                 <button
                   onClick={() => setFormData({ ...formData, permitRequired: !formData.permitRequired })}
-                  className={`relative w-16 h-8 rounded-full transition-colors ${
+                  className={`relative w-14 h-7 sm:w-16 sm:h-8 rounded-full transition-colors self-start sm:self-auto ${
                     formData.permitRequired ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                      formData.permitRequired ? 'translate-x-8' : 'translate-x-0'
+                    className={`absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                      formData.permitRequired ? 'translate-x-7 sm:translate-x-8' : 'translate-x-0'
                     }`}
                   />
                 </button>
@@ -1259,29 +1259,29 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Emergency Contacts - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md space-y-4">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Emergency Contacts</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-3 sm:space-y-4">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Emergency Contacts</h2>
               
               {formData.emergencyContacts.map((contact, index) => (
-                <div key={index} className="flex gap-2">
+                <div key={index} className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={contact.label}
                     onChange={(e) => updateContact(index, 'label', e.target.value)}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     placeholder="Label"
                   />
                   <input
                     type="text"
                     value={contact.phone}
                     onChange={(e) => updateContact(index, 'phone', e.target.value)}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     placeholder="Phone"
                   />
                   {formData.emergencyContacts.length > 2 && (
                     <button
                       onClick={() => removeContact(index)}
-                      className="px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+                      className="px-4 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl hover:bg-red-700 transition-colors min-h-[44px] text-lg sm:text-xl"
                     >
                       ×
                     </button>
@@ -1291,25 +1291,25 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
               <div className="border-t-2 border-gray-200 pt-4">
                 <div className="text-sm font-semibold text-gray-700 mb-3">Add Contact:</div>
-                <div className="flex gap-2 mb-2">
+                <div className="flex flex-col sm:flex-row gap-2 mb-2">
                   <input
                     type="text"
                     value={newContact.label}
                     onChange={(e) => setNewContact({ ...newContact, label: e.target.value })}
                     placeholder="Label (e.g. Fire Dept)"
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                   />
                   <input
                     type="text"
                     value={newContact.phone}
                     onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
                     placeholder="Phone Number"
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                   />
                 </div>
                 <button
                   onClick={addContact}
-                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                  className="w-full px-4 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]"
                 >
                   Add
                 </button>
@@ -1319,27 +1319,27 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* QR Code Text - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4">QR Code Text (Optional)</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">QR Code Text (Optional)</h2>
               <input
                 type="text"
                 value={formData.qrCodeText}
                 onChange={(e) => setFormData({ ...formData, qrCodeText: e.target.value })}
                 placeholder="URL or text for QR code"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
               />
             </div>
             )}
 
             {/* Size and Resolution - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Select Size</label>
                 <select
                   value={formData.size}
                   onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 >
                   <option value="A4">A4 (210x297 mm)</option>
                   <option value="A3">A3 (297x420 mm)</option>
@@ -1352,7 +1352,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 <select
                   value={formData.resolution}
                   onChange={(e) => setFormData({ ...formData, resolution: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 >
                   <option value="300">Print Quality (300 DPI)</option>
                   <option value="150">Standard (150 DPI)</option>
@@ -1364,11 +1364,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Action Buttons - Only show for Safety */}
             {signageType === 'safety' && (
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md flex flex-col sm:flex-row gap-4">
-              <button className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <button className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[44px] sm:min-h-[52px]">
                 Generate Signage
               </button>
-              <button className="px-6 py-4 bg-blue-100 text-blue-700 rounded-xl font-semibold text-lg hover:bg-blue-200 transition-colors">
+              <button className="px-4 sm:px-6 py-3 sm:py-4 bg-blue-100 text-blue-700 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base lg:text-lg hover:bg-blue-200 transition-colors min-h-[44px] sm:min-h-[52px]">
                 Add Company Branding
               </button>
             </div>
@@ -1376,11 +1376,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           </div>
 
           {/* Live Preview Panel */}
-          <div className="lg:w-96 xl:w-[420px] flex-shrink-0">
-            <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md sticky top-24 lg:top-28">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold">
+          <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md sticky top-20 sm:top-24 lg:top-28">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
+                <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-semibold self-start sm:self-auto">
                   {signageType === 'identification' 
                     ? `${formData.size} • ${identificationData.orientation.toLowerCase()} • ${formData.resolution} DPI`
                     : `${formData.size} - ${formData.resolution}dpi`
@@ -1388,9 +1388,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </span>
               </div>
               
-              <div className="border-4 border-black rounded-lg overflow-hidden mb-6 bg-white">
+              <div className="border-2 sm:border-4 border-black rounded-lg overflow-hidden mb-4 sm:mb-6 bg-white">
                 {signageType === 'safety' ? (
-                  <div className={`${getCategoryColor(formData.category)} p-6 min-h-[400px] flex flex-col`}>
+                  <div className={`${getCategoryColor(formData.category)} p-4 sm:p-6 min-h-[300px] sm:min-h-[400px] flex flex-col`}>
                     {/* Warning Icons */}
                     <div className="flex justify-center gap-4 mb-4">
                       <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl">
@@ -1498,18 +1498,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 )}
               </div>
               
-              <button className="w-full px-6 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 mb-4">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 mb-3 sm:mb-4 text-sm sm:text-base min-h-[44px]">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
                 Print
               </button>
               
-              <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl">
-                <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg sm:rounded-xl">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-sm text-blue-800">
+                <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
                   Signage is optimized to fit all content on a single {formData.size} page. All sections automatically scaled and limited to ensure professional print-ready output.
                 </p>
               </div>

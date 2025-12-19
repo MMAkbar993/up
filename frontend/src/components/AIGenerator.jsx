@@ -326,42 +326,42 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 xl:p-10 min-w-0">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10 min-w-0">
           {/* Page Header */}
-          <div className="mb-6 lg:mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-4 sm:mb-6 lg:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">AI Signage Generator</h1>
-                  <p className="text-sm lg:text-base text-gray-600 mt-1">Describe your signage and let AI create it for you.</p>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">AI Signage Generator</h1>
+                  <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">Describe your signage and let AI create it for you.</p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveNav('dashboard')}
-                className="px-4 lg:px-6 py-2 lg:py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-sm lg:text-base"
+                className="px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 bg-gray-100 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-200 transition-colors text-xs sm:text-sm lg:text-base min-h-[44px] self-start sm:self-auto"
               >
                 Back to Dashboard
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
             {/* Left Column */}
-            <div className="flex-1 space-y-6 lg:space-y-8">
+            <div className="flex-1 space-y-4 sm:space-y-6 lg:space-y-8">
               {/* Describe Your Signage */}
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Describe Your Signage</h2>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Describe Your Signage</h2>
                 </div>
                 <textarea
                   value={description}
@@ -369,12 +369,12 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                   placeholder="Example: Create a warning sign for high voltage area with picture and Arabic text."
                   rows="6"
                   maxLength={500}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-base resize-none"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm sm:text-base resize-none"
                 />
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-sm text-gray-600">{description.length}/500 characters</span>
-                  <button className="px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold text-base lg:text-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+                  <span className="text-xs sm:text-sm text-gray-600">{description.length}/500 characters</span>
+                  <button className="px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 min-h-[44px]">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
                     Generate Signage
@@ -383,24 +383,24 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
               </div>
 
               {/* Example Prompts */}
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
                   </div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Example Prompts</h2>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Example Prompts</h2>
                 </div>
                 <div className="space-y-2">
                   {examplePrompts.map((prompt, index) => (
                     <button
                       key={index}
                       onClick={() => handlePromptClick(prompt)}
-                      className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 border-2 border-gray-200 hover:border-purple-300 rounded-xl transition-all duration-200 flex items-center justify-between group"
+                      className="w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 hover:bg-purple-50 border-2 border-gray-200 hover:border-purple-300 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-between group min-h-[44px]"
                     >
-                      <span className="text-sm lg:text-base text-gray-700 group-hover:text-purple-700">{prompt}</span>
-                      <svg className="w-5 h-5 text-gray-400 group-hover:text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="text-xs sm:text-sm lg:text-base text-gray-700 group-hover:text-purple-700 pr-2">{prompt}</span>
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-purple-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
@@ -409,34 +409,34 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
               </div>
 
               {/* Advanced Options */}
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6">Advanced Options</h2>
-                <div className="space-y-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Advanced Options</h2>
+                <div className="space-y-3 sm:space-y-4">
                   {[
                     { key: 'autoLayout', icon: '🏢', label: 'Auto Layout', desc: 'AI optimizes layout automatically', bgColor: 'bg-blue-100' },
                     { key: 'includeImage', icon: '🖼️', label: 'Include Image/Icon', desc: 'Add relevant safety icons', bgColor: 'bg-green-100' },
                     { key: 'autoContrast', icon: '☀️', label: 'Auto Contrast Adjustment', desc: 'Optimize for readability', bgColor: 'bg-orange-100' },
                     { key: 'autoTextResizing', icon: 'T', label: 'Auto Text Resizing', desc: 'Fit text to available space', bgColor: 'bg-blue-100' }
                   ].map((option) => (
-                    <div key={option.key} className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-xl hover:border-purple-300 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 ${option.bgColor} rounded-lg flex items-center justify-center text-xl`}>
+                    <div key={option.key} className="flex items-center justify-between p-3 sm:p-4 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-300 transition-colors">
+                      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${option.bgColor} rounded-lg flex items-center justify-center text-lg sm:text-xl flex-shrink-0`}>
                           {option.icon}
                         </div>
-                        <div>
-                          <div className="font-semibold text-gray-900">{option.label}</div>
-                          <div className="text-sm text-gray-600">{option.desc}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm sm:text-base text-gray-900">{option.label}</div>
+                          <div className="text-xs sm:text-sm text-gray-600">{option.desc}</div>
                         </div>
                       </div>
                       <button
                         onClick={() => toggleAdvancedOption(option.key)}
-                        className={`relative w-14 h-8 rounded-full transition-colors ${
+                        className={`relative w-12 h-7 sm:w-14 sm:h-8 rounded-full transition-colors flex-shrink-0 ${
                           advancedOptions[option.key] ? 'bg-purple-600' : 'bg-gray-300'
                         }`}
                       >
                         <span
-                          className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                            advancedOptions[option.key] ? 'translate-x-6' : 'translate-x-0'
+                          className={`absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                            advancedOptions[option.key] ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0'
                           }`}
                         />
                       </button>
@@ -446,21 +446,21 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
               </div>
 
               {/* How AI Generation Works */}
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6">How AI Generation Works</h2>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">How AI Generation Works</h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {[
                     { step: '1', icon: 'T', label: 'Describe', desc: 'Tell AI what you need', bgColor: 'bg-purple-100' },
                     { step: '2', icon: '⚡', label: 'AI Analyzes', desc: 'Understands requirements', bgColor: 'bg-purple-100' },
                     { step: '3', icon: '🏢', label: 'Auto-Design', desc: 'Generates layout & content', bgColor: 'bg-blue-100' },
                     { step: '4', icon: '⚡', label: 'Export', desc: 'Download ready signage', bgColor: 'bg-green-100' }
                   ].map((item) => (
-                    <div key={item.step} className="text-center p-4 bg-gray-50 rounded-xl">
-                      <div className={`w-12 h-12 ${item.bgColor} rounded-lg flex items-center justify-center text-xl mx-auto mb-3`}>
+                    <div key={item.step} className="text-center p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 ${item.bgColor} rounded-lg flex items-center justify-center text-lg sm:text-xl mx-auto mb-2 sm:mb-3`}>
                         {item.icon}
                       </div>
-                      <div className="font-bold text-gray-900 mb-1">{item.label}</div>
-                      <div className="text-sm text-gray-600">{item.desc}</div>
+                      <div className="font-bold text-xs sm:text-sm text-gray-900 mb-1">{item.label}</div>
+                      <div className="text-xs sm:text-sm text-gray-600">{item.desc}</div>
                     </div>
                   ))}
                 </div>
@@ -468,21 +468,21 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
             </div>
 
             {/* Right Column */}
-            <div className="lg:w-80 xl:w-96 flex-shrink-0 space-y-6">
+            <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 space-y-4 sm:space-y-6">
               {/* Language */}
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span className="text-purple-600 font-bold">T</span>
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-purple-600 font-bold text-sm sm:text-base">T</span>
                   </div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Language</h2>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Language</h2>
                 </div>
                 <div className="space-y-2">
                   {languages.map((lang) => (
                     <button
                       key={lang.code + lang.name}
                       onClick={() => setSelectedLanguage(`${lang.code} ${lang.name}`)}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${
+                      className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-200 min-h-[44px] ${
                         selectedLanguage === `${lang.code} ${lang.name}`
                           ? 'bg-purple-600 text-white shadow-md'
                           : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
@@ -490,15 +490,15 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-semibold">{lang.code} {lang.name}</div>
+                          <div className="font-semibold text-sm sm:text-base">{lang.code} {lang.name}</div>
                           {lang.native !== lang.name && (
-                            <div className={`text-sm ${selectedLanguage === `${lang.code} ${lang.name}` ? 'text-purple-100' : 'text-gray-500'}`}>
+                            <div className={`text-xs sm:text-sm ${selectedLanguage === `${lang.code} ${lang.name}` ? 'text-purple-100' : 'text-gray-500'}`}>
                               {lang.native}
                             </div>
                           )}
                         </div>
                         {selectedLanguage === `${lang.code} ${lang.name}` && (
-                          <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full flex-shrink-0"></div>
                         )}
                       </div>
                     </button>
@@ -507,9 +507,9 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
               </div>
 
               {/* AI Features */}
-              <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 lg:p-8 shadow-md text-white">
-                <h2 className="text-xl lg:text-2xl font-bold mb-4">AI Features</h2>
-                <ul className="space-y-3">
+              <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md text-white">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4">AI Features</h2>
+                <ul className="space-y-2 sm:space-y-3">
                   {[
                     'Auto-suggest hazard category',
                     'Auto-select appropriate icons',
@@ -519,24 +519,24 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                     'ISO 7010 compliance check'
                   ].map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="text-sm lg:text-base">{feature}</span>
+                      <span className="text-xs sm:text-sm lg:text-base">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               {/* Upload Custom Image */}
-              <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4">Upload Custom Image</h2>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors cursor-pointer">
-                  <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Upload Custom Image</h2>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-6 sm:p-8 text-center hover:border-purple-400 transition-colors cursor-pointer min-h-[200px] sm:min-h-[240px] flex flex-col items-center justify-center">
+                  <svg className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <p className="text-gray-700 font-medium mb-2">Click to upload</p>
-                  <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+                  <p className="text-gray-700 font-medium mb-1 sm:mb-2 text-sm sm:text-base">Click to upload</p>
+                  <p className="text-xs sm:text-sm text-gray-500">PNG, JPG up to 10MB</p>
                 </div>
               </div>
             </div>
