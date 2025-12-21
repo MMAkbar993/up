@@ -4,6 +4,7 @@ import AIGenerator from './AIGenerator'
 import AuthorizedPersons from './AuthorizedPersons'
 import EmergencyTeam from './EmergencyTeam'
 import Blog from './Blog'
+import TemplateLibrary from './TemplateLibrary'
 
 const Dashboard = () => {
   const [activeNav, setActiveNav] = useState('dashboard')
@@ -32,6 +33,11 @@ const Dashboard = () => {
   // If Blog is selected, show that component
   if (activeNav === 'blog') {
     return <Blog activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+  }
+  
+  // If Template Library is selected, show that component
+  if (activeNav === 'templates') {
+    return <TemplateLibrary activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
 
   return (

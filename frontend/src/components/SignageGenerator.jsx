@@ -1390,43 +1390,57 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               
               <div className="border-2 sm:border-4 border-black rounded-lg overflow-hidden mb-4 sm:mb-6 bg-white">
                 {signageType === 'safety' ? (
-                  <div className={`${getCategoryColor(formData.category)} p-4 sm:p-6 min-h-[300px] sm:min-h-[400px] flex flex-col`}>
-                    {/* Warning Icons */}
-                    <div className="flex justify-center gap-4 mb-4">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl">
-                        ⚠️
+                  <div className="flex flex-col min-h-[300px] sm:min-h-[400px]">
+                    {/* Top Red Section */}
+                    <div className={`${getCategoryColor(formData.category)} p-4 sm:p-6 flex flex-col`}>
+                      {/* Warning Icons */}
+                      <div className="flex justify-center gap-4 mb-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
+                          <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+                          </svg>
+                        </div>
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
+                          <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+                          </svg>
+                        </div>
                       </div>
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl">
-                        ⚠️
+                      
+                      {/* Title */}
+                      <div className="text-center">
+                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase">
+                          {formData.title || 'SIGNAGE TITLE'}
+                        </h3>
                       </div>
                     </div>
                     
-                    {/* Title */}
-                    <div className="text-center mb-4">
-                      <h3 className="text-2xl lg:text-3xl font-bold text-white uppercase">
-                        {formData.title || 'SIGNAGE TITLE'}
-                      </h3>
-                    </div>
-                    
-                    {/* Emergency Bar */}
+                    {/* Orange Emergency Bar */}
                     {formData.emergencyContacts.length > 0 && (
-                      <div className="bg-orange-500 px-4 py-2 mb-4 rounded">
-                        <p className="text-white font-bold text-center text-lg">EMERGENCY</p>
+                      <div className="bg-orange-500 px-4 py-2 sm:py-3 flex items-center gap-2">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        <p className="text-white font-bold text-base sm:text-lg">EMERGENCY</p>
                       </div>
                     )}
                     
-                    {/* Emergency Contacts */}
-                    <div className="space-y-2 mb-4 text-white">
-                      {formData.emergencyContacts.map((contact, index) => (
-                        <div key={index} className="text-center">
-                          <span className="font-semibold">{contact.label}: {contact.phone}</span>
+                    {/* Light Orange/Beige Information Section */}
+                    {formData.emergencyContacts.length > 0 && (
+                      <div className="bg-orange-100 px-4 py-3 sm:py-4 flex-1">
+                        <div className="space-y-1 sm:space-y-2 text-gray-900">
+                          {formData.emergencyContacts.map((contact, index) => (
+                            <div key={index} className="text-sm sm:text-base font-medium">
+                              {contact.label}: {contact.phone}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                     
-                    {/* Footer */}
-                    <div className="mt-auto bg-black px-4 py-2 rounded-b">
-                      <p className="text-white text-xs text-center">
+                    {/* Bottom Black Compliance Section */}
+                    <div className="bg-black px-4 py-2 sm:py-3">
+                      <p className="text-white text-xs sm:text-sm text-center uppercase">
                         ISO 7010 COMPLIANT - LAST UPDATED: DECEMBER 2025 - REVIEW ANNUALLY
                       </p>
                     </div>
