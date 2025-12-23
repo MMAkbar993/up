@@ -5,6 +5,7 @@ import AuthorizedPersons from './AuthorizedPersons'
 import EmergencyTeam from './EmergencyTeam'
 import Blog from './Blog'
 import TemplateLibrary from './TemplateLibrary'
+import CustomizeSignage from './CustomizeSignage'
 
 const Dashboard = () => {
   const [activeNav, setActiveNav] = useState('dashboard')
@@ -39,12 +40,17 @@ const Dashboard = () => {
   if (activeNav === 'templates') {
     return <TemplateLibrary activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
+  
+  // If Customize Signage is selected, show that component
+  if (activeNav === 'customize-signage') {
+    return <CustomizeSignage activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm px-4 md:px-6 lg:px-8 py-3 md:py-4 lg:py-5 sticky top-0 z-50">
-        <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between gap-4 max-w-[1920px] mx-auto">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Mobile Menu Button */}
             <button
@@ -102,7 +108,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <div className="flex relative max-w-7xl mx-auto">
+      <div className="flex relative w-full">
         {/* Mobile Overlay */}
         {sidebarOpen && (
           <div
@@ -113,7 +119,7 @@ const Dashboard = () => {
 
         {/* Sidebar */}
         <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto flex-shrink-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
         >
@@ -252,6 +258,27 @@ const Dashboard = () => {
                   Auto-create with AI.
                 </div>
               </div>
+              <div
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                  activeNav === 'customize-signage'
+                    ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
+                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
+                }`}
+                onClick={() => {
+                  setActiveNav('customize-signage')
+                  setSidebarOpen(false)
+                }}
+              >
+                <div className="flex items-center gap-3 lg:gap-4">
+                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span className="font-semibold text-sm lg:text-base">Customize Signage</span>
+                </div>
+                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
+                  Upload, edit, and customize.
+                </div>
+              </div>
             </div>
 
             {/* MANAGE PERSONNEL Section */}
@@ -315,7 +342,7 @@ const Dashboard = () => {
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
-                  <span className="font-semibold text-sm lg:text-base">Emergency Team</span>
+                  <span className="font-semibold text-sm lg:text-base">Safety Team</span>
                   <svg
                     className="w-4 h-4 lg:w-5 lg:h-5 ml-auto"
                     fill="none"
@@ -329,9 +356,6 @@ const Dashboard = () => {
                       d="M19 9l-7 7-7-7"
                     />
                   </svg>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Emergency response
                 </div>
               </div>
             </div>
@@ -411,7 +435,7 @@ const Dashboard = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 w-full min-w-0">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 w-full min-w-0 max-w-[1920px] mx-auto">
           {/* Welcome Section */}
           <div className="mb-6 md:mb-8 lg:mb-10">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 lg:mb-4 leading-tight">

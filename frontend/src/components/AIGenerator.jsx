@@ -469,43 +469,6 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
 
             {/* Right Column */}
             <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 space-y-4 sm:space-y-6">
-              {/* Language */}
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 font-bold text-sm sm:text-base">T</span>
-                  </div>
-                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Language</h2>
-                </div>
-                <div className="space-y-2">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code + lang.name}
-                      onClick={() => setSelectedLanguage(`${lang.code} ${lang.name}`)}
-                      className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-200 min-h-[44px] ${
-                        selectedLanguage === `${lang.code} ${lang.name}`
-                          ? 'bg-purple-600 text-white shadow-md'
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-sm sm:text-base">{lang.code} {lang.name}</div>
-                          {lang.native !== lang.name && (
-                            <div className={`text-xs sm:text-sm ${selectedLanguage === `${lang.code} ${lang.name}` ? 'text-purple-100' : 'text-gray-500'}`}>
-                              {lang.native}
-                            </div>
-                          )}
-                        </div>
-                        {selectedLanguage === `${lang.code} ${lang.name}` && (
-                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full flex-shrink-0"></div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* AI Features */}
               <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md text-white">
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4">AI Features</h2>

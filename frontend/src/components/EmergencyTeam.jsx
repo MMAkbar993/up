@@ -1,16 +1,10 @@
 import { useState } from 'react'
 
 const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
-  const [selectedPlan, setSelectedPlan] = useState('Fire Risk')
   const [safetyCommittee, setSafetyCommittee] = useState([])
   const [clientLogo, setClientLogo] = useState(null)
   const [contractorLogo, setContractorLogo] = useState(null)
-
-  const planTypes = [
-    { id: 'fire-risk', name: 'Fire Risk', icon: '🔥', borderColor: 'border-red-500', bgColor: 'bg-red-50' },
-    { id: 'fire-emergency', name: 'Emergency Response Plan In case of fire', icon: '⚠️', borderColor: 'border-orange-500', bgColor: 'bg-orange-50' },
-    { id: 'chlorine-leakage', name: 'Emergency Response Plan In case of chlorine leakage', icon: '💧', borderColor: 'border-blue-500', bgColor: 'bg-blue-50' }
-  ]
+  const [showOrgChart, setShowOrgChart] = useState(false)
 
   const handleLogoUpload = (type, file) => {
     if (type === 'client') {
@@ -26,9 +20,21 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
       name: '',
       role: '',
       phone: '',
-      email: ''
+      email: '',
+      parentId: null,
+      photo: null
     }
     setSafetyCommittee([...safetyCommittee, newMember])
+  }
+
+  const handleMemberPhotoUpload = (memberId, file) => {
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        updateCommitteeMember(memberId, 'photo', reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const updateCommitteeMember = (id, field, value) => {
@@ -38,7 +44,155 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
   }
 
   const removeCommitteeMember = (id) => {
-    setSafetyCommittee(prev => prev.filter(member => member.id !== id))
+    setSafetyCommittee(prev => {
+      // Remove the member and also remove any parent references
+      return prev.filter(member => member.id !== id).map(member => 
+        member.parentId === id ? { ...member, parentId: null } : member
+      )
+    })
+  }
+
+  const buildOrgChart = () => {
+    const rootMembers = safetyCommittee.filter(m => !m.parentId)
+    const buildTree = (parentId) => {
+      return safetyCommittee
+        .filter(m => m.parentId === parentId)
+        .map(member => ({
+          ...member,
+          children: buildTree(member.id)
+        }))
+    }
+    return rootMembers.map(root => ({
+      ...root,
+      children: buildTree(root.id)
+    }))
+  }
+
+  const orgChartData = buildOrgChart()
+
+  // Organization Chart Node Component
+  const OrgChartNode = ({ members, allMembers, onUpdateMember, onRemoveMember, onSetParent, onPhotoUpload, level = 0 }) => {
+    if (!members || members.length === 0) return null
+
+    return (
+      <div className="flex flex-col items-center w-full">
+        {/* Current Level Members */}
+        <div className="flex gap-6 items-start justify-center flex-wrap">
+          {members.map((member) => (
+            <div key={member.id} className="flex flex-col items-center relative">
+              {/* Connecting Vertical Line from parent */}
+              {level > 0 && (
+                <div className="w-0.5 h-6 bg-blue-400 mb-2"></div>
+              )}
+              
+              {/* Member Card */}
+              <div className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-lg min-w-[200px] max-w-[220px]">
+                <div className="text-center mb-3">
+                  {/* Photo */}
+                  <div className="mb-3 flex justify-center">
+                    {member.photo ? (
+                      <div className="relative">
+                        <img 
+                          src={member.photo} 
+                          alt={member.name || 'Member'} 
+                          className="w-20 h-20 rounded-full object-cover border-2 border-blue-500"
+                        />
+                        <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files[0]) {
+                                onPhotoUpload(member.id, e.target.files[0])
+                              }
+                              e.target.value = ''
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer">
+                        <div className="w-20 h-20 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
+                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files[0]) {
+                              onPhotoUpload(member.id, e.target.files[0])
+                            }
+                            e.target.value = ''
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <div className="font-bold text-gray-900 text-base mb-1">
+                    {member.name || 'Unnamed Member'}
+                  </div>
+                  <div className="text-sm text-blue-600 font-medium mb-1">
+                    {member.role || 'No Role'}
+                  </div>
+                  {member.phone && (
+                    <div className="text-xs text-gray-500">{member.phone}</div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <select
+                    value={member.parentId || ''}
+                    onChange={(e) => onSetParent(member.id, e.target.value || null)}
+                    className="text-xs px-2 py-1.5 border border-gray-300 rounded-lg bg-gray-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="">Change Parent</option>
+                    {allMembers.filter(m => m.id !== member.id).map(parent => (
+                      <option key={parent.id} value={parent.id}>
+                        {parent.name || parent.role || 'Member'}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => onRemoveMember(member.id)}
+                    className="px-2 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+
+              {/* Connecting Line to Children */}
+              {member.children && member.children.length > 0 && (
+                <div className="w-0.5 h-6 bg-blue-400 mt-2"></div>
+              )}
+
+              {/* Children Level - Recursive */}
+              {member.children && member.children.length > 0 && (
+                <div className="mt-2 pt-2">
+                  <OrgChartNode
+                    members={member.children}
+                    allMembers={allMembers}
+                    onUpdateMember={onUpdateMember}
+                    onRemoveMember={onRemoveMember}
+                    onSetParent={onSetParent}
+                    onPhotoUpload={onPhotoUpload}
+                    level={level + 1}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   const roles = [
@@ -376,35 +530,22 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md border-2 border-gray-200">
                 <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6">Settings</h2>
 
-                {/* Plan Type */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Plan Type</h3>
-                  <div className="space-y-3">
-                    {planTypes.map((plan) => (
-                      <button
-                        key={plan.id}
-                        onClick={() => setSelectedPlan(plan.name)}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                          selectedPlan === plan.name
-                            ? `${plan.borderColor} ${plan.bgColor} shadow-md`
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{plan.icon}</span>
-                          <span className="font-medium text-gray-900 text-sm lg:text-base">{plan.name}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Safety Committee */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Safety Committee</h3>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600">{safetyCommittee.length} members</span>
+                      <button
+                        onClick={() => setShowOrgChart(!showOrgChart)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          showOrgChart 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {showOrgChart ? 'List View' : 'Org Chart'}
+                      </button>
                       <button
                         onClick={addCommitteeMember}
                         className="w-8 h-8 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
@@ -416,41 +557,134 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                     </div>
                   </div>
                   {safetyCommittee.length > 0 && (
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {safetyCommittee.map((member) => (
-                        <div key={member.id} className="p-3 border-2 border-gray-200 rounded-lg">
-                          <input
-                            type="text"
-                            placeholder="Name"
-                            value={member.name}
-                            onChange={(e) => updateCommitteeMember(member.id, 'name', e.target.value)}
-                            className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Role"
-                            value={member.role}
-                            onChange={(e) => updateCommitteeMember(member.id, 'role', e.target.value)}
-                            className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <div className="flex gap-2">
-                            <input
-                              type="tel"
-                              placeholder="Phone"
-                              value={member.phone}
-                              onChange={(e) => updateCommitteeMember(member.id, 'phone', e.target.value)}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    <>
+                      {showOrgChart ? (
+                        /* Organization Chart View */
+                        <div className="space-y-6 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg">
+                          {orgChartData.length > 0 ? (
+                            <OrgChartNode 
+                              members={orgChartData} 
+                              allMembers={safetyCommittee}
+                              onUpdateMember={updateCommitteeMember}
+                              onRemoveMember={removeCommitteeMember}
+                              onSetParent={(childId, parentId) => {
+                                updateCommitteeMember(childId, 'parentId', parentId)
+                              }}
+                              onPhotoUpload={handleMemberPhotoUpload}
                             />
-                            <button
-                              onClick={() => removeCommitteeMember(member.id)}
-                              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
-                            >
-                              ×
-                            </button>
-                          </div>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              <p>No organization structure yet. Set parent relationships to build the chart.</p>
+                            </div>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      ) : (
+                        /* List View */
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {safetyCommittee.map((member) => (
+                            <div key={member.id} className="p-3 border-2 border-gray-200 rounded-lg">
+                              {/* Photo Upload */}
+                              <div className="mb-3 flex justify-center">
+                                {member.photo ? (
+                                  <div className="relative">
+                                    <img 
+                                      src={member.photo} 
+                                      alt={member.name || 'Member'} 
+                                      className="w-16 h-16 rounded-full object-cover border-2 border-blue-500"
+                                    />
+                                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      </svg>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          if (e.target.files[0]) {
+                                            handleMemberPhotoUpload(member.id, e.target.files[0])
+                                          }
+                                          e.target.value = ''
+                                        }}
+                                        className="hidden"
+                                      />
+                                    </label>
+                                    <button
+                                      onClick={() => updateCommitteeMember(member.id, 'photo', null)}
+                                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="cursor-pointer">
+                                    <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
+                                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                      </svg>
+                                    </div>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => {
+                                        if (e.target.files[0]) {
+                                          handleMemberPhotoUpload(member.id, e.target.files[0])
+                                        }
+                                        e.target.value = ''
+                                      }}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                )}
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Name"
+                                value={member.name}
+                                onChange={(e) => updateCommitteeMember(member.id, 'name', e.target.value)}
+                                className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Role"
+                                value={member.role}
+                                onChange={(e) => updateCommitteeMember(member.id, 'role', e.target.value)}
+                                className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              />
+                              <div className="mb-2">
+                                <select
+                                  value={member.parentId || ''}
+                                  onChange={(e) => updateCommitteeMember(member.id, 'parentId', e.target.value || null)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                >
+                                  <option value="">No Parent (Top Level)</option>
+                                  {safetyCommittee.filter(m => m.id !== member.id).map(parent => (
+                                    <option key={parent.id} value={parent.id}>
+                                      {parent.name || parent.role || `Member ${parent.id}`}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="tel"
+                                  placeholder="Phone"
+                                  value={member.phone}
+                                  onChange={(e) => updateCommitteeMember(member.id, 'phone', e.target.value)}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                />
+                                <button
+                                  onClick={() => removeCommitteeMember(member.id)}
+                                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -542,7 +776,7 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                 <div className="space-y-6">
                   {/* Title */}
                   <div>
-                    <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{selectedPlan}</h3>
+                    <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Safety Team</h3>
                     <p className="text-base lg:text-lg text-gray-700">
                       Why Run an Electricity Safety? 1.Fire prevention 2.Fire safety 3.Firefighting and what to do in case of a fire
                     </p>
@@ -616,12 +850,21 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                     {safetyCommittee.length === 0 ? (
                       <p className="text-gray-600 italic">Add safety committee members</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {safetyCommittee.map((member) => (
-                          <div key={member.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="font-semibold text-gray-900">{member.name || 'Unnamed Member'}</div>
-                            {member.role && <div className="text-sm text-gray-600">{member.role}</div>}
-                            {member.phone && <div className="text-sm text-gray-600">Phone: {member.phone}</div>}
+                          <div key={member.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-3">
+                            {member.photo && (
+                              <img 
+                                src={member.photo} 
+                                alt={member.name || 'Member'} 
+                                className="w-12 h-12 rounded-full object-cover border-2 border-blue-500 flex-shrink-0"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <div className="font-semibold text-gray-900">{member.name || 'Unnamed Member'}</div>
+                              {member.role && <div className="text-sm text-gray-600">{member.role}</div>}
+                              {member.phone && <div className="text-sm text-gray-600">Phone: {member.phone}</div>}
+                            </div>
                           </div>
                         ))}
                       </div>
