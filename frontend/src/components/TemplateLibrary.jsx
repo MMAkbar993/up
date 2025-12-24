@@ -8,6 +8,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
   const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
   const [currentPage, setCurrentPage] = useState(1)
   const [favorites, setFavorites] = useState(new Set())
+  const [previewTemplate, setPreviewTemplate] = useState(null)
 
   const templates = [
     { id: 1, title: 'Hot Work - Welding, Cutting & Grinding', description: 'Welding, cutting, and grinding operations', riskLevel: 'HIGH', categories: ['General', 'Popular'], icon: '🔥', iconColor: 'text-red-600', industry: 'General' },
@@ -534,7 +535,11 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                         </svg>
                         Use Template
                       </button>
-                      <button className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                      <button 
+                        onClick={() => setPreviewTemplate(template)}
+                        className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        title="Preview Template"
+                      >
                         <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -584,7 +589,11 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                           </svg>
                           Use Template
                         </button>
-                        <button className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <button 
+                          onClick={() => setPreviewTemplate(template)}
+                          className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          title="Preview Template"
+                        >
                           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -630,6 +639,100 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
           )}
         </main>
       </div>
+
+      {/* Preview Modal */}
+      {previewTemplate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setPreviewTemplate(null)}>
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
+              <h2 className="text-xl font-bold text-gray-900">{previewTemplate.title}</h2>
+              <button
+                onClick={() => setPreviewTemplate(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              {/* Signage Preview */}
+              <div className="bg-white border-4 border-black rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '4/3', minHeight: '400px' }}>
+                <div className="h-full flex flex-col">
+                  {/* Top Section - Category Color */}
+                  <div className={`flex-1 flex flex-col items-center justify-center p-8 ${
+                    previewTemplate.riskLevel === 'HIGH' ? 'bg-red-600' :
+                    previewTemplate.riskLevel === 'MEDIUM' ? 'bg-yellow-500' :
+                    'bg-blue-600'
+                  }`}>
+                    {/* Icon */}
+                    <div className="text-8xl mb-4">{previewTemplate.icon}</div>
+                    {/* Title */}
+                    <h3 className="text-white font-bold text-3xl text-center uppercase mb-4">
+                      {previewTemplate.title}
+                    </h3>
+                    {/* Description */}
+                    <p className="text-white text-lg text-center max-w-2xl">
+                      {previewTemplate.description}
+                    </p>
+                  </div>
+                  
+                  {/* Bottom Section - Info */}
+                  <div className="bg-gray-100 px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+                          previewTemplate.riskLevel === 'HIGH' ? 'bg-red-100 text-red-800 border-red-300' :
+                          previewTemplate.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                          'bg-blue-100 text-blue-800 border-blue-300'
+                        }`}>
+                          {previewTemplate.riskLevel} RISK
+                        </span>
+                        <span className="text-sm text-gray-600">{previewTemplate.industry}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        ISO 7010 COMPLIANT
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Template Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Template Details</h4>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p><strong>Industry:</strong> {previewTemplate.industry}</p>
+                  <p><strong>Categories:</strong> {previewTemplate.categories.join(', ')}</p>
+                  <p><strong>Risk Level:</strong> {previewTemplate.riskLevel}</p>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    handleUseTemplate(previewTemplate)
+                    setPreviewTemplate(null)
+                  }}
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Use This Template
+                </button>
+                <button
+                  onClick={() => setPreviewTemplate(null)}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

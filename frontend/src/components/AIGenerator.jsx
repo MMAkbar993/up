@@ -469,39 +469,7 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
 
             {/* Right Column */}
             <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 space-y-4 sm:space-y-6">
-              {/* AI Features */}
-              <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md text-white">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4">AI Features</h2>
-                <ul className="space-y-2 sm:space-y-3">
-                  {[
-                    'Auto-suggest hazard category',
-                    'Auto-select appropriate icons',
-                    'Auto-generate color themes',
-                    'Multilingual text generation',
-                    'Smart layout optimization',
-                    'ISO 7010 compliance check'
-                  ].map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-xs sm:text-sm lg:text-base">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
 
-              {/* Upload Custom Image */}
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Upload Custom Image</h2>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-6 sm:p-8 text-center hover:border-purple-400 transition-colors cursor-pointer min-h-[200px] sm:min-h-[240px] flex flex-col items-center justify-center">
-                  <svg className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <p className="text-gray-700 font-medium mb-1 sm:mb-2 text-sm sm:text-base">Click to upload</p>
-                  <p className="text-xs sm:text-sm text-gray-500">PNG, JPG up to 10MB</p>
-                </div>
-              </div>
             </div>
           </div>
         </main>

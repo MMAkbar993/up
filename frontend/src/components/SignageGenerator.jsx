@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   const [signageType, setSignageType] = useState('safety')
@@ -14,7 +14,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     permitRequired: false,
     permitType: '',
     emergencyContacts: [
-      { label: 'Emergency', phone: '911' },
       { label: 'Safety Officer', phone: '+1 (555) 123-4567' }
     ],
     qrCodeText: '',
@@ -39,9 +38,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     clientLogoPosition: { x: 10, y: 10 }, // percentage
     contractorLogoPosition: { x: 90, y: 10 }, // percentage
     clientLogoSize: 80, // pixels
-    contractorLogoSize: 80 // pixels
+    contractorLogoSize: 80, // pixels
+    clientLogoLocked: false,
+    contractorLogoLocked: false,
+    brandColors: []
   })
   const [draggingLogo, setDraggingLogo] = useState(null) // 'client' or 'contractor'
+  const [resizingLogo, setResizingLogo] = useState(null) // 'client' or 'contractor'
+  const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
 
   // Identification form data
   const [identificationData, setIdentificationData] = useState({
@@ -69,6 +73,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     orientation: 'Landscape'
   })
   const [draggingElement, setDraggingElement] = useState(null) // 'icon' or 'text'
+  const previewRef = useRef(null) // Ref for the preview container
 
   // AI Generation workflow state
   const [aiGenerationStep, setAiGenerationStep] = useState(1) // 1: Describe, 2: Analyze, 3: Design, 4: Export
@@ -90,6 +95,121 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [manualTextSize, setManualTextSize] = useState(24) // 12-72
   const [aiSelectedIcons, setAiSelectedIcons] = useState([null, null]) // Two icon slots for AI generation
   const [uploadedCustomImage, setUploadedCustomImage] = useState(null) // For custom image upload
+
+  // ========== NEW COMPREHENSIVE FEATURES STATE ==========
+  
+  // Text Editing State
+  const [textElements, setTextElements] = useState([]) // Array of text elements with full editing capabilities
+  const [selectedTextElement, setSelectedTextElement] = useState(null)
+  const [textEditorOpen, setTextEditorOpen] = useState(false)
+  
+  // Image & Icon Editing State
+  const [imageElements, setImageElements] = useState([]) // Array of image elements
+  const [selectedImageElement, setSelectedImageElement] = useState(null)
+  const [imageEditorOpen, setImageEditorOpen] = useState(false)
+  
+  // Panel visibility state
+  const [backgroundPanelOpen, setBackgroundPanelOpen] = useState(false)
+  const [sizeLayoutPanelOpen, setSizeLayoutPanelOpen] = useState(false)
+  const [authorizedPersonsPanelOpen, setAuthorizedPersonsPanelOpen] = useState(false)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [isoIconModalOpen, setIsoIconModalOpen] = useState(false)
+  const [signageLibraryOpen, setSignageLibraryOpen] = useState(false)
+  const [copiedElement, setCopiedElement] = useState(null)
+  
+  // Design Mode State
+  const [designMode, setDesignMode] = useState('template') // 'template' or 'free'
+  const [canvasElements, setCanvasElements] = useState([]) // All elements on canvas
+  
+  // Undo/Redo State
+  const [history, setHistory] = useState([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  
+  // Preview & Zoom State
+  const [previewZoom, setPreviewZoom] = useState(100)
+  const [showFullScreenPreview, setShowFullScreenPreview] = useState(false)
+  
+  // Grid & Snap State
+  const [showGrid, setShowGrid] = useState(false)
+  const [snapToGrid, setSnapToGrid] = useState(true)
+  const [gridSize, setGridSize] = useState(10)
+  
+  // Export State
+  const [exportSettings, setExportSettings] = useState({
+    format: 'PDF',
+    dpi: 300,
+    colorMode: 'RGB',
+    includeBleed: true,
+    bleedSize: 3 // mm
+  })
+  
+  // Authorized Persons State
+  const [authorizedPersons, setAuthorizedPersons] = useState([])
+  const [authorizedPersonsLayout, setAuthorizedPersonsLayout] = useState({
+    gridColumns: 2,
+    gridRows: 3,
+    style: 'badge', // 'badge' or 'poster'
+    showQR: true,
+    frameStyle: 'rounded'
+  })
+  
+  // Saved Signages State
+  const [savedSignages, setSavedSignages] = useState(() => {
+    // Load from localStorage on mount
+    try {
+      const saved = localStorage.getItem('savedSignages')
+      return saved ? JSON.parse(saved) : []
+    } catch (error) {
+      console.error('Error loading saved signages:', error)
+      return []
+    }
+  })
+  
+  // Auto-save current work state
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
+  const [lastAutoSave, setLastAutoSave] = useState(null)
+  const [favoriteSignages, setFavoriteSignages] = useState([])
+  
+  // ISO 7010 & Safety Standards
+  const [iso7010Icons, setIso7010Icons] = useState([])
+  const [colorCompliance, setColorCompliance] = useState({
+    enabled: true,
+    warnings: []
+  })
+  
+  // Background & Color State
+  const [backgroundSettings, setBackgroundSettings] = useState({
+    type: 'solid', // 'solid', 'gradient', 'image'
+    color: '#FFFFFF',
+    gradient: {
+      type: 'linear',
+      colors: ['#FFFFFF', '#F3F4F6'],
+      angle: 0
+    },
+    image: null,
+    opacity: 100
+  })
+  
+  // High Contrast & Accessibility
+  const [highContrastMode, setHighContrastMode] = useState(false)
+  const [contrastRatio, setContrastRatio] = useState(null)
+  
+  // Language & Translation
+  const [currentLanguage, setCurrentLanguage] = useState('en')
+  const [textTranslations, setTextTranslations] = useState({})
+  
+  // AI Features State
+  const [aiIconSuggestions, setAiIconSuggestions] = useState([])
+  const [voiceToTextEnabled, setVoiceToTextEnabled] = useState(false)
+  
+  // Version History
+  const [versionHistory, setVersionHistory] = useState([])
+  
+  // Role-based Access (for future)
+  const [userRole, setUserRole] = useState('editor') // 'viewer', 'editor', 'admin'
+  
+  // Audit Trail
+  const [auditLog, setAuditLog] = useState([])
 
   const templates = [
     { id: 'inlet', name: 'INLET AREA', icon: '💧', color: 'bg-blue-500', subtitle: 'Water treatment facility entrance' },
@@ -117,6 +237,312 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
     return iconMap[iconType] || '💧'
   }
+
+  // ========== ISO 7010 COLOR PRESETS ==========
+  const iso7010Colors = {
+    'Mandatory': { bg: '#0052CC', text: '#FFFFFF', name: 'Blue (Mandatory)' },
+    'Prohibition': { bg: '#DC2626', text: '#FFFFFF', name: 'Red (Prohibition)' },
+    'Warning': { bg: '#F59E0B', text: '#000000', name: 'Amber (Warning)' },
+    'Emergency': { bg: '#DC2626', text: '#FFFFFF', name: 'Red (Emergency)' },
+    'Information': { bg: '#10B981', text: '#FFFFFF', name: 'Green (Information)' },
+    'Danger': { bg: '#DC2626', text: '#FFFFFF', name: 'Red (Danger)' },
+    'Fire Safety': { bg: '#DC2626', text: '#FFFFFF', name: 'Red (Fire Safety)' },
+    'Safe Condition': { bg: '#10B981', text: '#FFFFFF', name: 'Green (Safe Condition)' }
+  }
+
+  // ========== INDUSTRIAL-SAFE FONTS ==========
+  const industrialFonts = [
+    { name: 'Arial', family: 'Arial, sans-serif', safe: true },
+    { name: 'Helvetica', family: 'Helvetica, Arial, sans-serif', safe: true },
+    { name: 'Roboto', family: 'Roboto, sans-serif', safe: true },
+    { name: 'Open Sans', family: '"Open Sans", sans-serif', safe: true },
+    { name: 'Montserrat', family: 'Montserrat, sans-serif', safe: true },
+    { name: 'Inter', family: 'Inter, sans-serif', safe: true },
+    { name: 'Futura', family: 'Futura, Arial, sans-serif', safe: true },
+    { name: 'Gotham', family: 'Gotham, Arial, sans-serif', safe: true }
+  ]
+
+  // ========== SIGN SIZES (mm) ==========
+  const signSizes = {
+    'A3': { width: 297, height: 420, portrait: { width: 297, height: 420 }, landscape: { width: 420, height: 297 } },
+    'A4': { width: 210, height: 297, portrait: { width: 210, height: 297 }, landscape: { width: 297, height: 210 } },
+    'A5': { width: 148, height: 210, portrait: { width: 148, height: 210 }, landscape: { width: 210, height: 148 } },
+    'Custom': { width: 210, height: 297, portrait: { width: 210, height: 297 }, landscape: { width: 297, height: 210 } }
+  }
+
+  // ========== ISO 7010 ICON LIBRARY ==========
+  const iso7010IconLibrary = [
+    { id: 'E001', name: 'Emergency Exit', category: 'Emergency', color: '#10B981' },
+    { id: 'E002', name: 'Emergency Exit (Left)', category: 'Emergency', color: '#10B981' },
+    { id: 'E003', name: 'Emergency Exit (Right)', category: 'Emergency', color: '#10B981' },
+    { id: 'E004', name: 'First Aid', category: 'Emergency', color: '#10B981' },
+    { id: 'E005', name: 'Emergency Telephone', category: 'Emergency', color: '#10B981' },
+    { id: 'M001', name: 'Wear Eye Protection', category: 'Mandatory', color: '#0052CC' },
+    { id: 'M002', name: 'Wear Hearing Protection', category: 'Mandatory', color: '#0052CC' },
+    { id: 'M003', name: 'Wear Respiratory Protection', category: 'Mandatory', color: '#0052CC' },
+    { id: 'M004', name: 'Wear Safety Helmet', category: 'Mandatory', color: '#0052CC' },
+    { id: 'M005', name: 'Wear Safety Footwear', category: 'Mandatory', color: '#0052CC' },
+    { id: 'M006', name: 'Wear Protective Gloves', category: 'Mandatory', color: '#0052CC' },
+    { id: 'M007', name: 'Wear Protective Clothing', category: 'Mandatory', color: '#0052CC' },
+    { id: 'P001', name: 'No Smoking', category: 'Prohibition', color: '#DC2626' },
+    { id: 'P002', name: 'No Open Flames', category: 'Prohibition', color: '#DC2626' },
+    { id: 'P003', name: 'No Entry', category: 'Prohibition', color: '#DC2626' },
+    { id: 'P004', name: 'No Unauthorized Access', category: 'Prohibition', color: '#DC2626' },
+    { id: 'W001', name: 'General Warning', category: 'Warning', color: '#F59E0B' },
+    { id: 'W002', name: 'Electrical Hazard', category: 'Warning', color: '#F59E0B' },
+    { id: 'W003', name: 'Flammable Material', category: 'Warning', color: '#F59E0B' },
+    { id: 'W004', name: 'Toxic Material', category: 'Warning', color: '#F59E0B' },
+    { id: 'W005', name: 'Corrosive Material', category: 'Warning', color: '#F59E0B' },
+    { id: 'W006', name: 'Explosive Material', category: 'Warning', color: '#F59E0B' },
+    { id: 'W007', name: 'Radiation Hazard', category: 'Warning', color: '#F59E0B' },
+    { id: 'W008', name: 'Biological Hazard', category: 'Warning', color: '#F59E0B' },
+    { id: 'W009', name: 'Laser Hazard', category: 'Warning', color: '#F59E0B' },
+    { id: 'W010', name: 'Magnetic Field', category: 'Warning', color: '#F59E0B' }
+  ]
+
+  // ========== HELPER FUNCTIONS ==========
+  
+  // Calculate contrast ratio for accessibility
+  const calculateContrastRatio = (color1, color2) => {
+    const getLuminance = (hex) => {
+      const rgb = hexToRgb(hex)
+      if (!rgb) return 0
+      const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(val => {
+        val = val / 255
+        return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4)
+      })
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    
+    const lum1 = getLuminance(color1)
+    const lum2 = getLuminance(color2)
+    const lighter = Math.max(lum1, lum2)
+    const darker = Math.min(lum1, lum2)
+    return (lighter + 0.05) / (darker + 0.05)
+  }
+  
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null
+  }
+  
+  // Check if color combination is ISO compliant
+  const checkColorCompliance = (category, textColor, bgColor) => {
+    const warnings = []
+    const standard = iso7010Colors[category]
+    
+    if (standard) {
+      const expectedBg = standard.bg
+      const expectedText = standard.text
+      
+      if (bgColor !== expectedBg) {
+        warnings.push(`Background color should be ${standard.name} (${expectedBg}) for ${category} signs`)
+      }
+      
+      if (textColor !== expectedText) {
+        warnings.push(`Text color should be ${expectedText} for optimal contrast on ${category} signs`)
+      }
+    }
+    
+    const contrast = calculateContrastRatio(textColor, bgColor)
+    if (contrast < 4.5) {
+      warnings.push(`Low contrast ratio (${contrast.toFixed(2)}). Minimum recommended: 4.5 for normal text, 3.0 for large text`)
+    }
+    
+    return warnings
+  }
+  
+  // Auto-fit text to container
+  const autoFitText = (text, containerWidth, containerHeight, fontSize, fontFamily) => {
+    // This would be implemented with canvas measurement
+    // For now, return a reasonable estimate
+    const avgCharWidth = fontSize * 0.6
+    const charsPerLine = Math.floor(containerWidth / avgCharWidth)
+    const lines = Math.ceil(text.length / charsPerLine)
+    const lineHeight = fontSize * 1.2
+    const totalHeight = lines * lineHeight
+    
+    if (totalHeight > containerHeight) {
+      const scale = containerHeight / totalHeight
+      return Math.max(12, fontSize * scale)
+    }
+    return fontSize
+  }
+  
+  // Save to history for undo/redo
+  const saveToHistory = (state) => {
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(JSON.parse(JSON.stringify(state)))
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }
+  
+  // Undo function
+  const undo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1)
+      return history[historyIndex - 1]
+    }
+    return null
+  }
+  
+  // Redo function
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(historyIndex + 1)
+      return history[historyIndex + 1]
+    }
+    return null
+  }
+  
+  // Add audit log entry
+  const addAuditLog = (action, details) => {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      action,
+      details,
+      user: 'current-user' // Would be from auth context
+    }
+    setAuditLog(prev => [...prev, logEntry])
+  }
+
+  // Keyboard shortcuts handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl/Cmd + C for copy
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && (selectedTextElement || selectedImageElement)) {
+        e.preventDefault()
+        if (selectedTextElement) {
+          setCopiedElement({ type: 'text', data: selectedTextElement })
+        } else if (selectedImageElement) {
+          setCopiedElement({ type: 'image', data: selectedImageElement })
+        }
+      }
+      // Ctrl/Cmd + V for paste
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && copiedElement) {
+        e.preventDefault()
+        if (copiedElement.type === 'text') {
+          const pasted = {
+            ...copiedElement.data,
+            id: Date.now(),
+            x: copiedElement.data.x + 10,
+            y: copiedElement.data.y + 10
+          }
+          setTextElements(prev => [...prev, pasted])
+          setSelectedTextElement(pasted)
+        } else if (copiedElement.type === 'image') {
+          const pasted = {
+            ...copiedElement.data,
+            id: Date.now(),
+            x: copiedElement.data.x + 20,
+            y: copiedElement.data.y + 20
+          }
+          setImageElements(prev => [...prev, pasted])
+          setSelectedImageElement(pasted)
+        }
+      }
+      // Ctrl/Cmd + Z for undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+      // Ctrl/Cmd + Shift + Z for redo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault()
+        redo()
+      }
+      // Delete key
+      if (e.key === 'Delete' && (selectedTextElement || selectedImageElement)) {
+        if (selectedTextElement) {
+          setTextElements(prev => prev.filter(el => el.id !== selectedTextElement.id))
+          setSelectedTextElement(null)
+        } else if (selectedImageElement) {
+          setImageElements(prev => prev.filter(el => el.id !== selectedImageElement.id))
+          setSelectedImageElement(null)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedTextElement, selectedImageElement, copiedElement])
+
+  // Save signages to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('savedSignages', JSON.stringify(savedSignages))
+    } catch (error) {
+      console.error('Error saving signages to localStorage:', error)
+    }
+  }, [savedSignages])
+
+  // Auto-save current work
+  useEffect(() => {
+    if (!autoSaveEnabled) return
+    
+    const autoSaveTimeout = setTimeout(() => {
+      const currentWork = {
+        id: 'current-work',
+        name: formData.title || 'Untitled Signage',
+        type: signageType,
+        data: {
+          formData: JSON.parse(JSON.stringify(formData)),
+          identificationData: JSON.parse(JSON.stringify(identificationData)),
+          textElements: JSON.parse(JSON.stringify(textElements)),
+          imageElements: JSON.parse(JSON.stringify(imageElements)),
+          backgroundSettings: JSON.parse(JSON.stringify(backgroundSettings)),
+          companyBranding: JSON.parse(JSON.stringify(companyBranding))
+        },
+        updatedAt: new Date().toISOString()
+      }
+      
+      try {
+        localStorage.setItem('currentWork', JSON.stringify(currentWork))
+        setLastAutoSave(new Date())
+      } catch (error) {
+        console.error('Error auto-saving work:', error)
+      }
+    }, 5000) // Auto-save every 5 seconds
+    
+    return () => clearTimeout(autoSaveTimeout)
+  }, [formData, identificationData, textElements, imageElements, backgroundSettings, companyBranding, signageType, autoSaveEnabled])
+
+  // Load auto-saved work on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('currentWork')
+      if (saved) {
+        const currentWork = JSON.parse(saved)
+        // Only load if user wants to restore (could add a prompt)
+        // For now, we'll just keep it available for manual restore
+      }
+    } catch (error) {
+      console.error('Error loading auto-saved work:', error)
+    }
+  }, [])
+
+  // Save version history
+  useEffect(() => {
+    const saveVersion = () => {
+      const version = {
+        timestamp: new Date().toISOString(),
+        formData: JSON.parse(JSON.stringify(formData)),
+        identificationData: JSON.parse(JSON.stringify(identificationData)),
+        textElements: JSON.parse(JSON.stringify(textElements)),
+        imageElements: JSON.parse(JSON.stringify(imageElements)),
+        backgroundSettings: JSON.parse(JSON.stringify(backgroundSettings))
+      }
+      setVersionHistory(prev => [...prev.slice(-9), version]) // Keep last 10 versions
+    }
+
+    // Debounce version saving
+    const timeoutId = setTimeout(saveVersion, 2000)
+    return () => clearTimeout(timeoutId)
+  }, [formData, identificationData, textElements, imageElements, backgroundSettings])
 
   const ppeCategories = {
     'General PPE': [
@@ -507,6 +933,51 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setDraggingLogo(null)
   }
 
+  // Handle logo resize start
+  const handleLogoResizeStart = (e, logoType) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setResizingLogo(logoType)
+    const currentSize = logoType === 'client' 
+      ? companyBranding.clientLogoSize 
+      : companyBranding.contractorLogoSize
+    setResizeStartData({
+      size: currentSize,
+      x: e.clientX,
+      y: e.clientY
+    })
+  }
+
+  // Handle logo resize
+  const handleLogoResize = (e) => {
+    if (!resizingLogo) return
+    
+    const deltaX = e.clientX - resizeStartData.x
+    const deltaY = e.clientY - resizeStartData.y
+    // Use the larger delta for uniform scaling
+    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+    
+    const newSize = Math.max(20, Math.min(500, resizeStartData.size + delta))
+    
+    if (resizingLogo === 'client') {
+      setCompanyBranding({
+        ...companyBranding,
+        clientLogoSize: newSize
+      })
+    } else {
+      setCompanyBranding({
+        ...companyBranding,
+        contractorLogoSize: newSize
+      })
+    }
+  }
+
+  // Handle logo resize end
+  const handleLogoResizeEnd = () => {
+    setResizingLogo(null)
+    setResizeStartData({ size: 0, x: 0, y: 0 })
+  }
+
   // Handle icon/text drag start
   const handleElementDragStart = (elementType) => {
     setDraggingElement(elementType)
@@ -549,6 +1020,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const handleMouseMove = (e) => {
     if (draggingLogo) {
       handleLogoDrag(e, draggingLogo)
+    } else if (resizingLogo) {
+      handleLogoResize(e)
     }
     if (draggingElement) {
       handleElementDrag(e, draggingElement)
@@ -731,6 +1204,183 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setAiGeneratedData(null)
   }
 
+  const handlePrint = () => {
+    if (!previewRef.current) return
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank')
+    const printContent = previewRef.current.innerHTML
+    
+    // Get computed styles for the preview container
+    const styles = window.getComputedStyle(previewRef.current)
+    const containerStyles = `
+      <style>
+        @media print {
+          @page {
+            size: ${formData.size};
+            margin: 0;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+        }
+        body {
+          margin: 0;
+          padding: 20px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+        }
+        .print-container {
+          ${styles.cssText}
+          border: ${styles.border};
+          border-radius: ${styles.borderRadius};
+          overflow: ${styles.overflow};
+          background: ${styles.background};
+          max-width: 100%;
+          height: auto;
+        }
+        .print-container * {
+          max-width: 100%;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+        }
+      </style>
+    `
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Signage</title>
+          ${containerStyles}
+        </head>
+        <body>
+          <div class="print-container">
+            ${printContent}
+          </div>
+        </body>
+      </html>
+    `)
+    
+    printWindow.document.close()
+    
+    // Wait for images to load, then print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print()
+        printWindow.onafterprint = () => {
+          printWindow.close()
+        }
+      }, 250)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!previewRef.current) return
+
+    try {
+      // Try to dynamically import html2canvas
+      let html2canvas
+      try {
+        const html2canvasModule = await import('html2canvas')
+        html2canvas = html2canvasModule.default || html2canvasModule
+      } catch (e) {
+        // html2canvas not available - use alternative method
+        html2canvas = null
+      }
+
+      if (html2canvas) {
+        const canvas = await html2canvas(previewRef.current, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          allowTaint: true,
+          width: previewRef.current.offsetWidth,
+          height: previewRef.current.offsetHeight
+        })
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            const filename = `signage-${(formData.title || 'signage').replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${Date.now()}.png`
+            a.download = filename
+            document.body.appendChild(a)
+            a.click()
+            setTimeout(() => {
+              document.body.removeChild(a)
+              URL.revokeObjectURL(url)
+            }, 100)
+          }
+        }, 'image/png', 0.95)
+      } else {
+        // Fallback: Use print to PDF method
+        // Create a hidden iframe and trigger print
+        const iframe = document.createElement('iframe')
+        iframe.style.position = 'fixed'
+        iframe.style.right = '0'
+        iframe.style.bottom = '0'
+        iframe.style.width = '0'
+        iframe.style.height = '0'
+        iframe.style.border = 'none'
+        
+        document.body.appendChild(iframe)
+        
+        const printDoc = iframe.contentWindow.document
+        printDoc.open()
+        printDoc.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Signage Download</title>
+              <style>
+                @page {
+                  size: ${formData.size};
+                  margin: 0;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                }
+                .preview-container {
+                  ${window.getComputedStyle(previewRef.current).cssText}
+                }
+              </style>
+            </head>
+            <body>
+              ${previewRef.current.innerHTML}
+            </body>
+          </html>
+        `)
+        printDoc.close()
+        
+        // Wait for content to load, then trigger print
+        iframe.onload = () => {
+          setTimeout(() => {
+            iframe.contentWindow.print()
+            setTimeout(() => {
+              document.body.removeChild(iframe)
+            }, 1000)
+          }, 250)
+        }
+      }
+    } catch (error) {
+      console.error('Error downloading image:', error)
+      // Final fallback: Show message and suggest using print
+      alert('Unable to download image. Please use the Print button and select "Save as PDF" from the print dialog.')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header */}
@@ -804,6 +1454,1613 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           </div>
         </div>
       </header>
+
+      {/* Comprehensive Editor Toolbar */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-[64px] md:top-[80px] lg:top-[88px] z-40">
+        <div className="max-w-[1920px] mx-auto px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            {/* Design Mode Toggle */}
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => {
+                  setDesignMode('template')
+                  setTextElements([])
+                  setImageElements([])
+                  setCanvasElements([])
+                }}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  designMode === 'template' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Template Mode
+              </button>
+              <button
+                onClick={() => {
+                  setDesignMode('free')
+                  // Show template selection for free design
+                }}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  designMode === 'free' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Free Design
+              </button>
+            </div>
+
+            {/* Template Selector for Free Design */}
+            {designMode === 'free' && (
+              <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-lg p-4 z-50 min-w-[300px]">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Start from Template</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {templates.map(template => (
+                    <button
+                      key={template.id}
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, title: template.name }))
+                        setIdentificationData(prev => ({ ...prev, areaName: template.name }))
+                        setBackgroundSettings(prev => ({ ...prev, color: '#FFFFFF' }))
+                        addAuditLog('load-template', { templateId: template.id, templateName: template.name })
+                      }}
+                      className="p-3 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                    >
+                      <div className="text-2xl mb-1">{template.icon}</div>
+                      <div className="text-xs font-semibold text-gray-900">{template.name}</div>
+                      <div className="text-xs text-gray-600">{template.subtitle}</div>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    setTextElements([])
+                    setImageElements([])
+                    setCanvasElements([])
+                    setFormData(prev => ({ ...prev, title: '' }))
+                    setBackgroundSettings(prev => ({ ...prev, color: '#FFFFFF' }))
+                  }}
+                  className="w-full mt-3 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                >
+                  Start from Blank
+                </button>
+              </div>
+            )}
+
+            {/* Text Editor Button */}
+            <button
+              onClick={() => setTextEditorOpen(!textEditorOpen)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                textEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Text
+            </button>
+
+            {/* Image Editor Button */}
+            <button
+              onClick={() => setImageEditorOpen(!imageEditorOpen)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                imageEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Image
+            </button>
+
+            {/* ISO 7010 Icon Library */}
+            <button
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                isoIconModalOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => setIsoIconModalOpen(!isoIconModalOpen)}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              ISO Icons
+            </button>
+
+            {/* Authorized Persons */}
+            <button
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                authorizedPersonsPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => setAuthorizedPersonsPanelOpen(!authorizedPersonsPanelOpen)}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Persons
+            </button>
+
+            {/* Color & Background */}
+            <button
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                backgroundPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => setBackgroundPanelOpen(!backgroundPanelOpen)}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+              Colors
+            </button>
+
+            {/* Undo/Redo */}
+            <div className="flex items-center gap-1 border-l border-gray-300 pl-2 ml-2">
+              <button
+                onClick={undo}
+                disabled={historyIndex <= 0}
+                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Undo"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+              </button>
+              <button
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Redo"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Grid Toggle */}
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                showGrid ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              title="Toggle Grid"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-2 border-l border-gray-300 pl-2 ml-2">
+              <button
+                onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))}
+                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Zoom Out"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                </svg>
+              </button>
+              <span className="text-sm text-gray-700 min-w-[50px] text-center">{previewZoom}%</span>
+              <button
+                onClick={() => setPreviewZoom(Math.min(200, previewZoom + 25))}
+                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Zoom In"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setPreviewZoom(100)}
+                className="px-2 py-1 rounded text-xs text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Reset Zoom"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setShowFullScreenPreview(true)}
+                className="px-3 py-1.5 rounded text-sm text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1"
+                title="Full Screen Preview"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                Fullscreen
+              </button>
+            </div>
+
+            {/* Export Button */}
+            <button
+              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center gap-2 ml-auto"
+              onClick={() => setExportModalOpen(true)}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export
+            </button>
+
+            {/* Signage Library */}
+            <button
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                signageLibraryOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => setSignageLibraryOpen(!signageLibraryOpen)}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Library
+            </button>
+
+            {/* Save Button */}
+            <div className="flex items-center gap-2">
+              {lastAutoSave && (
+                <span className="text-xs text-gray-500" title={`Last auto-saved: ${lastAutoSave.toLocaleTimeString()}`}>
+                  <svg className="w-4 h-4 inline mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Auto-saved
+                </span>
+              )}
+              <button
+                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2"
+                onClick={() => {
+                  const signageName = prompt('Enter a name for this signage:', formData.title || 'Untitled Signage')
+                  if (!signageName) return
+                  
+                  const signageData = {
+                    id: Date.now(),
+                    name: signageName,
+                    type: signageType,
+                    data: { 
+                      formData: JSON.parse(JSON.stringify(formData)), 
+                      identificationData: JSON.parse(JSON.stringify(identificationData)), 
+                      textElements: JSON.parse(JSON.stringify(textElements)), 
+                      imageElements: JSON.parse(JSON.stringify(imageElements)), 
+                      backgroundSettings: JSON.parse(JSON.stringify(backgroundSettings)),
+                      companyBranding: JSON.parse(JSON.stringify(companyBranding))
+                    },
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    favorite: false
+                  }
+                  setSavedSignages(prev => {
+                    const updated = [...prev]
+                    const existingIndex = updated.findIndex(s => s.name === signageName)
+                    if (existingIndex >= 0) {
+                      updated[existingIndex] = signageData
+                    } else {
+                      updated.push(signageData)
+                    }
+                    return updated
+                  })
+                  addAuditLog('save', { signageId: signageData.id, name: signageData.name })
+                  alert('Signage saved successfully!')
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Text Editor Panel */}
+      {textEditorOpen && (
+        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Font Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Font Family</label>
+              <select
+                value={selectedTextElement?.fontFamily || 'Arial'}
+                onChange={(e) => {
+                  if (selectedTextElement) {
+                    setTextElements(prev => prev.map(el => 
+                      el.id === selectedTextElement.id ? { ...el, fontFamily: e.target.value } : el
+                    ))
+                  }
+                }}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {industrialFonts.map(font => (
+                  <option key={font.name} value={font.family}>{font.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Font Size */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Font Size</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="12"
+                  max="144"
+                  value={selectedTextElement?.fontSize || 24}
+                  onChange={(e) => {
+                    if (selectedTextElement) {
+                      setTextElements(prev => prev.map(el => 
+                        el.id === selectedTextElement.id ? { ...el, fontSize: parseInt(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedTextElement?.fontSize || 24}px</span>
+              </div>
+            </div>
+
+            {/* Font Weight */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Font Weight</label>
+              <select
+                value={selectedTextElement?.fontWeight || 'normal'}
+                onChange={(e) => {
+                  if (selectedTextElement) {
+                    setTextElements(prev => prev.map(el => 
+                      el.id === selectedTextElement.id ? { ...el, fontWeight: e.target.value } : el
+                    ))
+                  }
+                }}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+                <option value="300">Light</option>
+                <option value="500">Medium</option>
+                <option value="600">Semi-Bold</option>
+                <option value="700">Bold</option>
+                <option value="800">Extra Bold</option>
+              </select>
+            </div>
+
+            {/* Text Alignment */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Alignment</label>
+              <div className="flex gap-2">
+                {['left', 'center', 'right', 'justify'].map(align => (
+                  <button
+                    key={align}
+                    onClick={() => {
+                      if (selectedTextElement) {
+                        setTextElements(prev => prev.map(el => 
+                          el.id === selectedTextElement.id ? { ...el, textAlign: align } : el
+                        ))
+                      }
+                    }}
+                    className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
+                      selectedTextElement?.textAlign === align
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    title={align.charAt(0).toUpperCase() + align.slice(1)}
+                  >
+                    {align === 'left' && '⬅'}
+                    {align === 'center' && '⬌'}
+                    {align === 'right' && '➡'}
+                    {align === 'justify' && '⬌⬌'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Text Color */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={selectedTextElement?.color || '#000000'}
+                  onChange={(e) => {
+                    if (selectedTextElement) {
+                      setTextElements(prev => prev.map(el => 
+                        el.id === selectedTextElement.id ? { ...el, color: e.target.value } : el
+                      ))
+                      // Check compliance
+                      const warnings = checkColorCompliance(
+                        formData.category,
+                        e.target.value,
+                        backgroundSettings.color
+                      )
+                      setColorCompliance({ enabled: true, warnings })
+                    }
+                  }}
+                  className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={selectedTextElement?.color || '#000000'}
+                  onChange={(e) => {
+                    if (selectedTextElement) {
+                      setTextElements(prev => prev.map(el => 
+                        el.id === selectedTextElement.id ? { ...el, color: e.target.value } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+
+            {/* Line Spacing */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Line Spacing</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0.8"
+                  max="3"
+                  step="0.1"
+                  value={selectedTextElement?.lineHeight || 1.2}
+                  onChange={(e) => {
+                    if (selectedTextElement) {
+                      setTextElements(prev => prev.map(el => 
+                        el.id === selectedTextElement.id ? { ...el, lineHeight: parseFloat(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedTextElement?.lineHeight || 1.2}</span>
+              </div>
+            </div>
+
+            {/* Letter Spacing */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Letter Spacing</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="-2"
+                  max="10"
+                  step="0.5"
+                  value={selectedTextElement?.letterSpacing || 0}
+                  onChange={(e) => {
+                    if (selectedTextElement) {
+                      setTextElements(prev => prev.map(el => 
+                        el.id === selectedTextElement.id ? { ...el, letterSpacing: parseFloat(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedTextElement?.letterSpacing || 0}px</span>
+              </div>
+            </div>
+
+            {/* Language Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Language</label>
+              <div className="flex gap-2">
+                <select
+                  value={currentLanguage}
+                  onChange={(e) => setCurrentLanguage(e.target.value)}
+                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="en">English</option>
+                  <option value="ar">Arabic (العربية)</option>
+                  <option value="es">Spanish (Español)</option>
+                  <option value="fr">French (Français)</option>
+                  <option value="de">German (Deutsch)</option>
+                  <option value="zh">Chinese (中文)</option>
+                </select>
+                <button
+                  onClick={() => {
+                    if (!voiceToTextEnabled) {
+                      setVoiceToTextEnabled(true)
+                      // Initialize Web Speech API
+                      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+                        const recognition = new SpeechRecognition()
+                        recognition.continuous = false
+                        recognition.interimResults = false
+                        recognition.lang = currentLanguage === 'ar' ? 'ar-SA' : currentLanguage
+                        
+                        recognition.onresult = (event) => {
+                          const transcript = event.results[0][0].transcript
+                          if (selectedTextElement) {
+                            setTextElements(prev => prev.map(el => 
+                              el.id === selectedTextElement.id ? { ...el, text: transcript } : el
+                            ))
+                          }
+                        }
+                        
+                        recognition.onerror = () => {
+                          alert('Voice recognition error. Please check your microphone permissions.')
+                          setVoiceToTextEnabled(false)
+                        }
+                        
+                        recognition.start()
+                      } else {
+                        alert('Voice recognition not supported in this browser.')
+                        setVoiceToTextEnabled(false)
+                      }
+                    } else {
+                      setVoiceToTextEnabled(false)
+                    }
+                  }}
+                  className={`px-3 py-2 rounded-lg border-2 transition-colors ${
+                    voiceToTextEnabled 
+                      ? 'bg-red-600 text-white border-red-600' 
+                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:border-gray-400'
+                  }`}
+                  title="Voice to Text"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0h4m-4 0h-4m-2-4a2 2 0 01-2-2H5a2 2 0 01-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Auto Text Fit */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="autoTextFit"
+                checked={selectedTextElement?.autoFit || false}
+                onChange={(e) => {
+                  if (selectedTextElement) {
+                    setTextElements(prev => prev.map(el => 
+                      el.id === selectedTextElement.id ? { ...el, autoFit: e.target.checked } : el
+                    ))
+                  }
+                }}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="autoTextFit" className="text-sm font-semibold text-gray-700">Auto Text Fit</label>
+            </div>
+
+            {/* Add Text Button */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const newTextElement = {
+                    id: Date.now(),
+                    text: 'New Text',
+                    x: 50,
+                    y: 50,
+                    fontSize: 24,
+                    fontFamily: 'Arial, sans-serif',
+                    fontWeight: 'normal',
+                    color: '#000000',
+                    textAlign: 'left',
+                    lineHeight: 1.2,
+                    letterSpacing: 0,
+                    autoFit: false
+                  }
+                  setTextElements(prev => [...prev, newTextElement])
+                  setSelectedTextElement(newTextElement)
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                + Add Text
+              </button>
+              {selectedTextElement && (
+                <>
+                  <button
+                    onClick={() => {
+                      setCopiedElement({ type: 'text', data: selectedTextElement })
+                      addAuditLog('copy', { elementType: 'text', elementId: selectedTextElement.id })
+                    }}
+                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    title="Copy"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  {copiedElement && copiedElement.type === 'text' && (
+                    <button
+                      onClick={() => {
+                        const pasted = {
+                          ...copiedElement.data,
+                          id: Date.now(),
+                          x: copiedElement.data.x + 10,
+                          y: copiedElement.data.y + 10
+                        }
+                        setTextElements(prev => [...prev, pasted])
+                        setSelectedTextElement(pasted)
+                        addAuditLog('paste', { elementType: 'text', elementId: pasted.id })
+                      }}
+                      className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      title="Paste"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Color Compliance Warnings */}
+          {colorCompliance.warnings.length > 0 && (
+            <div className="mt-4 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="font-semibold text-yellow-800 mb-1">Compliance Warnings:</p>
+                  <ul className="list-disc list-inside text-sm text-yellow-700 space-y-1">
+                    {colorCompliance.warnings.map((warning, idx) => (
+                      <li key={idx}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Image Editor Panel */}
+      {imageEditorOpen && (
+        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Upload Image */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Image</label>
+              <label className="block cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                  onChange={(e) => {
+                    const file = e.target.files[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onload = (event) => {
+                        const newImageElement = {
+                          id: Date.now(),
+                          src: event.target.result,
+                          x: 50,
+                          y: 50,
+                          width: 200,
+                          height: 200,
+                          rotation: 0,
+                          opacity: 100,
+                          brightness: 100,
+                          contrast: 100,
+                          saturation: 100,
+                          locked: false,
+                          zIndex: 1
+                        }
+                        setImageElements(prev => [...prev, newImageElement])
+                        setSelectedImageElement(newImageElement)
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                    e.target.value = ''
+                  }}
+                  className="hidden"
+                />
+                <div className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600 cursor-pointer">
+                  Upload (PNG, JPG, SVG)
+                </div>
+              </label>
+            </div>
+
+            {/* Brightness */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Brightness</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={selectedImageElement?.brightness || 100}
+                  onChange={(e) => {
+                    if (selectedImageElement) {
+                      setImageElements(prev => prev.map(el => 
+                        el.id === selectedImageElement.id ? { ...el, brightness: parseInt(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedImageElement?.brightness || 100}%</span>
+              </div>
+            </div>
+
+            {/* Contrast */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Contrast</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={selectedImageElement?.contrast || 100}
+                  onChange={(e) => {
+                    if (selectedImageElement) {
+                      setImageElements(prev => prev.map(el => 
+                        el.id === selectedImageElement.id ? { ...el, contrast: parseInt(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedImageElement?.contrast || 100}%</span>
+              </div>
+            </div>
+
+            {/* Saturation */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Saturation</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={selectedImageElement?.saturation || 100}
+                  onChange={(e) => {
+                    if (selectedImageElement) {
+                      setImageElements(prev => prev.map(el => 
+                        el.id === selectedImageElement.id ? { ...el, saturation: parseInt(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedImageElement?.saturation || 100}%</span>
+              </div>
+            </div>
+
+            {/* Opacity */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Opacity</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={selectedImageElement?.opacity || 100}
+                  onChange={(e) => {
+                    if (selectedImageElement) {
+                      setImageElements(prev => prev.map(el => 
+                        el.id === selectedImageElement.id ? { ...el, opacity: parseInt(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedImageElement?.opacity || 100}%</span>
+              </div>
+            </div>
+
+            {/* Rotation */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Rotation</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={selectedImageElement?.rotation || 0}
+                  onChange={(e) => {
+                    if (selectedImageElement) {
+                      setImageElements(prev => prev.map(el => 
+                        el.id === selectedImageElement.id ? { ...el, rotation: parseInt(e.target.value) } : el
+                      ))
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 w-12 text-right">{selectedImageElement?.rotation || 0}°</span>
+              </div>
+            </div>
+
+            {/* Lock Position */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="lockImage"
+                checked={selectedImageElement?.locked || false}
+                onChange={(e) => {
+                  if (selectedImageElement) {
+                    setImageElements(prev => prev.map(el => 
+                      el.id === selectedImageElement.id ? { ...el, locked: e.target.checked } : el
+                    ))
+                  }
+                }}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="lockImage" className="text-sm font-semibold text-gray-700">Lock Position</label>
+            </div>
+
+            {/* Remove Background (placeholder) */}
+            <div>
+              <button
+                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                onClick={() => alert('Remove Background feature - AI processing coming soon')}
+              >
+                Remove Background
+              </button>
+            </div>
+
+            {/* Crop Image (placeholder) */}
+            <div>
+              <button
+                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                onClick={() => alert('Crop Image feature coming soon')}
+              >
+                Crop Image
+              </button>
+            </div>
+
+            {/* Copy/Paste/Duplicate for Images */}
+            {selectedImageElement && (
+              <div className="col-span-full flex gap-2 pt-2 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setCopiedElement({ type: 'image', data: selectedImageElement })
+                    addAuditLog('copy', { elementType: 'image', elementId: selectedImageElement.id })
+                  }}
+                  className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copy
+                </button>
+                {copiedElement && copiedElement.type === 'image' && (
+                  <button
+                    onClick={() => {
+                      const pasted = {
+                        ...copiedElement.data,
+                        id: Date.now(),
+                        x: copiedElement.data.x + 20,
+                        y: copiedElement.data.y + 20
+                      }
+                      setImageElements(prev => [...prev, pasted])
+                      setSelectedImageElement(pasted)
+                      addAuditLog('paste', { elementType: 'image', elementId: pasted.id })
+                    }}
+                    className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Paste
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    const duplicated = {
+                      ...selectedImageElement,
+                      id: Date.now(),
+                      x: selectedImageElement.x + 20,
+                      y: selectedImageElement.y + 20
+                    }
+                    setImageElements(prev => [...prev, duplicated])
+                    setSelectedImageElement(duplicated)
+                    addAuditLog('duplicate', { elementType: 'image', elementId: duplicated.id })
+                  }}
+                  className="flex-1 px-3 py-2 bg-blue-200 text-blue-700 rounded-lg hover:bg-blue-300 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Duplicate
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Background & Color Control Panel */}
+      {backgroundPanelOpen && (
+        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Background Type */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Background Type</label>
+            <select
+              value={backgroundSettings.type}
+              onChange={(e) => setBackgroundSettings({ ...backgroundSettings, type: e.target.value })}
+              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="solid">Solid Color</option>
+              <option value="gradient">Gradient</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+
+          {/* Solid Color */}
+          {backgroundSettings.type === 'solid' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={backgroundSettings.color}
+                  onChange={(e) => setBackgroundSettings({ ...backgroundSettings, color: e.target.value })}
+                  className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={backgroundSettings.color}
+                  onChange={(e) => setBackgroundSettings({ ...backgroundSettings, color: e.target.value })}
+                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ISO 7010 Color Presets */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">ISO 7010 Presets</label>
+            <select
+              value={formData.category}
+              onChange={(e) => {
+                const category = e.target.value
+                setFormData({ ...formData, category })
+                const preset = iso7010Colors[category]
+                if (preset) {
+                  setBackgroundSettings({ ...backgroundSettings, color: preset.bg })
+                }
+              }}
+              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {Object.keys(iso7010Colors).map(key => (
+                <option key={key} value={key}>{iso7010Colors[key].name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* High Contrast Mode */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="highContrast"
+              checked={highContrastMode}
+              onChange={(e) => setHighContrastMode(e.target.checked)}
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <label htmlFor="highContrast" className="text-sm font-semibold text-gray-700">High Contrast Mode</label>
+          </div>
+
+          {/* Contrast Ratio Checker */}
+          {selectedTextElement && (
+            <div className="col-span-full">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 mb-1">Contrast Ratio</p>
+                <p className="text-lg font-bold">
+                  {contrastRatio ? contrastRatio.toFixed(2) : calculateContrastRatio(selectedTextElement.color, backgroundSettings.color).toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  {contrastRatio >= 4.5 ? '✓ WCAG AA Compliant' : contrastRatio >= 3.0 ? '⚠ Large Text Only' : '✗ Not Compliant'}
+                </p>
+              </div>
+            </div>
+          )}
+          </div>
+        </div>
+      )}
+
+      {/* Size & Layout Control Panel */}
+      {sizeLayoutPanelOpen && (
+        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Sign Size */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Sign Size</label>
+            <select
+              value={formData.size}
+              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="A3">A3 (297 × 420 mm)</option>
+              <option value="A4">A4 (210 × 297 mm)</option>
+              <option value="A5">A5 (148 × 210 mm)</option>
+              <option value="Custom">Custom Size</option>
+            </select>
+          </div>
+
+          {/* Orientation */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Orientation</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIdentificationData({ ...identificationData, orientation: 'Portrait' })}
+                className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
+                  identificationData.orientation === 'Portrait'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                Portrait
+              </button>
+              <button
+                onClick={() => setIdentificationData({ ...identificationData, orientation: 'Landscape' })}
+                className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
+                  identificationData.orientation === 'Landscape'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                Landscape
+              </button>
+            </div>
+          </div>
+
+          {/* Custom Size (if selected) */}
+          {formData.size === 'Custom' && (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Width (mm)</label>
+                <input
+                  type="number"
+                  min="50"
+                  max="1000"
+                  value={signSizes.Custom.width}
+                  onChange={(e) => {
+                    // Update custom size
+                  }}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Height (mm)</label>
+                <input
+                  type="number"
+                  min="50"
+                  max="1000"
+                  value={signSizes.Custom.height}
+                  onChange={(e) => {
+                    // Update custom size
+                  }}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Margins */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Margins (mm)</label>
+            <input
+              type="number"
+              min="0"
+              max="50"
+              defaultValue="5"
+              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Bleed Control */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="includeBleed"
+              checked={exportSettings.includeBleed}
+              onChange={(e) => setExportSettings({ ...exportSettings, includeBleed: e.target.checked })}
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <label htmlFor="includeBleed" className="text-sm font-semibold text-gray-700">Include Bleed</label>
+          </div>
+          </div>
+        </div>
+      )}
+
+      {/* Authorized Persons Editor Panel */}
+      {authorizedPersonsPanelOpen && (
+        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900">Authorized Persons & ID Signage</h3>
+              <button
+                onClick={() => {
+                  setAuthorizedPersons(prev => [...prev, {
+                    id: Date.now(),
+                    name: '',
+                    idNumber: '',
+                    designation: '',
+                    photo: null
+                  }])
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                + Add Person
+              </button>
+            </div>
+
+            {/* Layout Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Grid Layout</label>
+                <select
+                  value={`${authorizedPersonsLayout.gridColumns}x${authorizedPersonsLayout.gridRows}`}
+                  onChange={(e) => {
+                    const [cols, rows] = e.target.value.split('x').map(Number)
+                    setAuthorizedPersonsLayout({ ...authorizedPersonsLayout, gridColumns: cols, gridRows: rows })
+                  }}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="1x1">1 Person</option>
+                  <option value="2x1">2 Persons (Horizontal)</option>
+                  <option value="1x2">2 Persons (Vertical)</option>
+                  <option value="2x2">4 Persons</option>
+                  <option value="3x2">6 Persons</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Style</label>
+                <select
+                  value={authorizedPersonsLayout.style}
+                  onChange={(e) => setAuthorizedPersonsLayout({ ...authorizedPersonsLayout, style: e.target.value })}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="badge">Badge Style</option>
+                  <option value="poster">Poster Style</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="showQR"
+                  checked={authorizedPersonsLayout.showQR}
+                  onChange={(e) => setAuthorizedPersonsLayout({ ...authorizedPersonsLayout, showQR: e.target.checked })}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <label htmlFor="showQR" className="text-sm font-semibold text-gray-700">Show QR Code</label>
+              </div>
+            </div>
+
+            {/* Person List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {authorizedPersons.map((person, index) => (
+                <div key={person.id} className="border-2 border-gray-300 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-700">Person {index + 1}</span>
+                    <button
+                      onClick={() => setAuthorizedPersons(prev => prev.filter(p => p.id !== person.id))}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Photo Upload */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Photo</label>
+                    <label className="block cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              setAuthorizedPersons(prev => prev.map(p => 
+                                p.id === person.id ? { ...p, photo: event.target.result } : p
+                              ))
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                          e.target.value = ''
+                        }}
+                        className="hidden"
+                      />
+                      <div className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                        {person.photo ? (
+                          <img src={person.photo} alt="Person" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <span className="text-xs text-gray-500">Click to upload</span>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={person.name}
+                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p => 
+                        p.id === person.id ? { ...p, name: e.target.value } : p
+                      ))}
+                      placeholder="Full Name"
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  {/* ID Number */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">ID Number</label>
+                    <input
+                      type="text"
+                      value={person.idNumber}
+                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p => 
+                        p.id === person.id ? { ...p, idNumber: e.target.value } : p
+                      ))}
+                      placeholder="Employee ID"
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  {/* Designation */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Designation</label>
+                    <input
+                      type="text"
+                      value={person.designation}
+                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p => 
+                        p.id === person.id ? { ...p, designation: e.target.value } : p
+                      ))}
+                      placeholder="Job Title"
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {authorizedPersons.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <p>No persons added yet. Click "Add Person" to get started.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {exportModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Export Signage</h2>
+                <button
+                  onClick={() => setExportModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Format Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Export Format</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['PDF', 'PNG', 'JPG'].map(format => (
+                    <button
+                      key={format}
+                      onClick={() => setExportSettings({ ...exportSettings, format })}
+                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${
+                        exportSettings.format === format
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {format}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* DPI Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Resolution (DPI)</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[72, 150, 300].map(dpi => (
+                    <button
+                      key={dpi}
+                      onClick={() => setExportSettings({ ...exportSettings, dpi })}
+                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${
+                        exportSettings.dpi === dpi
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {dpi} DPI
+                      {dpi === 300 && <span className="block text-xs mt-1">Print Quality</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Color Mode */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Color Mode</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['RGB', 'CMYK'].map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setExportSettings({ ...exportSettings, colorMode: mode })}
+                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${
+                        exportSettings.colorMode === mode
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {mode}
+                      {mode === 'CMYK' && <span className="block text-xs mt-1">Print Ready</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Additional Options */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Options</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={exportSettings.includeBleed}
+                      onChange={(e) => setExportSettings({ ...exportSettings, includeBleed: e.target.checked })}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Include Bleed ({exportSettings.bleedSize}mm)</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Weatherproof Color Mode</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Outdoor Visibility Optimization</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Export Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    // Implement export logic
+                    alert(`Exporting as ${exportSettings.format} at ${exportSettings.dpi} DPI in ${exportSettings.colorMode} mode`)
+                    setExportModalOpen(false)
+                  }}
+                  className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                >
+                  Export Now
+                </button>
+                <button
+                  onClick={() => setExportModalOpen(false)}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ISO 7010 Icon Library Modal */}
+      {isoIconModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">ISO 7010 Icon Library</h2>
+                  <p className="text-sm text-gray-600 mt-1">Select safety symbols compliant with ISO 7010 standard</p>
+                </div>
+                <button
+                  onClick={() => setIsoIconModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search icons..."
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Icon Categories */}
+              {['Emergency', 'Mandatory', 'Prohibition', 'Warning'].map(category => (
+                <div key={category} className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{category} Icons</h3>
+                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                    {iso7010IconLibrary
+                      .filter(icon => icon.category === category)
+                      .map(icon => (
+                        <button
+                          key={icon.id}
+                          onClick={() => {
+                            // Add icon to canvas
+                            const newIcon = {
+                              id: Date.now(),
+                              type: 'iso-icon',
+                              iconId: icon.id,
+                              name: icon.name,
+                              category: icon.category,
+                              color: icon.color,
+                              x: 50,
+                              y: 50,
+                              size: 80
+                            }
+                            setCanvasElements(prev => [...prev, newIcon])
+                            setIsoIconModalOpen(false)
+                            addAuditLog('add-icon', { iconId: icon.id, name: icon.name })
+                          }}
+                          className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-center group"
+                          title={icon.name}
+                        >
+                          <div 
+                            className="w-12 h-12 mx-auto mb-2 rounded flex items-center justify-center text-2xl"
+                            style={{ backgroundColor: `${icon.color}20`, color: icon.color }}
+                          >
+                            {icon.id}
+                          </div>
+                          <p className="text-xs text-gray-700 group-hover:text-blue-700 font-medium truncate">{icon.name}</p>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signage Library Modal */}
+      {signageLibraryOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Signage Library</h2>
+                  <p className="text-sm text-gray-600 mt-1">Your saved signages and favorites</p>
+                </div>
+                <button
+                  onClick={() => setSignageLibraryOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex gap-2 mb-4">
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">All</button>
+                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200">Favorites</button>
+                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200">Recent</button>
+              </div>
+
+              {savedSignages.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <p className="text-gray-500 text-lg mb-2">No saved signages yet</p>
+                  <p className="text-gray-400 text-sm">Save your designs to access them later</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {savedSignages.map((signage) => (
+                    <div key={signage.id} className="border-2 border-gray-300 rounded-lg p-4 hover:border-blue-500 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900">{signage.name}</h3>
+                        <button
+                          onClick={() => {
+                            const updated = savedSignages.map(s => 
+                              s.id === signage.id ? { ...s, favorite: !s.favorite } : s
+                            )
+                            setSavedSignages(updated)
+                            if (signage.favorite) {
+                              setFavoriteSignages(prev => prev.filter(f => f.id !== signage.id))
+                            } else {
+                              setFavoriteSignages(prev => [...prev, { ...signage, favorite: true }])
+                            }
+                          }}
+                          className="p-1 text-yellow-500 hover:text-yellow-600"
+                        >
+                          <svg className={`w-5 h-5 ${signage.favorite ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                          </svg>
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-3">
+                        {new Date(signage.updatedAt).toLocaleDateString()}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            // Load signage data
+                            const { formData: fd, identificationData: id, textElements: te, imageElements: ie, backgroundSettings: bs } = signage.data
+                            setFormData(fd)
+                            setIdentificationData(id)
+                            setTextElements(te)
+                            setImageElements(ie)
+                            setBackgroundSettings(bs)
+                            setSignageLibraryOpen(false)
+                            addAuditLog('load', { signageId: signage.id, name: signage.name })
+                          }}
+                          className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            const duplicated = {
+                              ...signage,
+                              id: Date.now(),
+                              name: `${signage.name} (Copy)`,
+                              createdAt: new Date().toISOString(),
+                              updatedAt: new Date().toISOString()
+                            }
+                            setSavedSignages(prev => [...prev, duplicated])
+                            addAuditLog('duplicate', { signageId: signage.id, newId: duplicated.id })
+                          }}
+                          className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                        >
+                          Duplicate
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen Preview Modal */}
+      {showFullScreenPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <button
+              onClick={() => setShowFullScreenPreview(false)}
+              className="absolute top-4 right-4 p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors z-10"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div 
+              className="bg-white shadow-2xl"
+              style={{
+                width: `${(previewZoom / 100) * 800}px`,
+                height: `${(previewZoom / 100) * 600}px`,
+                maxWidth: '90vw',
+                maxHeight: '90vh'
+              }}
+            >
+              {/* Preview content would be rendered here */}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex relative max-w-[1920px] mx-auto">
         {/* Mobile Overlay */}
@@ -2671,8 +4928,23 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
                     Export PDF
                   </button>
-                  <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
+                  <button 
+                    onClick={handlePrint}
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px] flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
                     Print
+                  </button>
+                  <button 
+                    onClick={handleDownload}
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px] flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
                   </button>
                 </div>
               </div>
@@ -3216,18 +5488,29 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               Remove
                             </button>
                           </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Logo Size: {companyBranding.clientLogoSize}px
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Logo Size: {companyBranding.clientLogoSize}px
+                              </label>
+                              <input
+                                type="range"
+                                min="40"
+                                max="200"
+                                value={companyBranding.clientLogoSize}
+                                onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoSize: parseInt(e.target.value) })}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={companyBranding.clientLogoLocked || false}
+                                onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoLocked: e.target.checked })}
+                                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                              />
+                              <span className="text-sm font-semibold text-gray-700">Lock Position</span>
                             </label>
-                            <input
-                              type="range"
-                              min="40"
-                              max="200"
-                              value={companyBranding.clientLogoSize}
-                              onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoSize: parseInt(e.target.value) })}
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                            />
                           </div>
                         </div>
                       ) : (
@@ -3338,7 +5621,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     {/* Instructions */}
                     <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                       <p className="text-sm text-gray-700">
-                        <strong>Tip:</strong> After uploading logos, you can drag them to adjust their position in the preview area. Click and drag the logos to move them around.
+                        <strong>Tip:</strong> After uploading logos, you can drag them to adjust their position in the preview area. Use the blue resize handle in the bottom-right corner of each logo to resize them with your cursor.
                       </p>
                     </div>
 
@@ -3371,18 +5654,21 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               </div>
               
               <div 
+                ref={previewRef}
                 className="border-2 sm:border-4 border-black rounded-lg overflow-hidden mb-4 sm:mb-6 bg-white preview-container relative"
                 onMouseMove={handleMouseMove}
                 onMouseUp={() => {
                   handleLogoDragEnd()
+                  handleLogoResizeEnd()
                   handleElementDragEnd()
                 }}
                 onMouseLeave={() => {
                   handleLogoDragEnd()
+                  handleLogoResizeEnd()
                   handleElementDragEnd()
                 }}
               >
-                {/* Company Branding Logos - Draggable */}
+                {/* Company Branding Logos - Draggable and Resizable */}
                 {companyBranding.clientLogo && (
                   <div
                     style={{
@@ -3390,11 +5676,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       left: `${companyBranding.clientLogoPosition.x}%`,
                       top: `${companyBranding.clientLogoPosition.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      cursor: draggingLogo === 'client' ? 'grabbing' : 'grab',
+                      cursor: resizingLogo === 'client' ? 'nwse-resize' : (draggingLogo === 'client' ? 'grabbing' : 'grab'),
                       zIndex: 1000,
                       userSelect: 'none'
                     }}
                     onMouseDown={(e) => {
+                      // Don't start drag if clicking on resize handle
+                      if (e.target.classList.contains('resize-handle')) return
                       e.preventDefault()
                       handleLogoDragStart('client')
                     }}
@@ -3407,9 +5695,31 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         width: `${companyBranding.clientLogoSize}px`,
                         height: 'auto',
                         pointerEvents: 'none',
-                        filter: draggingLogo === 'client' ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                        filter: (draggingLogo === 'client' || resizingLogo === 'client') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                       }}
                       draggable={false}
+                    />
+                    {/* Resize Handle */}
+                    <div
+                      className="resize-handle"
+                      style={{
+                        position: 'absolute',
+                        bottom: '-8px',
+                        right: '-8px',
+                        width: '16px',
+                        height: '16px',
+                        backgroundColor: '#3B82F6',
+                        border: '2px solid white',
+                        borderRadius: '50%',
+                        cursor: 'nwse-resize',
+                        zIndex: 1001,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleLogoResizeStart(e, 'client')
+                      }}
                     />
                   </div>
                 )}
@@ -3421,11 +5731,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       left: `${companyBranding.contractorLogoPosition.x}%`,
                       top: `${companyBranding.contractorLogoPosition.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      cursor: draggingLogo === 'contractor' ? 'grabbing' : 'grab',
+                      cursor: resizingLogo === 'contractor' ? 'nwse-resize' : (draggingLogo === 'contractor' ? 'grabbing' : 'grab'),
                       zIndex: 1000,
                       userSelect: 'none'
                     }}
                     onMouseDown={(e) => {
+                      // Don't start drag if clicking on resize handle
+                      if (e.target.classList.contains('resize-handle')) return
                       e.preventDefault()
                       handleLogoDragStart('contractor')
                     }}
@@ -3438,9 +5750,31 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         width: `${companyBranding.contractorLogoSize}px`,
                         height: 'auto',
                         pointerEvents: 'none',
-                        filter: draggingLogo === 'contractor' ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                        filter: (draggingLogo === 'contractor' || resizingLogo === 'contractor') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                       }}
                       draggable={false}
+                    />
+                    {/* Resize Handle */}
+                    <div
+                      className="resize-handle"
+                      style={{
+                        position: 'absolute',
+                        bottom: '-8px',
+                        right: '-8px',
+                        width: '16px',
+                        height: '16px',
+                        backgroundColor: '#3B82F6',
+                        border: '2px solid white',
+                        borderRadius: '50%',
+                        cursor: 'nwse-resize',
+                        zIndex: 1001,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleLogoResizeStart(e, 'contractor')
+                      }}
                     />
                   </div>
                 )}
@@ -3699,12 +6033,26 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 )}
               </div>
               
-              <button className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 mb-3 sm:mb-4 text-sm sm:text-base min-h-[44px]">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print
-              </button>
+              <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <button 
+                  onClick={handlePrint}
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base min-h-[44px]"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Print
+                </button>
+                <button 
+                  onClick={handleDownload}
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base min-h-[44px]"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download
+                </button>
+              </div>
               
               <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg sm:rounded-xl">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

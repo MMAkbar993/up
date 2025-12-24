@@ -6,6 +6,8 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [selectedElement, setSelectedElement] = useState(null)
   const [iconLibrary, setIconLibrary] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
   const fileInputRef = useRef(null)
   const iconInputRef = useRef(null)
 
@@ -100,6 +102,24 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
 
   const handleMouseMove = (e) => {
+    if (isResizing && selectedElement) {
+      const deltaX = e.clientX - resizeStartData.x
+      const deltaY = e.clientY - resizeStartData.y
+      const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+      
+      const selectedEl = elements.find(el => el.id === selectedElement)
+      if (!selectedEl) return
+      
+      if (selectedEl.type === 'text') {
+        const newFontSize = Math.max(12, Math.min(200, resizeStartData.size + delta))
+        updateElement(selectedElement, { fontSize: newFontSize })
+      } else if (selectedEl.type === 'icon' || selectedEl.type === 'emoji') {
+        const newSize = Math.max(20, Math.min(500, resizeStartData.size + delta))
+        updateElement(selectedElement, { size: newSize })
+      }
+      return
+    }
+    
     if (!isDragging || !selectedElement) return
     
     const canvas = e.currentTarget.closest('.canvas-container')
@@ -117,6 +137,22 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
   const handleMouseUp = () => {
     setIsDragging(false)
+    setIsResizing(false)
+    setResizeStartData({ size: 0, x: 0, y: 0 })
+  }
+
+  const handleResizeStart = (e, element) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsResizing(true)
+    setSelectedElement(element.id)
+    
+    const currentSize = element.type === 'text' ? element.fontSize : element.size
+    setResizeStartData({
+      size: currentSize,
+      x: e.clientX,
+      y: e.clientY
+    })
   }
 
   const handleCanvasClick = () => {
@@ -434,15 +470,27 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         />
                       </div>
                       <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Font Size: {selectedEl.fontSize}px</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Font Size</label>
+                        <div className="flex gap-2 mb-2">
+                          <select
+                            value={selectedEl.fontSize}
+                            onChange={(e) => updateElement(selectedEl.id, { fontSize: parseInt(e.target.value) })}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          >
+                            {[8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 60, 72, 96, 120, 144, 200].map(size => (
+                              <option key={size} value={size}>{size}pt</option>
+                            ))}
+                          </select>
+                        </div>
                         <input
                           type="range"
                           min="12"
-                          max="120"
+                          max="200"
                           value={selectedEl.fontSize}
                           onChange={(e) => updateElement(selectedEl.id, { fontSize: parseInt(e.target.value) })}
                           className="w-full"
                         />
+                        <div className="text-xs text-gray-500 mt-1 text-center">{selectedEl.fontSize}px</div>
                       </div>
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Color</label>
@@ -503,14 +551,22 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   {elements.map((element) => (
                     <div
                       key={element.id}
-                      onClick={(e) => handleElementClick(e, element)}
-                      onMouseDown={(e) => handleMouseDown(e, element)}
+                      onClick={(e) => {
+                        if (!e.target.classList.contains('resize-handle')) {
+                          handleElementClick(e, element)
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        if (!e.target.classList.contains('resize-handle')) {
+                          handleMouseDown(e, element)
+                        }
+                      }}
                       style={{
                         position: 'absolute',
                         left: `${element.x}%`,
                         top: `${element.y}%`,
                         transform: 'translate(-50%, -50%)',
-                        cursor: 'move',
+                        cursor: isResizing && selectedElement === element.id ? 'nwse-resize' : 'move',
                         border: selectedElement === element.id ? '2px dashed #3B82F6' : 'none',
                         padding: selectedElement === element.id ? '4px' : '0',
                         zIndex: selectedElement === element.id ? 1000 : 100
@@ -522,14 +578,15 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             fontSize: `${element.fontSize}px`,
                             color: element.color,
                             fontFamily: element.fontFamily,
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            userSelect: 'none'
                           }}
                         >
                           {element.content}
                         </div>
                       )}
                       {element.type === 'emoji' && (
-                        <div style={{ fontSize: `${element.size}px` }}>
+                        <div style={{ fontSize: `${element.size}px`, userSelect: 'none' }}>
                           {element.content}
                         </div>
                       )}
@@ -540,8 +597,31 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           style={{
                             width: `${element.size}px`,
                             height: `${element.size}px`,
-                            objectFit: 'contain'
+                            objectFit: 'contain',
+                            userSelect: 'none',
+                            pointerEvents: 'none'
                           }}
+                          draggable={false}
+                        />
+                      )}
+                      {/* Resize Handle */}
+                      {selectedElement === element.id && (
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            bottom: '-8px',
+                            right: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nwse-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleResizeStart(e, element)}
                         />
                       )}
                     </div>

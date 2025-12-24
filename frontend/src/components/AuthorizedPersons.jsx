@@ -8,6 +8,8 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
   const [multiPersonSignage, setMultiPersonSignage] = useState(false)
   const [pageBackgroundColor, setPageBackgroundColor] = useState('#FFFFFF')
   const [cardBackgroundColors, setCardBackgroundColors] = useState({}) // { personId: color }
+  const [headerText, setHeaderText] = useState('AUTHORIZED PERSONNEL')
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false)
   const [formData, setFormData] = useState({
     paperSize: 'A4',
     orientation: 'Landscape',
@@ -37,6 +39,31 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       'Information': '#3B82F6'  // Blue
     }
     return colorMap[category] || '#0052CC'
+  }
+
+  // Helper function to determine if a color is dark
+  const isDarkColor = (color) => {
+    if (!color) return false
+    // Convert hex to RGB
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminance < 0.5
+  }
+
+  // Get appropriate text color based on background
+  const getTextColor = (backgroundColor) => {
+    if (!backgroundColor) return 'text-gray-900'
+    return isDarkColor(backgroundColor) ? 'text-white' : 'text-gray-900'
+  }
+
+  // Get appropriate secondary text color based on background
+  const getSecondaryTextColor = (backgroundColor) => {
+    if (!backgroundColor) return 'text-gray-700'
+    return isDarkColor(backgroundColor) ? 'text-gray-200' : 'text-gray-700'
   }
 
   // Get category border color class
@@ -549,22 +576,63 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                     Signage Category <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                      <div className="w-5 h-5 bg-blue-600 rounded"></div>
-                    </div>
-                    <select
-                      value={formData.signageCategory}
-                      onChange={(e) => handleInputChange('signageCategory', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                      required
+                    <button
+                      type="button"
+                      onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                      className="w-full pl-10 pr-10 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-left bg-white flex items-center gap-3"
+                      style={{ borderColor: getCategoryColor(formData.signageCategory) }}
                     >
-                      <option value="Mandatory">Mandatory</option>
-                      <option value="Danger">Danger</option>
-                      <option value="Warning">Warning</option>
-                      <option value="Prohibition">Prohibition</option>
-                      <option value="Emergency">Emergency</option>
-                      <option value="Information">Information</option>
-                    </select>
+                      <div 
+                        className="w-5 h-5 rounded border-2 border-white shadow-sm flex-shrink-0" 
+                        style={{ backgroundColor: getCategoryColor(formData.signageCategory) }}
+                      ></div>
+                      <span className="flex-1">{formData.signageCategory}</span>
+                      <svg className={`w-5 h-5 text-gray-400 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {categoryDropdownOpen && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-10" 
+                          onClick={() => setCategoryDropdownOpen(false)}
+                        ></div>
+                        <div className="absolute z-20 w-full mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-lg overflow-hidden">
+                          {[
+                            { value: 'Mandatory', label: 'Mandatory', color: '#0052CC' },
+                            { value: 'Danger', label: 'Danger', color: '#DC2626' },
+                            { value: 'Warning', label: 'Warning', color: '#F59E0B' },
+                            { value: 'Prohibition', label: 'Prohibition', color: '#DC2626' },
+                            { value: 'Emergency', label: 'Emergency', color: '#EF4444' },
+                            { value: 'Information', label: 'Information', color: '#3B82F6' }
+                          ].map((category) => (
+                            <button
+                              key={category.value}
+                              type="button"
+                              onClick={() => {
+                                handleInputChange('signageCategory', category.value)
+                                setCategoryDropdownOpen(false)
+                              }}
+                              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left ${
+                                formData.signageCategory === category.value ? 'bg-blue-50' : ''
+                              }`}
+                            >
+                              <div 
+                                className="w-5 h-5 rounded border-2 border-white shadow-sm flex-shrink-0" 
+                                style={{ backgroundColor: category.color }}
+                              ></div>
+                              <span className="flex-1 font-medium">{category.label}</span>
+                              {formData.signageCategory === category.value && (
+                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -910,14 +978,25 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
 
       {/* Signage Preview Modal */}
       {showSignage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 print-modal-overlay">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col print-visible">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b-2 border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b-2 border-gray-200 no-print">
               <h2 className="text-2xl font-bold text-gray-900">
                 {multiPersonSignage ? 'Multi-Person Signage Preview' : 'Signage Preview'}
               </h2>
               <div className="flex items-center gap-4">
+                {/* Header Text Input */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-semibold text-gray-700">Header Text:</label>
+                  <input
+                    type="text"
+                    value={headerText}
+                    onChange={(e) => setHeaderText(e.target.value)}
+                    placeholder="AUTHORIZED PERSONNEL"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+                  />
+                </div>
                 {/* Background Color Picker */}
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-semibold text-gray-700">Page Background:</label>
@@ -951,9 +1030,9 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
             </div>
 
             {/* Signage Preview */}
-            <div className="flex-1 overflow-y-auto p-6 print:p-0">
+            <div className="flex-1 overflow-y-auto p-6 print:p-0 print-visible">
               <div 
-                className="mx-auto print:w-full"
+                className="mx-auto print:w-full print-visible"
                 style={{ 
                   backgroundColor: pageBackgroundColor,
                   width: '210mm',
@@ -969,7 +1048,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       className="w-full py-4 px-6 rounded-t-lg mb-6"
                       style={{ backgroundColor: '#DC2626' }}
                     >
-                      <h1 className="text-3xl font-bold text-white text-center uppercase">AUTHORIZED PERSONNEL</h1>
+                      <h1 className="text-3xl font-bold text-white text-center uppercase">{headerText || 'AUTHORIZED PERSONNEL'}</h1>
                     </div>
                     
                     {/* Grid of Persons */}
@@ -1008,28 +1087,28 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                           </div>
 
                           {/* Name */}
-                          <h3 className="text-center font-bold text-xl mb-3 text-gray-900">{person.name}</h3>
+                          <h3 className={`text-center font-bold text-xl mb-3 ${getTextColor(cardBgColor)}`}>{person.name}</h3>
 
                           {/* ID */}
                           <div className="mb-2 flex items-center gap-2">
-                            <span className="font-semibold text-gray-700">#</span>
-                            <span className="text-gray-700">ID: {person.employeeId || 'N/A'}</span>
+                            <span className={`font-semibold ${getSecondaryTextColor(cardBgColor)}`}>#</span>
+                            <span className={getSecondaryTextColor(cardBgColor)}>ID: {person.employeeId || 'N/A'}</span>
                           </div>
 
                           {/* Role */}
                           <div className="mb-2 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-5 h-5 ${isDarkColor(cardBgColor) ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            <span className="text-gray-700">Role: <span style={{ color: categoryColor, fontWeight: 'bold' }}>{person.position}</span></span>
+                            <span className={getSecondaryTextColor(cardBgColor)}>Role: <span style={{ color: categoryColor, fontWeight: 'bold' }}>{person.position}</span></span>
                           </div>
 
                           {/* Department */}
                           <div className="mb-3 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-5 h-5 ${isDarkColor(cardBgColor) ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
-                            <span className="text-gray-700">Dept: {person.department}</span>
+                            <span className={getSecondaryTextColor(cardBgColor)}>Dept: {person.department}</span>
                           </div>
 
                           {/* Shift */}
@@ -1108,7 +1187,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       className="w-full py-4 px-6 rounded-t-lg mb-6"
                       style={{ backgroundColor: getCategoryColor(viewingPerson.signageCategory) }}
                     >
-                      <h1 className="text-3xl font-bold text-white text-center uppercase">AUTHORIZED PERSONNEL</h1>
+                      <h1 className="text-3xl font-bold text-white text-center uppercase">{headerText || 'AUTHORIZED PERSONNEL'}</h1>
                     </div>
 
                     <div className="flex-1 flex flex-col items-center justify-center">
@@ -1123,29 +1202,36 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       </div>
 
                       {/* Name */}
-                      <h2 className="text-3xl font-bold text-gray-900 mb-6">{viewingPerson.name}</h2>
+                      {(() => {
+                        const cardBgColor = cardBackgroundColors[viewingPerson.id] || '#FFFFFF'
+                        return (
+                          <>
+                            <h2 className={`text-3xl font-bold mb-6 ${getTextColor(cardBgColor)}`}>{viewingPerson.name}</h2>
 
-                      {/* Details */}
-                      <div className="w-full space-y-3 mb-6">
-                        <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
-                          <span className="text-xl font-semibold">#</span>
-                          <span className="text-lg text-gray-700">ID: {viewingPerson.employeeId || 'N/A'}</span>
-                        </div>
+                            {/* Details */}
+                            <div className="w-full space-y-3 mb-6">
+                              <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
+                                <span className="text-xl font-semibold">#</span>
+                                <span className="text-lg text-gray-700">ID: {viewingPerson.employeeId || 'N/A'}</span>
+                              </div>
 
-                        <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
-                          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                          <span className="text-lg text-gray-700">Role: <span style={{ color: getCategoryColor(viewingPerson.signageCategory), fontWeight: 'bold' }}>{viewingPerson.position}</span></span>
-                        </div>
+                              <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
+                                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-lg text-gray-700">Role: <span style={{ color: getCategoryColor(viewingPerson.signageCategory), fontWeight: 'bold' }}>{viewingPerson.position}</span></span>
+                              </div>
 
-                        <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
-                          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span className="text-lg text-gray-700">Dept: {viewingPerson.department}</span>
-                        </div>
-                      </div>
+                              <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
+                                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                <span className="text-lg text-gray-700">Dept: {viewingPerson.department}</span>
+                              </div>
+                            </div>
+                          </>
+                        )
+                      })()}
 
                       {/* Shift */}
                       {viewingPerson.authorizationLevel && (
@@ -1222,17 +1308,61 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       {/* Print Styles */}
       <style>{`
         @media print {
+          /* Hide everything by default */
           body * {
             visibility: hidden;
           }
+          /* Hide modal overlay background but keep structure */
+          .print-modal-overlay {
+            visibility: hidden !important;
+            position: static !important;
+            background: transparent !important;
+            opacity: 1 !important;
+            padding: 0 !important;
+          }
+          /* Make print-visible content visible and properly positioned */
+          .print-visible {
+            visibility: visible !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            max-width: none !important;
+            max-height: none !important;
+            background: white !important;
+            overflow: visible !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            z-index: 9999 !important;
+          }
+          /* Show all children of print-visible */
+          .print-visible * {
+            visibility: visible !important;
+          }
+          /* Hide non-print elements */
           .no-print {
             display: none !important;
+            visibility: hidden !important;
           }
+          /* Print utility classes */
           .print\\:w-full {
             width: 100% !important;
           }
           .print\\:p-0 {
             padding: 0 !important;
+          }
+          /* Page settings */
+          @page {
+            margin: 0;
+            size: A4;
+          }
+          html, body {
+            width: 100%;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            background: white;
           }
         }
       `}</style>
