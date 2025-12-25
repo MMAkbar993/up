@@ -11,7 +11,10 @@
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
+<<<<<<< HEAD
     "jspdf": "^3.0.4",
+=======
+>>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
