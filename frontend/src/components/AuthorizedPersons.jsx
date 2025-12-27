@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Sidebar from './Sidebar'
 
 const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   const [persons, setPersons] = useState([])
@@ -10,6 +11,8 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
   const [cardBackgroundColors, setCardBackgroundColors] = useState({}) // { personId: color }
   const [headerText, setHeaderText] = useState('AUTHORIZED PERSONNEL')
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false)
+  const [editableTexts, setEditableTexts] = useState({}) // Store custom editable text for each person
+  const [isEditingMode, setIsEditingMode] = useState(false)
   const [formData, setFormData] = useState({
     paperSize: 'A4',
     orientation: 'Landscape',
@@ -263,239 +266,13 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       </header>
 
       <div className="flex relative max-w-[1920px] mx-auto">
-        {/* Mobile Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        {/* Sidebar */}
-        <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        >
-          <nav className="space-y-2 lg:space-y-3">
-            {/* Dashboard */}
-            <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'dashboard'
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                  : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
-              onClick={() => {
-                setActiveNav('dashboard')
-                setSidebarOpen(false)
-              }}
-            >
-              <div className="flex items-center gap-3 lg:gap-4">
-                <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <div>
-                  <div className="font-semibold text-sm lg:text-base">Dashboard</div>
-                  <div className="text-xs lg:text-sm opacity-80">Overview & quick actions</div>
-                </div>
-              </div>
-            </div>
-
-            {/* CREATE SIGNAGE Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
-                CREATE SIGNAGE
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'generator'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => {
-                  setActiveNav('generator')
-                  setSidebarOpen(false)
-                }}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Signage Generator</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Create safety signage.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'templates'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => {
-                  setActiveNav('templates')
-                  setSidebarOpen(false)
-                }}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Template Library</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  500+ ready templates.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'ai-generator'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => {
-                  setActiveNav('ai-generator')
-                  setSidebarOpen(false)
-                }}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">AI Generator</span>
-                  <span className="px-2 lg:px-2.5 py-0.5 lg:py-1 bg-purple-100 text-purple-700 rounded-md lg:rounded-lg text-xs lg:text-sm font-semibold shadow-sm">
-                    NEW
-                  </span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Auto-create with AI.
-                </div>
-              </div>
-            </div>
-
-            {/* MANAGE PERSONNEL Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
-                MANAGE PERSONNEL
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'authorized'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => {
-                  setActiveNav('authorized')
-                  setSidebarOpen(false)
-                }}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Authorized Persons</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Manage personnel.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'emergency'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => {
-                  setActiveNav('emergency')
-                  setSidebarOpen(false)
-                }}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Safety Team</span>
-                  <svg className="w-4 h-4 lg:w-5 lg:h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* RESOURCES Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
-                RESOURCES
-              </div>
-              
-              {/* Blog & Tutorials */}
-              <button 
-                onClick={() => {
-                  setActiveNav('blog')
-                  setSidebarOpen(false)
-                }}
-                className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${
-                  activeNav === 'blog'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm lg:text-base">Blog & Tutorials</div>
-                    <div className="text-xs lg:text-sm opacity-90">Learn safety tips</div>
-                  </div>
-                </div>
-              </button>
-
-              {/* Admin Panel */}
-              <div className="p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 text-gray-700 hover:bg-gray-200 hover:shadow-md">
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <div>
-                    <div className="font-semibold text-sm lg:text-base">Admin Panel</div>
-                    <div className="text-xs lg:text-sm opacity-80">System settings</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Pro Features Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 lg:p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <h3 className="text-sm lg:text-base font-bold text-gray-900">Pro Features</h3>
-                </div>
-                <ul className="space-y-2">
-                  {[
-                    'AI-powered generation',
-                    'Multi-language support',
-                    'Company branding',
-                    '500+ templates',
-                    'High-res export'
-                  ].map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                      <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </nav>
-        </aside>
+        {/* Shared Sidebar */}
+        <Sidebar 
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 xl:p-10 min-w-0">
@@ -1182,12 +959,31 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                 ) : viewingPerson ? (
                   /* Single Person Signage */
                   <div className="relative border-4 rounded-lg p-6 flex flex-col h-full" style={{ borderColor: getCategoryColor(viewingPerson.signageCategory), backgroundColor: cardBackgroundColors[viewingPerson.id] || '#FFFFFF' }}>
-                    {/* Header */}
+                    {/* Header - Editable */}
                     <div 
-                      className="w-full py-4 px-6 rounded-t-lg mb-6"
+                      className={`w-full py-4 px-6 rounded-t-lg mb-6 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`}
                       style={{ backgroundColor: getCategoryColor(viewingPerson.signageCategory) }}
                     >
-                      <h1 className="text-3xl font-bold text-white text-center uppercase">{headerText || 'AUTHORIZED PERSONNEL'}</h1>
+                      <h1 
+                        className="text-3xl font-bold text-white text-center uppercase"
+                        contentEditable={isEditingMode}
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => {
+                          const personKey = `person_${viewingPerson.id}`
+                          setEditableTexts(prev => ({
+                            ...prev,
+                            [`${personKey}_header`]: e.target.textContent || (headerText || 'AUTHORIZED PERSONNEL')
+                          }))
+                        }}
+                        style={{ cursor: isEditingMode ? 'text' : 'default', minHeight: '48px' }}
+                      >
+                        {(() => {
+                          const personKey = `person_${viewingPerson.id}`
+                          return editableTexts[`${personKey}_header`] !== undefined 
+                            ? editableTexts[`${personKey}_header`] 
+                            : (headerText || 'AUTHORIZED PERSONNEL')
+                        })()}
+                      </h1>
                     </div>
 
                     <div className="flex-1 flex flex-col items-center justify-center">
@@ -1201,58 +997,156 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                         />
                       </div>
 
-                      {/* Name */}
+                      {/* Name - Editable */}
                       {(() => {
                         const cardBgColor = cardBackgroundColors[viewingPerson.id] || '#FFFFFF'
+                        const personKey = `person_${viewingPerson.id}`
+                        const defaultName = viewingPerson.name
+                        const customName = editableTexts[`${personKey}_name`] !== undefined ? editableTexts[`${personKey}_name`] : defaultName
+                        
                         return (
                           <>
-                            <h2 className={`text-3xl font-bold mb-6 ${getTextColor(cardBgColor)}`}>{viewingPerson.name}</h2>
+                            <h2 
+                              className={`text-3xl font-bold mb-6 ${getTextColor(cardBgColor)} ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-2 rounded' : ''}`}
+                              contentEditable={isEditingMode}
+                              suppressContentEditableWarning={true}
+                              onBlur={(e) => {
+                                setEditableTexts(prev => ({
+                                  ...prev,
+                                  [`${personKey}_name`]: e.target.textContent || defaultName
+                                }))
+                              }}
+                              style={{ 
+                                minHeight: '48px',
+                                cursor: isEditingMode ? 'text' : 'default'
+                              }}
+                            >
+                              {customName}
+                            </h2>
 
-                            {/* Details */}
+                            {/* Details - Editable */}
                             <div className="w-full space-y-3 mb-6">
                               <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
                                 <span className="text-xl font-semibold">#</span>
-                                <span className="text-lg text-gray-700">ID: {viewingPerson.employeeId || 'N/A'}</span>
+                                <span 
+                                  className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
+                                  contentEditable={isEditingMode}
+                                  suppressContentEditableWarning={true}
+                                  onBlur={(e) => {
+                                    const text = e.target.textContent || `ID: ${viewingPerson.employeeId || 'N/A'}`
+                                    setEditableTexts(prev => ({
+                                      ...prev,
+                                      [`${personKey}_id`]: text
+                                    }))
+                                  }}
+                                  style={{ cursor: isEditingMode ? 'text' : 'default' }}
+                                >
+                                  {editableTexts[`${personKey}_id`] !== undefined ? editableTexts[`${personKey}_id`] : `ID: ${viewingPerson.employeeId || 'N/A'}`}
+                                </span>
                               </div>
 
                               <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
                                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span className="text-lg text-gray-700">Role: <span style={{ color: getCategoryColor(viewingPerson.signageCategory), fontWeight: 'bold' }}>{viewingPerson.position}</span></span>
+                                <span 
+                                  className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
+                                  contentEditable={isEditingMode}
+                                  suppressContentEditableWarning={true}
+                                  onBlur={(e) => {
+                                    const text = e.target.textContent || `Role: ${viewingPerson.position}`
+                                    setEditableTexts(prev => ({
+                                      ...prev,
+                                      [`${personKey}_role`]: text
+                                    }))
+                                  }}
+                                  style={{ cursor: isEditingMode ? 'text' : 'default' }}
+                                >
+                                  {editableTexts[`${personKey}_role`] !== undefined ? editableTexts[`${personKey}_role`] : `Role: ${viewingPerson.position}`}
+                                </span>
                               </div>
 
                               <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
                                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span className="text-lg text-gray-700">Dept: {viewingPerson.department}</span>
+                                <span 
+                                  className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
+                                  contentEditable={isEditingMode}
+                                  suppressContentEditableWarning={true}
+                                  onBlur={(e) => {
+                                    const text = e.target.textContent || `Dept: ${viewingPerson.department}`
+                                    setEditableTexts(prev => ({
+                                      ...prev,
+                                      [`${personKey}_dept`]: text
+                                    }))
+                                  }}
+                                  style={{ cursor: isEditingMode ? 'text' : 'default' }}
+                                >
+                                  {editableTexts[`${personKey}_dept`] !== undefined ? editableTexts[`${personKey}_dept`] : `Dept: ${viewingPerson.department}`}
+                                </span>
                               </div>
                             </div>
                           </>
                         )
                       })()}
 
-                      {/* Shift */}
+                      {/* Shift - Editable */}
                       {viewingPerson.authorizationLevel && (
                         <div 
-                          className="w-full py-3 px-4 rounded mb-6 flex items-center justify-center gap-3"
+                          className={`w-full py-3 px-4 rounded mb-6 flex items-center justify-center gap-3 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`}
                           style={{ backgroundColor: getCategoryColor(viewingPerson.signageCategory) }}
                         >
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="text-xl text-white font-semibold">{getShiftDisplay(viewingPerson.authorizationLevel)}</span>
+                          <span 
+                            className="text-xl text-white font-semibold flex-1 text-center"
+                            contentEditable={isEditingMode}
+                            suppressContentEditableWarning={true}
+                            onBlur={(e) => {
+                              const personKey = `person_${viewingPerson.id}`
+                              const defaultShift = getShiftDisplay(viewingPerson.authorizationLevel)
+                              setEditableTexts(prev => ({
+                                ...prev,
+                                [`${personKey}_shift`]: e.target.textContent || defaultShift
+                              }))
+                            }}
+                            style={{ cursor: isEditingMode ? 'text' : 'default', minHeight: '28px' }}
+                          >
+                            {(() => {
+                              const personKey = `person_${viewingPerson.id}`
+                              const defaultShift = getShiftDisplay(viewingPerson.authorizationLevel)
+                              return editableTexts[`${personKey}_shift`] !== undefined ? editableTexts[`${personKey}_shift`] : defaultShift
+                            })()}
+                          </span>
                         </div>
                       )}
 
-                      {/* Contact Info */}
+                      {/* Contact Info - Editable */}
                       <div className="w-full space-y-2 mb-6">
                         <div className="flex items-center gap-3 bg-yellow-50 py-2 px-4 rounded">
                           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                           </svg>
-                          <span className="text-lg text-gray-700">{viewingPerson.phone}</span>
+                          <span 
+                            className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
+                            contentEditable={isEditingMode}
+                            suppressContentEditableWarning={true}
+                            onBlur={(e) => {
+                              const personKey = `person_${viewingPerson.id}`
+                              setEditableTexts(prev => ({
+                                ...prev,
+                                [`${personKey}_phone`]: e.target.textContent || viewingPerson.phone
+                              }))
+                            }}
+                            style={{ cursor: isEditingMode ? 'text' : 'default' }}
+                          >
+                            {(() => {
+                              const personKey = `person_${viewingPerson.id}`
+                              return editableTexts[`${personKey}_phone`] !== undefined ? editableTexts[`${personKey}_phone`] : viewingPerson.phone
+                            })()}
+                          </span>
                         </div>
                         {viewingPerson.email && (
                           <div className="flex items-center gap-3 bg-yellow-50 py-2 px-4 rounded">
@@ -1275,26 +1169,87 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                         </div>
                       )}
 
-                      {/* Card Background Color Picker (for editing) */}
-                      <div className="mt-4 flex items-center gap-2 no-print">
-                        <label className="text-sm text-gray-700 font-semibold">Card Background:</label>
-                        <input
-                          type="color"
-                          value={cardBackgroundColors[viewingPerson.id] || '#FFFFFF'}
-                          onChange={(e) => setCardBackgroundColors(prev => ({
-                            ...prev,
-                            [viewingPerson.id]: e.target.value
-                          }))}
-                          className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
-                        />
+                      {/* Edit Mode Toggle and Card Background Color Picker */}
+                      <div className="mt-4 space-y-3 no-print">
+                        <div className="flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => setIsEditingMode(!isEditingMode)}
+                            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                              isEditingMode 
+                                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {isEditingMode ? '✓ Edit Mode ON' : '✎ Enable Edit Mode'}
+                          </button>
+                          {isEditingMode && (
+                            <button
+                              onClick={() => {
+                                // Reset all editable texts for this person
+                                const personKey = `person_${viewingPerson.id}`
+                                const keysToRemove = Object.keys(editableTexts).filter(key => key.startsWith(personKey))
+                                const newEditableTexts = { ...editableTexts }
+                                keysToRemove.forEach(key => delete newEditableTexts[key])
+                                setEditableTexts(newEditableTexts)
+                              }}
+                              className="px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm"
+                            >
+                              Reset to Default
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-gray-700 font-semibold">Card Background:</label>
+                          <input
+                            type="color"
+                            value={cardBackgroundColors[viewingPerson.id] || '#FFFFFF'}
+                            onChange={(e) => setCardBackgroundColors(prev => ({
+                              ...prev,
+                              [viewingPerson.id]: e.target.value
+                            }))}
+                            className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="mt-6 py-4 px-6 rounded-b-lg" style={{ backgroundColor: '#1e3a8a' }}>
+                    {/* Footer - Editable */}
+                    <div className={`mt-6 py-4 px-6 rounded-b-lg ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`} style={{ backgroundColor: '#1e3a8a' }}>
                       <div className="flex justify-between items-center text-white text-sm">
-                        <span>ISO 7010 Compliant • EHS Safety</span>
-                        <span>1 Person</span>
+                        <span 
+                          contentEditable={isEditingMode}
+                          suppressContentEditableWarning={true}
+                          onBlur={(e) => {
+                            const personKey = `person_${viewingPerson.id}`
+                            setEditableTexts(prev => ({
+                              ...prev,
+                              [`${personKey}_footer_left`]: e.target.textContent || 'ISO 7010 Compliant • EHS Safety'
+                            }))
+                          }}
+                          style={{ cursor: isEditingMode ? 'text' : 'default', minHeight: '20px', flex: 1 }}
+                        >
+                          {(() => {
+                            const personKey = `person_${viewingPerson.id}`
+                            return editableTexts[`${personKey}_footer_left`] !== undefined ? editableTexts[`${personKey}_footer_left`] : 'ISO 7010 Compliant • EHS Safety'
+                          })()}
+                        </span>
+                        <span 
+                          contentEditable={isEditingMode}
+                          suppressContentEditableWarning={true}
+                          onBlur={(e) => {
+                            const personKey = `person_${viewingPerson.id}`
+                            setEditableTexts(prev => ({
+                              ...prev,
+                              [`${personKey}_footer_right`]: e.target.textContent || '1 Person'
+                            }))
+                          }}
+                          style={{ cursor: isEditingMode ? 'text' : 'default', minHeight: '20px' }}
+                        >
+                          {(() => {
+                            const personKey = `person_${viewingPerson.id}`
+                            return editableTexts[`${personKey}_footer_right`] !== undefined ? editableTexts[`${personKey}_footer_right`] : '1 Person'
+                          })()}
+                        </span>
                       </div>
                     </div>
                   </div>

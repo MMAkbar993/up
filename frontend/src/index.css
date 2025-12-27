@@ -15,7 +15,6 @@
   * {
     @apply border-gray-200;
   }
-<<<<<<< HEAD
 }
 
 @layer utilities {
@@ -33,6 +32,4 @@
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
-=======
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
 }

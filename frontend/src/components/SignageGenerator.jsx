@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import Sidebar from './Sidebar'
 
 const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   const [signageType, setSignageType] = useState('safety')
@@ -46,6 +47,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [draggingLogo, setDraggingLogo] = useState(null) // 'client' or 'contractor'
   const [resizingLogo, setResizingLogo] = useState(null) // 'client' or 'contractor'
   const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
+  const [isShiftPressed, setIsShiftPressed] = useState(false)
 
   // Identification form data
   const [identificationData, setIdentificationData] = useState({
@@ -96,8 +98,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [aiSelectedIcons, setAiSelectedIcons] = useState([null, null]) // Two icon slots for AI generation
   const [uploadedCustomImage, setUploadedCustomImage] = useState(null) // For custom image upload
 
-  // ========== NEW COMPREHENSIVE FEATURES STATE ==========
-  
+  // ========== NEW COMPREHENSIVE FEATURES STATE ===  
   // Text Editing State
   const [textElements, setTextElements] = useState([]) // Array of text elements with full editing capabilities
   const [selectedTextElement, setSelectedTextElement] = useState(null)
@@ -116,7 +117,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [isoIconModalOpen, setIsoIconModalOpen] = useState(false)
   const [signageLibraryOpen, setSignageLibraryOpen] = useState(false)
   const [copiedElement, setCopiedElement] = useState(null)
-<<<<<<< HEAD
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [saveModalName, setSaveModalName] = useState('')
   const [notification, setNotification] = useState(null)
@@ -169,8 +169,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setSaveModalOpen(false)
     setSaveModalName('')
   }
-=======
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
   
   // Design Mode State
   const [designMode, setDesignMode] = useState('template') // 'template' or 'free'
@@ -355,8 +353,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     { id: 'W010', name: 'Magnetic Field', category: 'Warning', color: '#F59E0B' }
   ]
 
-  // ========== HELPER FUNCTIONS ==========
-  
+  // ========== HELPER FUNCTIONS ===  
   // Calculate contrast ratio for accessibility
   const calculateContrastRatio = (color1, color2) => {
     const getLuminance = (hex) => {
@@ -525,6 +522,27 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedTextElement, selectedImageElement, copiedElement])
+
+  // Track Shift key for logo resizing
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true)
+      }
+    }
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
 
   // Save signages to localStorage
   useEffect(() => {
@@ -857,11 +875,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     
     filesToAdd.forEach(file => {
       if (file.size > 5 * 1024 * 1024) {
-<<<<<<< HEAD
         showNotification(`File ${file.name} exceeds 5MB limit`, 'error')
-=======
-        alert(`File ${file.name} exceeds 5MB limit`)
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
         return
       }
       
@@ -888,6 +902,19 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
   const removePPEImage = (id) => {
     setCustomPPEImages(prev => prev.filter(img => img.id !== id))
+  }
+
+  // Helper function to get PPE display name
+  const getPPEDisplayName = (ppeId) => {
+    // Search through all PPE categories to find the matching item
+    for (const category of Object.values(ppeCategories)) {
+      const ppeItem = category.find(item => item.id === ppeId)
+      if (ppeItem) {
+        return ppeItem.name
+      }
+    }
+    // If not found, format the ID as a readable name
+    return ppeId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   const getCategoryColor = (category) => {
@@ -948,15 +975,20 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Helper function to handle navigation with delayed sidebar close
   const handleNavigation = (navItem) => {
     setActiveNav(navItem)
-    // Close sidebar after 3 seconds
+    // Auto-hide sidebar after selection (especially on mobile)
     setTimeout(() => {
       setSidebarOpen(false)
-    }, 3000)
+    }, 300)
   }
 
   // Handle logo drag start
-  const handleLogoDragStart = (logoType) => {
-    setDraggingLogo(logoType)
+  const handleLogoDragStart = (e, logoType) => {
+    // If Shift key is held, start resizing instead of dragging
+    if (e.shiftKey) {
+      handleLogoResizeStart(e, logoType)
+    } else {
+      setDraggingLogo(logoType)
+    }
   }
 
   // Handle logo drag
@@ -1078,7 +1110,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Handle mouse move for dragging
   const handleMouseMove = (e) => {
     if (draggingLogo) {
-      handleLogoDrag(e, draggingLogo)
+      // If Shift key is held during drag, switch to resize mode
+      if (e.shiftKey && !resizingLogo) {
+        const logoType = draggingLogo
+        setDraggingLogo(null)
+        const currentSize = logoType === 'client' 
+          ? companyBranding.clientLogoSize 
+          : companyBranding.contractorLogoSize
+        setResizeStartData({
+          size: currentSize,
+          x: e.clientX,
+          y: e.clientY
+        })
+        setResizingLogo(logoType)
+      } else {
+        handleLogoDrag(e, draggingLogo)
+      }
     } else if (resizingLogo) {
       handleLogoResize(e)
     }
@@ -1233,7 +1280,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
   }
 
-<<<<<<< HEAD
   // Export functionality
   const exportToImage = async (format = 'PNG', dpi = 300) => {
     if (!previewRef.current) {
@@ -1349,28 +1395,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
     
     setExportModalOpen(false)
-=======
-  const handleExportSignage = () => {
-    // Trigger download functionality
-    const canvas = document.createElement('canvas')
-    canvas.width = 1200
-    canvas.height = 1600
-    const ctx = canvas.getContext('2d')
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = '#000000'
-    ctx.font = '48px Arial'
-    ctx.fillText('Signage Export', 100, 200)
-    
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'signage.png'
-      a.click()
-      URL.revokeObjectURL(url)
-    })
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
   }
 
   const handleResetAIGeneration = () => {
@@ -1554,18 +1578,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     } catch (error) {
       console.error('Error downloading image:', error)
       // Final fallback: Show message and suggest using print
-<<<<<<< HEAD
       showNotification('Unable to download image. Please use the Print button and select "Save as PDF" from the print dialog.', 'error')
-=======
-      alert('Unable to download image. Please use the Print button and select "Save as PDF" from the print dialog.')
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header */}
-<<<<<<< HEAD
       <header className="bg-white border-b border-gray-200 shadow-sm px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 lg:py-5 sticky top-0 z-50">
         <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4 max-w-[1920px] mx-auto">
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
@@ -1575,17 +1594,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               aria-label="Toggle menu"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
-      <header className="bg-white border-b border-gray-200 shadow-sm px-4 md:px-6 lg:px-8 py-3 md:py-4 lg:py-5 sticky top-0 z-50">
-        <div className="flex items-center justify-between gap-4 max-w-[1920px] mx-auto">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Toggle menu"
-            >
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 {sidebarOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -1593,7 +1601,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 )}
               </svg>
             </button>
-<<<<<<< HEAD
             <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <span className="text-white font-bold text-base sm:text-lg md:text-xl lg:text-2xl">U</span>
             </div>
@@ -1601,26 +1608,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               <h1 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-2xl 2xl:text-3xl font-bold text-gray-900 truncate">
                 <span className="hidden xs:inline sm:hidden">Smart Signage</span>
                 <span className="hidden sm:inline">Universal Smart Signage Generator</span>
-=======
-            <div className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-              <span className="text-white font-bold text-lg md:text-xl lg:text-2xl">U</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-sm sm:text-base md:text-lg lg:text-2xl xl:text-3xl font-bold text-gray-900 truncate">
-                <span className="hidden sm:inline">Universal Smart Signage Generator</span>
-                <span className="sm:hidden">Smart Signage</span>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               </h1>
               <p className="hidden sm:block text-xs md:text-sm lg:text-base text-gray-600 truncate">
                 Professional EHS, Safety & Industrial Signage System
               </p>
             </div>
           </div>
-<<<<<<< HEAD
           <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap flex-shrink-0">
-=======
-          <div className="hidden sm:flex items-center gap-2 lg:gap-3 flex-wrap flex-shrink-0">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             {/* Upload Custom Image Component */}
             <div className="relative">
               <label className="cursor-pointer">
@@ -1631,11 +1625,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     const file = e.target.files[0]
                     if (file) {
                       if (file.size > 10 * 1024 * 1024) {
-<<<<<<< HEAD
                         showNotification('File size must be less than 10MB', 'error')
-=======
-                        alert('File size must be less than 10MB')
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                         return
                       }
                       const reader = new FileReader()
@@ -1648,7 +1638,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   }}
                   className="hidden"
                 />
-<<<<<<< HEAD
                 <div className="px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-1.5 lg:py-2 bg-white border-2 border-gray-300 rounded-full text-xs sm:text-sm md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-all hover:border-blue-400 hover:bg-blue-50 flex items-center gap-1.5 sm:gap-2">
                   <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -1662,20 +1651,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               AI Powered
             </span>
             <span className="px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-1.5 lg:py-2 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-shadow">
-=======
-                <div className="px-3 md:px-4 lg:px-5 py-1.5 lg:py-2 bg-white border-2 border-gray-300 rounded-full text-xs md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-all hover:border-blue-400 hover:bg-blue-50 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span className="text-gray-700">Upload Custom Image</span>
-                </div>
-              </label>
-            </div>
-            <span className="px-3 md:px-4 lg:px-5 py-1.5 lg:py-2 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-shadow">
-              AI Powered
-            </span>
-            <span className="px-3 md:px-4 lg:px-5 py-1.5 lg:py-2 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-shadow">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               ISO 7010
             </span>
           </div>
@@ -1683,19 +1658,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       </header>
 
       {/* Comprehensive Editor Toolbar */}
-<<<<<<< HEAD
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-[56px] sm:top-[64px] md:top-[80px] lg:top-[88px] z-40">
         <div className="max-w-[1920px] mx-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-2.5 md:py-3">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3">
             {/* Design Mode Toggle */}
             <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-0.5 sm:p-1">
-=======
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-[64px] md:top-[80px] lg:top-[88px] z-40">
-        <div className="max-w-[1920px] mx-auto px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            {/* Design Mode Toggle */}
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               <button
                 onClick={() => {
                   setDesignMode('template')
@@ -1703,35 +1670,24 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   setImageElements([])
                   setCanvasElements([])
                 }}
-<<<<<<< HEAD
                 className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                   designMode === 'template' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <span className="hidden sm:inline">Template Mode</span>
                 <span className="sm:hidden">Template</span>
-=======
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  designMode === 'template' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Template Mode
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               </button>
               <button
                 onClick={() => {
                   setDesignMode('free')
                   // Show template selection for free design
                 }}
-<<<<<<< HEAD
                 className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-=======
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   designMode === 'free' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Free Design
+                <span className="hidden sm:inline">Free Design</span>
+                <span className="sm:hidden">Free</span>
               </button>
             </div>
 
@@ -1775,7 +1731,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             {/* Text Editor Button */}
             <button
               onClick={() => setTextEditorOpen(!textEditorOpen)}
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
                 textEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -1784,22 +1739,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <span className="hidden sm:inline">Text</span>
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                textEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Text
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             </button>
 
             {/* Image Editor Button */}
             <button
               onClick={() => setImageEditorOpen(!imageEditorOpen)}
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
                 imageEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -1808,78 +1752,41 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span className="hidden sm:inline">Image</span>
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                imageEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Image
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             </button>
 
             {/* ISO 7010 Icon Library */}
             <button
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 isoIconModalOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               onClick={() => setIsoIconModalOpen(!isoIconModalOpen)}
             >
-<<<<<<< HEAD
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               <span className="hidden md:inline">ISO Icons</span>
-=======
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              ISO Icons
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             </button>
 
             {/* Authorized Persons */}
             <button
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 authorizedPersonsPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               onClick={() => setAuthorizedPersonsPanelOpen(!authorizedPersonsPanelOpen)}
             >
-<<<<<<< HEAD
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <span className="hidden sm:inline">Persons</span>
-=======
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Persons
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             </button>
 
             {/* Color & Background */}
             <button
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 backgroundPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               onClick={() => setBackgroundPanelOpen(!backgroundPanelOpen)}
             >
-<<<<<<< HEAD
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
               </svg>
@@ -1895,40 +1802,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 title="Undo"
               >
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-              Colors
-            </button>
-
-            {/* Undo/Redo */}
-            <div className="flex items-center gap-1 border-l border-gray-300 pl-2 ml-2">
-              <button
-                onClick={undo}
-                disabled={historyIndex <= 0}
-                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Undo"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
               </button>
               <button
                 onClick={redo}
                 disabled={historyIndex >= history.length - 1}
-<<<<<<< HEAD
                 className="p-1 sm:p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Redo"
               >
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
-                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Redo"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
                 </svg>
               </button>
@@ -1937,16 +1820,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             {/* Grid Toggle */}
             <button
               onClick={() => setShowGrid(!showGrid)}
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 showGrid ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               title="Toggle Grid"
             >
-<<<<<<< HEAD
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
@@ -1971,48 +1849,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 title="Zoom In"
               >
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-2 border-l border-gray-300 pl-2 ml-2">
-              <button
-                onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))}
-                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 transition-colors"
-                title="Zoom Out"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-                </svg>
-              </button>
-              <span className="text-sm text-gray-700 min-w-[50px] text-center">{previewZoom}%</span>
-              <button
-                onClick={() => setPreviewZoom(Math.min(200, previewZoom + 25))}
-                className="p-1.5 rounded text-gray-700 hover:bg-gray-200 transition-colors"
-                title="Zoom In"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                 </svg>
               </button>
               <button
                 onClick={() => setPreviewZoom(100)}
-<<<<<<< HEAD
                 className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs text-gray-700 hover:bg-gray-200 transition-colors"
-=======
-                className="px-2 py-1 rounded text-xs text-gray-700 hover:bg-gray-200 transition-colors"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 title="Reset Zoom"
               >
                 Reset
               </button>
               <button
                 onClick={() => setShowFullScreenPreview(true)}
-<<<<<<< HEAD
                 className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1"
                 title="Full Screen Preview"
               >
@@ -2020,21 +1868,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
                 <span className="hidden lg:inline">Fullscreen</span>
-=======
-                className="px-3 py-1.5 rounded text-sm text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1"
-                title="Full Screen Preview"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-                Fullscreen
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               </button>
             </div>
 
             {/* Export Button */}
             <button
-<<<<<<< HEAD
               className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center gap-1 sm:gap-2 ml-auto"
               onClick={() => setExportModalOpen(true)}
             >
@@ -2042,29 +1880,15 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span className="hidden sm:inline">Export</span>
-=======
-              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center gap-2 ml-auto"
-              onClick={() => setExportModalOpen(true)}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             </button>
 
             {/* Signage Library */}
             <button
-<<<<<<< HEAD
               className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-=======
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 signageLibraryOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               onClick={() => setSignageLibraryOpen(!signageLibraryOpen)}
             >
-<<<<<<< HEAD
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
@@ -2072,75 +1896,26 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             </button>
 
             {/* Save Button */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {lastAutoSave && (
-                <span className="hidden sm:inline text-xs text-gray-500" title={`Last auto-saved: ${lastAutoSave.toLocaleTimeString()}`}>
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              Library
-            </button>
-
-            {/* Save Button */}
             <div className="flex items-center gap-2">
               {lastAutoSave && (
                 <span className="text-xs text-gray-500" title={`Last auto-saved: ${lastAutoSave.toLocaleTimeString()}`}>
                   <svg className="w-4 h-4 inline mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Auto-saved
                 </span>
               )}
               <button
-<<<<<<< HEAD
                 className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-1 sm:gap-2"
                 onClick={() => {
                   setSaveModalName(formData.title || 'Untitled Signage')
                   setSaveModalOpen(true)
-=======
-                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2"
-                onClick={() => {
-                  const signageName = prompt('Enter a name for this signage:', formData.title || 'Untitled Signage')
-                  if (!signageName) return
-                  
-                  const signageData = {
-                    id: Date.now(),
-                    name: signageName,
-                    type: signageType,
-                    data: { 
-                      formData: JSON.parse(JSON.stringify(formData)), 
-                      identificationData: JSON.parse(JSON.stringify(identificationData)), 
-                      textElements: JSON.parse(JSON.stringify(textElements)), 
-                      imageElements: JSON.parse(JSON.stringify(imageElements)), 
-                      backgroundSettings: JSON.parse(JSON.stringify(backgroundSettings)),
-                      companyBranding: JSON.parse(JSON.stringify(companyBranding))
-                    },
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    favorite: false
-                  }
-                  setSavedSignages(prev => {
-                    const updated = [...prev]
-                    const existingIndex = updated.findIndex(s => s.name === signageName)
-                    if (existingIndex >= 0) {
-                      updated[existingIndex] = signageData
-                    } else {
-                      updated.push(signageData)
-                    }
-                    return updated
-                  })
-                  addAuditLog('save', { signageId: signageData.id, name: signageData.name })
-                  alert('Signage saved successfully!')
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 }}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
-                Save
+                <span className="hidden sm:inline">Save</span>
               </button>
             </div>
           </div>
@@ -2149,19 +1924,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       {/* Text Editor Panel */}
       {textEditorOpen && (
-<<<<<<< HEAD
         <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-2 sm:px-3 md:px-4 py-3 sm:py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {/* Font Selection */}
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Font Family</label>
-=======
-        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Font Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Font Family</label>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               <select
                 value={selectedTextElement?.fontFamily || 'Arial'}
                 onChange={(e) => {
@@ -2171,11 +1938,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     ))
                   }
                 }}
-<<<<<<< HEAD
                 className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-=======
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               >
                 {industrialFonts.map(font => (
                   <option key={font.name} value={font.family}>{font.name}</option>
@@ -2185,13 +1948,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Font Size */}
             <div>
-<<<<<<< HEAD
               <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Font Size</label>
               <div className="flex items-center gap-1.5 sm:gap-2">
-=======
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Font Size</label>
-              <div className="flex items-center gap-2">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 <input
                   type="range"
                   min="12"
@@ -2206,21 +1964,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   }}
                   className="flex-1"
                 />
-<<<<<<< HEAD
                 <span className="text-xs sm:text-sm text-gray-600 w-10 sm:w-12 text-right">{selectedTextElement?.fontSize || 24}px</span>
-=======
-                <span className="text-sm text-gray-600 w-12 text-right">{selectedTextElement?.fontSize || 24}px</span>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               </div>
             </div>
 
             {/* Font Weight */}
             <div>
-<<<<<<< HEAD
               <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Font Weight</label>
-=======
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Font Weight</label>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               <select
                 value={selectedTextElement?.fontWeight || 'normal'}
                 onChange={(e) => {
@@ -2230,11 +1980,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     ))
                   }
                 }}
-<<<<<<< HEAD
                 className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-=======
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               >
                 <option value="normal">Normal</option>
                 <option value="bold">Bold</option>
@@ -2248,13 +1994,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Text Alignment */}
             <div>
-<<<<<<< HEAD
               <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Alignment</label>
               <div className="flex gap-1.5 sm:gap-2">
-=======
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Alignment</label>
-              <div className="flex gap-2">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 {['left', 'center', 'right', 'justify'].map(align => (
                   <button
                     key={align}
@@ -2265,11 +2006,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         ))
                       }
                     }}
-<<<<<<< HEAD
                     className={`flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-colors text-sm sm:text-base ${
-=======
-                    className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                       selectedTextElement?.textAlign === align
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 hover:border-gray-400'
@@ -2408,21 +2145,15 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         }
                         
                         recognition.onerror = () => {
-<<<<<<< HEAD
                           showNotification('Voice recognition error. Please check your microphone permissions.', 'error')
-=======
-                          alert('Voice recognition error. Please check your microphone permissions.')
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
+                          showNotification('Voice recognition error. Please check your microphone permissions.', 'error')
                           setVoiceToTextEnabled(false)
                         }
                         
                         recognition.start()
                       } else {
-<<<<<<< HEAD
                         showNotification('Voice recognition not supported in this browser.', 'error')
-=======
-                        alert('Voice recognition not supported in this browser.')
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
+                        showNotification('Voice recognition not supported in this browser.', 'error')
                         setVoiceToTextEnabled(false)
                       }
                     } else {
@@ -2549,13 +2280,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       {/* Image Editor Panel */}
       {imageEditorOpen && (
-<<<<<<< HEAD
         <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-2 sm:px-3 md:px-4 py-3 sm:py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-=======
-        <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
             {/* Upload Image */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Image</label>
@@ -2726,7 +2452,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               <label htmlFor="lockImage" className="text-sm font-semibold text-gray-700">Lock Position</label>
             </div>
 
-<<<<<<< HEAD
             {/* Remove Background */}
             <div>
               <button
@@ -2772,19 +2497,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     showNotification('Please select an image first', 'error')
                   }
                 }}
-=======
-            {/* Remove Background (placeholder) */}
-            <div>
-              <button
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-                onClick={() => alert('Remove Background feature - AI processing coming soon')}
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               >
                 Remove Background
               </button>
             </div>
 
-<<<<<<< HEAD
             {/* Crop Image */}
             <div>
               <button
@@ -2796,13 +2513,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     showNotification('Please select an image first', 'error')
                   }
                 }}
-=======
-            {/* Crop Image (placeholder) */}
-            <div>
-              <button
-                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-                onClick={() => alert('Crop Image feature coming soon')}
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
               >
                 Crop Image
               </button>
@@ -2872,7 +2582,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       {/* Background & Color Control Panel */}
       {backgroundPanelOpen && (
         <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Background Type */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Background Type</label>
@@ -3344,15 +3054,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               {/* Export Buttons */}
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
-<<<<<<< HEAD
-                  onClick={handleExportSignage}
-=======
                   onClick={() => {
                     // Implement export logic
-                    alert(`Exporting as ${exportSettings.format} at ${exportSettings.dpi} DPI in ${exportSettings.colorMode} mode`)
-                    setExportModalOpen(false)
+                    handleExportSignage()
                   }}
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
                 >
                   Export Now
@@ -3581,283 +3286,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       )}
 
       <div className="flex relative max-w-[1920px] mx-auto">
-        {/* Mobile Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        {/* Sidebar - Same as Dashboard */}
-        <aside
-<<<<<<< HEAD
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 sm:w-72 md:w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-56px)] sm:min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-3 sm:p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        >
-          <nav className="space-y-1.5 sm:space-y-2 lg:space-y-3">
-            {/* Dashboard */}
-            <div
-              className={`p-2.5 sm:p-3 lg:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 ${
-=======
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        >
-          <nav className="space-y-2 lg:space-y-3">
-            {/* Dashboard */}
-            <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
-                activeNav === 'dashboard'
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                  : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
-              onClick={() => handleNavigation('dashboard')}
-            >
-<<<<<<< HEAD
-              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-xs sm:text-sm lg:text-base truncate">Dashboard</div>
-                  <div className="text-xs lg:text-sm opacity-80 hidden sm:block">Overview & quick actions</div>
-=======
-              <div className="flex items-center gap-3 lg:gap-4">
-                <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <div>
-                  <div className="font-semibold text-sm lg:text-base">Dashboard</div>
-                  <div className="text-xs lg:text-sm opacity-80">Overview & quick actions</div>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
-                </div>
-              </div>
-            </div>
-
-            {/* CREATE SIGNAGE Section */}
-<<<<<<< HEAD
-            <div className="pt-3 sm:pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-2 sm:px-3 mb-2 sm:mb-3 lg:mb-4 tracking-wider">
-                CREATE SIGNAGE
-              </div>
-              <div
-                className={`p-2.5 sm:p-3 lg:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 ${
-=======
-            <div className="pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
-                CREATE SIGNAGE
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
-                  activeNav === 'generator'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => handleNavigation('generator')}
-              >
-<<<<<<< HEAD
-                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="font-semibold text-xs sm:text-sm lg:text-base truncate">Signage Generator</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-6 sm:ml-8 lg:ml-10 hidden sm:block">
-=======
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Signage Generator</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
-                  Create safety signage.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'templates'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => handleNavigation('templates')}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Template Library</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  500+ ready templates.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'ai-generator'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => handleNavigation('ai-generator')}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">AI Generator</span>
-                  <span className="px-2 lg:px-2.5 py-0.5 lg:py-1 bg-purple-100 text-purple-700 rounded-md lg:rounded-lg text-xs lg:text-sm font-semibold shadow-sm">
-                    NEW
-                  </span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Auto-create with AI.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'customize-signage'
-                    ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => handleNavigation('customize-signage')}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Customize Signage</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Upload, edit, and customize.
-                </div>
-              </div>
-            </div>
-
-            {/* MANAGE PERSONNEL Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
-                MANAGE PERSONNEL
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'authorized'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => handleNavigation('authorized')}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Authorized Persons</span>
-                </div>
-                <div className="text-xs lg:text-sm opacity-80 mt-1 ml-8 lg:ml-10">
-                  Manage personnel.
-                </div>
-              </div>
-              <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'emergency'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => handleNavigation('emergency')}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <span className="font-semibold text-sm lg:text-base">Safety Team</span>
-                  <svg className="w-4 h-4 lg:w-5 lg:h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* RESOURCES Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
-                RESOURCES
-              </div>
-              
-              {/* Blog & Tutorials */}
-              <button 
-                onClick={() => handleNavigation('blog')}
-                className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${
-                  activeNav === 'blog'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm lg:text-base">Blog & Tutorials</div>
-                    <div className="text-xs lg:text-sm opacity-90">Learn safety tips</div>
-                  </div>
-                </div>
-              </button>
-
-              {/* Admin Panel */}
-              <div className="p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 text-gray-700 hover:bg-gray-200 hover:shadow-md">
-                <div className="flex items-center gap-3 lg:gap-4">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <div>
-                    <div className="font-semibold text-sm lg:text-base">Admin Panel</div>
-                    <div className="text-xs lg:text-sm opacity-80">System settings</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Pro Features Section */}
-            <div className="pt-4 lg:pt-6">
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 lg:p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <h3 className="text-sm lg:text-base font-bold text-gray-900">Pro Features</h3>
-                </div>
-                <ul className="space-y-2">
-                  {[
-                    'AI-powered generation',
-                    'Multi-language support',
-                    'Company branding',
-                    '500+ templates',
-                    'High-res export'
-                  ].map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                      <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </nav>
-        </aside>
+        {/* Shared Sidebar */}
+        <Sidebar 
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
         {/* Main Content Area */}
-<<<<<<< HEAD
         <main className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 min-w-0 overflow-x-hidden">
-=======
-        <main className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 p-3 sm:p-4 md:p-6 lg:p-8 min-w-0 overflow-x-hidden">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
           {activeNav === 'ai-generator' ? (
             /* AI Generator Section */
             <div className="flex-1 w-full max-w-6xl mx-auto space-y-6 sm:space-y-8">
@@ -3878,11 +3316,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       const file = e.target.files[0]
                       if (file) {
                         if (file.size > 10 * 1024 * 1024) {
-<<<<<<< HEAD
                           showNotification('File size must be less than 10MB', 'error')
-=======
-                          alert('File size must be less than 10MB')
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
+                          showNotification('File size must be less than 10MB', 'error')
                           return
                         }
                         const reader = new FileReader()
@@ -4707,54 +4142,58 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           ) : (
             <>
               {/* Form Section */}
-              <div className="flex-1 lg:max-w-2xl xl:max-w-3xl space-y-4 sm:space-y-6 lg:space-y-8 pr-1 sm:pr-2 pb-4">
-                {/* Signage Type */}
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Signage Type</h2>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <button
-                  onClick={() => setSignageType('safety')}
-                  className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
-                    signageType === 'safety'
-                      ? 'border-red-500 bg-red-50 shadow-lg'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2 sm:gap-3">
-                    <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
-                      signageType === 'safety' ? 'bg-red-500' : 'bg-gray-200'
-                    }`}>
-                      ⚠️
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-sm sm:text-base lg:text-lg text-gray-900">Safety Signage</div>
-                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Danger, Warning, etc.</div>
+              <div className="flex-1 lg:max-w-2xl xl:max-w-3xl pr-1 sm:pr-2 pb-4">
+                {/* Signage Type - Scrolls with page */}
+                <div className="mb-4 sm:mb-6 lg:mb-8">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Signage Type</h2>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <button
+                        onClick={() => setSignageType('safety')}
+                        className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
+                          signageType === 'safety'
+                            ? 'border-red-500 bg-red-50 shadow-lg'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2 sm:gap-3">
+                          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
+                            signageType === 'safety' ? 'bg-red-500' : 'bg-gray-200'
+                          }`}>
+                            ⚠️
+                          </div>
+                          <div className="text-center">
+                            <div className="font-bold text-sm sm:text-base lg:text-lg text-gray-900">Safety Signage</div>
+                            <div className="text-xs sm:text-sm text-gray-600 mt-1">Danger, Warning, etc.</div>
+                          </div>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => setSignageType('identification')}
+                        className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
+                          signageType === 'identification'
+                            ? 'border-blue-500 bg-blue-50 shadow-lg'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2 sm:gap-3">
+                          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
+                            signageType === 'identification' ? 'bg-blue-500' : 'bg-gray-200'
+                          }`}>
+                            📍
+                          </div>
+                          <div className="text-center">
+                            <div className="font-bold text-sm sm:text-base lg:text-lg text-gray-900">Identification</div>
+                            <div className="text-xs sm:text-sm text-gray-600 mt-1">Area labels</div>
+                          </div>
+                        </div>
+                      </button>
                     </div>
                   </div>
-                </button>
-                <button
-                  onClick={() => setSignageType('identification')}
-                  className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
-                    signageType === 'identification'
-                      ? 'border-blue-500 bg-blue-50 shadow-lg'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2 sm:gap-3">
-                    <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
-                      signageType === 'identification' ? 'bg-blue-500' : 'bg-gray-200'
-                    }`}>
-                      📍
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-sm sm:text-base lg:text-lg text-gray-900">Identification</div>
-                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Area labels</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
+                </div>
 
+                {/* All Other Form Sections - Scroll with page */}
+                <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             {/* Identification Templates */}
             {signageType === 'identification' && (
               <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
@@ -4787,11 +4226,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Signage Configuration</h2>
               
               <div>
-<<<<<<< HEAD
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   Signage Title / Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -4799,11 +4234,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., INLET AREA - HIGH RISK ZONE"
-<<<<<<< HEAD
                   className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-=======
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 />
               </div>
 
@@ -5004,20 +4435,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Enter detailed description...."
                   rows="4"
-<<<<<<< HEAD
                   className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base resize-none"
-=======
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-none"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 />
               </div>
 
               <div>
-<<<<<<< HEAD
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   Location / Area
                 </label>
                 <input
@@ -5025,20 +4448,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="e.g., Building A - Floor 2"
-<<<<<<< HEAD
                   className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-=======
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 />
               </div>
 
               <div>
-<<<<<<< HEAD
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   Hazards / Warnings
                 </label>
                 <div className="flex gap-2 mb-3">
@@ -5048,11 +4463,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     onChange={(e) => setNewHazard(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addHazard()}
                     placeholder="Add hazard (e.g., H₂S Gas Present)"
-<<<<<<< HEAD
                     className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-=======
-                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   />
                   <button
                     onClick={addHazard}
@@ -5088,38 +4499,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 
                 {/* Area Name */}
                 <div>
-<<<<<<< HEAD
                   <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Area Name</label>
-=======
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Area Name</label>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   <input
                     type="text"
                     value={identificationData.areaName}
                     onChange={(e) => setIdentificationData({ ...identificationData, areaName: e.target.value })}
-<<<<<<< HEAD
                     className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-=======
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   />
                 </div>
 
                 {/* Icon */}
                 <div>
-<<<<<<< HEAD
                   <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Icon</label>
                   <select
                     value={identificationData.icon}
                     onChange={(e) => setIdentificationData({ ...identificationData, icon: e.target.value, iconImage: null })}
                     className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base mb-2"
-=======
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Icon</label>
-                  <select
-                    value={identificationData.icon}
-                    onChange={(e) => setIdentificationData({ ...identificationData, icon: e.target.value, iconImage: null })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mb-2"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                   >
                     {iconOptions.map((icon) => (
                       <option key={icon} value={icon}>{icon}</option>
@@ -6041,6 +5436,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               </button>
             </div>
             )}
+                </div>
 
             {/* Company Branding Modal */}
             {showBrandingModal && (
@@ -6251,17 +5647,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           </div>
 
           {/* Live Preview Panel */}
-<<<<<<< HEAD
           <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0 order-first lg:order-last">
-            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 lg:p-8 shadow-md sticky top-[56px] sm:top-[64px] md:top-[80px] lg:top-28">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4 md:mb-6">
-                <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
-=======
-          <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0">
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md sticky top-20 sm:top-24 lg:top-28">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md sticky top-[110px] sm:top-[130px] md:top-[150px] lg:top-[170px] z-30">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-semibold self-start sm:self-auto">
                   {signageType === 'identification' 
                     ? `${formData.size} • ${identificationData.orientation.toLowerCase()} • ${formData.resolution} DPI`
@@ -6272,11 +5661,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               
               <div 
                 ref={previewRef}
-<<<<<<< HEAD
                 className="border-2 sm:border-3 md:border-4 border-black rounded-lg overflow-hidden mb-3 sm:mb-4 md:mb-6 bg-white preview-container relative"
-=======
-                className="border-2 sm:border-4 border-black rounded-lg overflow-hidden mb-4 sm:mb-6 bg-white preview-container relative"
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
                 onMouseMove={handleMouseMove}
                 onMouseUp={() => {
                   handleLogoDragEnd()
@@ -6297,7 +5682,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       left: `${companyBranding.clientLogoPosition.x}%`,
                       top: `${companyBranding.clientLogoPosition.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      cursor: resizingLogo === 'client' ? 'nwse-resize' : (draggingLogo === 'client' ? 'grabbing' : 'grab'),
+                      cursor: resizingLogo === 'client' ? 'nwse-resize' : (draggingLogo === 'client' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
                       zIndex: 1000,
                       userSelect: 'none'
                     }}
@@ -6305,7 +5690,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       // Don't start drag if clicking on resize handle
                       if (e.target.classList.contains('resize-handle')) return
                       e.preventDefault()
-                      handleLogoDragStart('client')
+                      handleLogoDragStart(e, 'client')
+                    }}
+                    onMouseEnter={(e) => {
+                      // Show resize cursor when Shift is held
+                      if ((e.shiftKey || isShiftPressed) && !resizingLogo && !draggingLogo) {
+                        e.currentTarget.style.cursor = 'nwse-resize'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!resizingLogo && !draggingLogo) {
+                        e.currentTarget.style.cursor = isShiftPressed ? 'nwse-resize' : 'grab'
+                      }
                     }}
                     className="logo-draggable"
                   >
@@ -6325,21 +5721,28 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       className="resize-handle"
                       style={{
                         position: 'absolute',
-                        bottom: '-8px',
-                        right: '-8px',
-                        width: '16px',
-                        height: '16px',
+                        bottom: '-10px',
+                        right: '-10px',
+                        width: '20px',
+                        height: '20px',
                         backgroundColor: '#3B82F6',
                         border: '2px solid white',
                         borderRadius: '50%',
                         cursor: 'nwse-resize',
                         zIndex: 1001,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                        transition: 'transform 0.1s ease'
                       }}
                       onMouseDown={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
                         handleLogoResizeStart(e, 'client')
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.2)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)'
                       }}
                     />
                   </div>
@@ -6352,7 +5755,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       left: `${companyBranding.contractorLogoPosition.x}%`,
                       top: `${companyBranding.contractorLogoPosition.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      cursor: resizingLogo === 'contractor' ? 'nwse-resize' : (draggingLogo === 'contractor' ? 'grabbing' : 'grab'),
+                      cursor: resizingLogo === 'contractor' ? 'nwse-resize' : (draggingLogo === 'contractor' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
                       zIndex: 1000,
                       userSelect: 'none'
                     }}
@@ -6360,7 +5763,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       // Don't start drag if clicking on resize handle
                       if (e.target.classList.contains('resize-handle')) return
                       e.preventDefault()
-                      handleLogoDragStart('contractor')
+                      handleLogoDragStart(e, 'contractor')
+                    }}
+                    onMouseEnter={(e) => {
+                      // Show resize cursor when Shift is held
+                      if ((e.shiftKey || isShiftPressed) && !resizingLogo && !draggingLogo) {
+                        e.currentTarget.style.cursor = 'nwse-resize'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!resizingLogo && !draggingLogo) {
+                        e.currentTarget.style.cursor = isShiftPressed ? 'nwse-resize' : 'grab'
+                      }
                     }}
                     className="logo-draggable"
                   >
@@ -6380,21 +5794,28 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       className="resize-handle"
                       style={{
                         position: 'absolute',
-                        bottom: '-8px',
-                        right: '-8px',
-                        width: '16px',
-                        height: '16px',
+                        bottom: '-10px',
+                        right: '-10px',
+                        width: '20px',
+                        height: '20px',
                         backgroundColor: '#3B82F6',
                         border: '2px solid white',
                         borderRadius: '50%',
                         cursor: 'nwse-resize',
                         zIndex: 1001,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                        transition: 'transform 0.1s ease'
                       }}
                       onMouseDown={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
                         handleLogoResizeStart(e, 'contractor')
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.2)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)'
                       }}
                     />
                   </div>
@@ -6471,7 +5892,81 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase">
                               {formData.title || 'SIGNAGE TITLE'}
                             </h3>
+                            {/* Purpose/Subtitle */}
+                            {formData.purpose && (
+                              <p className="text-white font-semibold text-base sm:text-lg mt-2 uppercase">
+                                {formData.purpose}
+                              </p>
+                            )}
                           </div>
+                        </div>
+                        
+                        {/* White Content Section */}
+                        <div className="bg-white px-4 py-4 sm:py-6 flex-1">
+                          {/* Description */}
+                          {formData.description && (
+                            <div className="mb-4 sm:mb-6">
+                              <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
+                                {formData.description}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Hazards Section */}
+                          {formData.hazards && formData.hazards.length > 0 && (
+                            <div className="mb-4 sm:mb-6">
+                              <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># HAZARDS</h4>
+                              <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-gray-800">
+                                {formData.hazards.map((hazard, index) => (
+                                  <li key={index}>{hazard}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {/* Mandatory PPE Section */}
+                          {formData.ppe && formData.ppe.length > 0 && (
+                            <div className="mb-4 sm:mb-6">
+                              <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
+                                # MANDATORY PPE ({formData.ppe.length})
+                              </h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+                                {formData.ppe.map((ppeItem, index) => (
+                                  <div key={index} className="text-xs sm:text-sm font-medium text-gray-800 border border-gray-300 p-2 text-center">
+                                    {getPPEDisplayName(ppeItem).toUpperCase()}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Safety Procedures Section */}
+                          {formData.procedures && formData.procedures.length > 0 && (
+                            <div className="mb-4 sm:mb-6">
+                              <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># SAFETY PROCEDURES</h4>
+                              <ol className="list-decimal list-inside space-y-1 text-sm sm:text-base text-gray-800">
+                                {formData.procedures.map((procedure, index) => (
+                                  <li key={index}>{procedure}</li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+                          
+                          {/* Permit Required Section */}
+                          {formData.permitRequired && (
+                            <div className="mb-4 sm:mb-6 text-center">
+                              <div className="bg-yellow-400 border-2 border-black px-4 py-2 sm:py-3 inline-block">
+                                <p className="text-base sm:text-lg font-bold text-black uppercase">
+                                  # PERMIT REQUIRED
+                                </p>
+                                {formData.permitType && (
+                                  <p className="text-sm sm:text-base font-semibold text-black mt-1 uppercase">
+                                    {formData.permitType}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Orange Emergency Section */}
@@ -6689,7 +6184,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           )}
         </main>
       </div>
-<<<<<<< HEAD
 
       {/* Save Modal */}
       {saveModalOpen && (
@@ -6832,8 +6326,6 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           </div>
         </div>
       )}
-=======
->>>>>>> 669e48cf703fc3e7af970724fc7c6ca43ef23ab1
     </div>
   )
 }

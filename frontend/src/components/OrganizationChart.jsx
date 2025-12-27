@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Sidebar from './Sidebar'
 
 const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   const [orgMembers, setOrgMembers] = useState([])
@@ -231,22 +232,13 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       </header>
 
       <div className="flex relative max-w-[1920px] mx-auto">
-        {/* Mobile Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        {/* Sidebar - Reuse from Dashboard */}
-        <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        >
-          {/* Sidebar content would be here - simplified for now */}
-        </aside>
+        {/* Shared Sidebar */}
+        <Sidebar 
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 xl:p-10 min-w-0">
