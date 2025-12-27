@@ -46,6 +46,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   })
   const [draggingLogo, setDraggingLogo] = useState(null) // 'client' or 'contractor'
   const [resizingLogo, setResizingLogo] = useState(null) // 'client' or 'contractor'
+  const [selectedLogo, setSelectedLogo] = useState(null) // 'client' or 'contractor' - tracks which logo is selected
+  const [logoResizeCorner, setLogoResizeCorner] = useState(null) // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
   const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
   const [isShiftPressed, setIsShiftPressed] = useState(false)
 
@@ -983,10 +985,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
   // Handle logo drag start
   const handleLogoDragStart = (e, logoType) => {
+    // Don't start drag if clicking on resize handle
+    if (e.target.classList.contains('resize-handle')) return
     // If Shift key is held, start resizing instead of dragging
     if (e.shiftKey) {
-      handleLogoResizeStart(e, logoType)
+      handleLogoResizeStart(e, logoType, 'bottom-right')
     } else {
+      setSelectedLogo(logoType)
       setDraggingLogo(logoType)
     }
   }
@@ -1025,10 +1030,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
 
   // Handle logo resize start
-  const handleLogoResizeStart = (e, logoType) => {
+  const handleLogoResizeStart = (e, logoType, corner) => {
     e.preventDefault()
     e.stopPropagation()
     setResizingLogo(logoType)
+    setSelectedLogo(logoType)
+    setLogoResizeCorner(corner)
     const currentSize = logoType === 'client' 
       ? companyBranding.clientLogoSize 
       : companyBranding.contractorLogoSize
@@ -1045,8 +1052,23 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     
     const deltaX = e.clientX - resizeStartData.x
     const deltaY = e.clientY - resizeStartData.y
-    // Use the larger delta for uniform scaling
-    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+    
+    // Calculate the distance moved for uniform scaling
+    // For different corners, we need to adjust the direction
+    let delta = 0
+    if (logoResizeCorner === 'top-left') {
+      // Dragging down-right increases size, up-left decreases
+      delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
+    } else if (logoResizeCorner === 'top-right') {
+      // Dragging down-left increases size, up-right decreases
+      delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
+    } else if (logoResizeCorner === 'bottom-left') {
+      // Dragging up-right increases size, down-left decreases
+      delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
+    } else {
+      // bottom-right: Dragging down-right increases size, up-left decreases
+      delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+    }
     
     const newSize = Math.max(20, Math.min(500, resizeStartData.size + delta))
     
@@ -1066,6 +1088,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Handle logo resize end
   const handleLogoResizeEnd = () => {
     setResizingLogo(null)
+    setLogoResizeCorner(null)
     setResizeStartData({ size: 0, x: 0, y: 0 })
   }
 
@@ -1114,6 +1137,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       if (e.shiftKey && !resizingLogo) {
         const logoType = draggingLogo
         setDraggingLogo(null)
+        setSelectedLogo(logoType)
+        setLogoResizeCorner('bottom-right')
         const currentSize = logoType === 'client' 
           ? companyBranding.clientLogoSize 
           : companyBranding.contractorLogoSize
@@ -2787,7 +2812,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     name: '',
                     idNumber: '',
                     designation: '',
-                    photo: null
+                    photo: null,
+                    qrCodeText: ''
                   }])
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -2927,6 +2953,41 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     />
                   </div>
+
+                  {/* QR Code Text/URL */}
+                  {authorizedPersonsLayout.showQR && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">QR Code Text / URL</label>
+                      <input
+                        type="text"
+                        value={person.qrCodeText || ''}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setAuthorizedPersons(prev => prev.map(p => 
+                            p.id === person.id ? { ...p, qrCodeText: value } : p
+                          ))
+                        }}
+                        placeholder="Enter URL or text for QR code"
+                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter URL or text to generate QR code. QR code will only generate when text is provided.
+                      </p>
+                      {/* Preview QR Code - Only show if text exists */}
+                      {person.qrCodeText && person.qrCodeText.trim().length > 0 && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                          <p className="text-xs text-gray-600 mb-1">QR Code Preview:</p>
+                          <div className="w-24 h-24 mx-auto border-2 border-gray-300 bg-white flex items-center justify-center p-2">
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(person.qrCodeText.trim())}`}
+                              alt="QR Code Preview"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -5673,6 +5734,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   handleLogoResizeEnd()
                   handleElementDragEnd()
                 }}
+                onClick={(e) => {
+                  // Deselect logo if clicking on the preview container background (not on a logo or its handles)
+                  if (!e.target.closest('.logo-draggable') && !draggingLogo && !resizingLogo) {
+                    setSelectedLogo(null)
+                  }
+                }}
               >
                 {/* Company Branding Logos - Draggable and Resizable */}
                 {companyBranding.clientLogo && (
@@ -5712,39 +5779,87 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         width: `${companyBranding.clientLogoSize}px`,
                         height: 'auto',
                         pointerEvents: 'none',
-                        filter: (draggingLogo === 'client' || resizingLogo === 'client') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                        filter: (draggingLogo === 'client' || resizingLogo === 'client' || selectedLogo === 'client') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                       }}
                       draggable={false}
                     />
-                    {/* Resize Handle */}
-                    <div
-                      className="resize-handle"
-                      style={{
-                        position: 'absolute',
-                        bottom: '-10px',
-                        right: '-10px',
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: '#3B82F6',
-                        border: '2px solid white',
-                        borderRadius: '50%',
-                        cursor: 'nwse-resize',
-                        zIndex: 1001,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                        transition: 'transform 0.1s ease'
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleLogoResizeStart(e, 'client')
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.2)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)'
-                      }}
-                    />
+                    {/* Resize Handles - All Four Corners */}
+                    {selectedLogo === 'client' && (
+                      <>
+                        {/* Top Left */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            left: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nwse-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-left')}
+                        />
+                        {/* Top Right */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nesw-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-right')}
+                        />
+                        {/* Bottom Left */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            bottom: '-8px',
+                            left: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nesw-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-left')}
+                        />
+                        {/* Bottom Right */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            bottom: '-8px',
+                            right: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nwse-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-right')}
+                        />
+                      </>
+                    )}
                   </div>
                 )}
                 
@@ -5785,39 +5900,87 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         width: `${companyBranding.contractorLogoSize}px`,
                         height: 'auto',
                         pointerEvents: 'none',
-                        filter: (draggingLogo === 'contractor' || resizingLogo === 'contractor') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                        filter: (draggingLogo === 'contractor' || resizingLogo === 'contractor' || selectedLogo === 'contractor') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                       }}
                       draggable={false}
                     />
-                    {/* Resize Handle */}
-                    <div
-                      className="resize-handle"
-                      style={{
-                        position: 'absolute',
-                        bottom: '-10px',
-                        right: '-10px',
-                        width: '20px',
-                        height: '20px',
-                        backgroundColor: '#3B82F6',
-                        border: '2px solid white',
-                        borderRadius: '50%',
-                        cursor: 'nwse-resize',
-                        zIndex: 1001,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                        transition: 'transform 0.1s ease'
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleLogoResizeStart(e, 'contractor')
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.2)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)'
-                      }}
-                    />
+                    {/* Resize Handles - All Four Corners */}
+                    {selectedLogo === 'contractor' && (
+                      <>
+                        {/* Top Left */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            left: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nwse-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-left')}
+                        />
+                        {/* Top Right */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nesw-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-right')}
+                        />
+                        {/* Bottom Left */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            bottom: '-8px',
+                            left: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nesw-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-left')}
+                        />
+                        {/* Bottom Right */}
+                        <div
+                          className="resize-handle"
+                          style={{
+                            position: 'absolute',
+                            bottom: '-8px',
+                            right: '-8px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#3B82F6',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'nwse-resize',
+                            zIndex: 1001,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-right')}
+                        />
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -5855,171 +6018,395 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         )}
                       </div>
                     ) : (
-                      <>
-                        {/* Top Red Section */}
-                        <div 
-                          className={`${getCategoryColor(formData.category)} p-4 sm:p-6 flex flex-col relative`}
-                          style={{
-                            backgroundImage: signageBackgroundImage 
-                              ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${signageBackgroundImage})` 
-                              : 'none',
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
-                          }}
-                        >
-                          {/* Warning Icons */}
-                          <div className="flex justify-center gap-4 mb-4">
-                            {[0, 1].map((index) => (
-                              <div key={index} className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-white rounded-full border-2 border-black">
-                                {signageIcons[index] ? (
-                                  <img 
-                                    src={signageIcons[index]} 
-                                    alt={`Warning icon ${index + 1}`}
-                                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                                  />
-                                ) : (
-                                  <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round"/>
-                                    <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                      // Check if this is a Hot Work template
+                      (formData.title && formData.title.toLowerCase().includes('hot work')) ? (
+                        /* HOT WORK TEMPLATE - Matching the second image design exactly */
+                        <>
+                          {/* Red Header Section */}
+                          <div className="bg-red-600 p-3 sm:p-4 flex flex-col">
+                            {/* Warning Icons */}
+                            <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                              {[0, 1].map((index) => (
+                                <div key={index} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-full">
+                                  {signageIcons[index] ? (
+                                    <img 
+                                      src={signageIcons[index]} 
+                                      alt={`Warning icon ${index + 1}`}
+                                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+                                    />
+                                  ) : (
+                                    <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round"/>
+                                      <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {/* Title */}
+                            <div className="text-center mb-2">
+                              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white uppercase mb-1">
+                                {formData.title || 'Hot Work - Welding, Cutting & Grinding'}
+                              </h3>
+                              <p className="text-white text-xs sm:text-sm font-semibold uppercase">
+                                HOT WORK ACTIVITY PERMIT NEEDED
+                              </p>
+                            </div>
+                            
+                            {/* Description on White Background */}
+                            <div className="bg-white px-3 py-2 mt-2">
+                              <p className="text-[10px] sm:text-xs text-black leading-relaxed mb-1">
+                                {formData.description || 'Any operation involving open flames, sparks, or heat that could ignite flammable materials including welding, torch cutting, grinding, brazing.'}
+                              </p>
+                              <p className="text-[10px] sm:text-xs text-black font-semibold">
+                                Required PPE: Welding helmet with proper shade, Fire-resistant clothing, Welding gloves, Safety boots, Respirator for confined spaces.
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Hazards Section - Red Header */}
+                          {formData.hazards && formData.hazards.length > 0 && (
+                            <div className="mb-1.5 sm:mb-2">
+                              <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
+                                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">A HAZARDS</h4>
+                              </div>
+                              <div className="bg-white px-3 py-2">
+                                <ul className="space-y-0.5">
+                                  {formData.hazards.map((hazard, index) => (
+                                    <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
+                                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2L1 21h22L12 2z"/>
+                                      </svg>
+                                      <span>{hazard}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Mandatory PPE Section - Blue Header with Grid */}
+                          {formData.ppe && formData.ppe.length > 0 && (
+                            <div className="mb-1.5 sm:mb-2">
+                              <div className="bg-blue-600 px-3 py-1.5 flex items-center gap-1.5">
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
+                                </div>
+                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">MANDATORY PPE ({formData.ppe.length})</h4>
+                              </div>
+                              <div className="bg-blue-600 px-2 py-2">
+                                <div className="grid grid-cols-5 gap-1">
+                                  {formData.ppe.slice(0, 15).map((ppeItem, index) => {
+                                    const ppeName = getPPEDisplayName(ppeItem).toLowerCase();
+                                    const getPPEIcon = () => {
+                                      if (ppeName.includes('helmet')) return '🪖';
+                                      if (ppeName.includes('goggle')) return '🥽';
+                                      if (ppeName.includes('ear')) return '🎧';
+                                      if (ppeName.includes('glove') && !ppeName.includes('insulated')) return '🧤';
+                                      if (ppeName.includes('boot') && !ppeName.includes('insulated')) return '👢';
+                                      if (ppeName.includes('high-vis') || ppeName.includes('high vis')) return '👔';
+                                      if (ppeName.includes('respirator')) return '😷';
+                                      if (ppeName.includes('harness')) return '🦺';
+                                      if (ppeName.includes('arc flash') || ppeName.includes('arc flash suit')) return '⚡';
+                                      if (ppeName.includes('insulated glove')) return '🧤';
+                                      if (ppeName.includes('insulated boot')) return '👢';
+                                      if (ppeName.includes('voltage') || ppeName.includes('detector')) return '🔌';
+                                      if (ppeName.includes('face shield')) return '🛡️';
+                                      if (ppeName.includes('arc clothing')) return '👔';
+                                      if (ppeName.includes('mat') || ppeName.includes('safety mat')) return '📖';
+                                      return '🛡️';
+                                    };
+                                    return (
+                                      <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
+                                        <div className="text-base sm:text-lg mb-0.5">
+                                          {getPPEIcon()}
+                                        </div>
+                                        <div className="text-[7px] sm:text-[8px] font-semibold leading-tight px-0.5">
+                                          {getPPEDisplayName(ppeItem).toUpperCase().replace(/\s+/g, ' ')}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Safety Procedures Section - Green Header */}
+                          {formData.procedures && formData.procedures.length > 0 && (
+                            <div className="mb-1.5 sm:mb-2">
+                              <div className="bg-green-600 px-3 py-1.5 flex items-center gap-1.5">
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
+                                </div>
+                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">SAFETY PROCEDURES</h4>
+                              </div>
+                              <div className="bg-white px-3 py-2">
+                                <ol className="space-y-0.5">
+                                  {formData.procedures.map((procedure, index) => (
+                                    <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
+                                      <span className="bg-green-600 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[8px] sm:text-[10px] font-bold flex-shrink-0">{index + 1}</span>
+                                      <span>{procedure}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Permit Required Section - Red Header */}
+                          {formData.permitRequired && (
+                            <div className="mb-1.5 sm:mb-2">
+                              <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                                   </svg>
+                                </div>
+                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">PERMIT REQUIRED</h4>
+                              </div>
+                              <div className="bg-white px-3 py-2 text-center">
+                                <p className="text-xs sm:text-sm font-bold text-black uppercase">
+                                  {formData.permitType || 'HOT WORK'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Emergency Section - Orange Header */}
+                          <div className="mb-1.5 sm:mb-2">
+                            <div className="bg-orange-500 px-3 py-1.5 flex items-center gap-1.5">
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                              <h4 className="text-white font-bold text-xs sm:text-sm uppercase">EMERGENCY</h4>
+                            </div>
+                            <div className="bg-orange-100 px-3 py-2">
+                              <div className="flex gap-3">
+                                <div className="flex-1 space-y-0.5">
+                                  {formData.emergencyContacts.length > 0 ? (
+                                    formData.emergencyContacts.map((contact, index) => (
+                                      <div key={index} className="text-[10px] sm:text-xs font-medium text-black">
+                                        <span className="font-semibold">{contact.label}:</span> {contact.phone}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <>
+                                      <div className="text-[10px] sm:text-xs font-medium text-black">
+                                        <span className="font-semibold">Fire Department:</span> 911
+                                      </div>
+                                      <div className="text-[10px] sm:text-xs font-medium text-black">
+                                        <span className="font-semibold">Site Safety Officer:</span> Emergency
+                                      </div>
+                                      <div className="text-[10px] sm:text-xs font-medium text-black">
+                                        <span className="font-semibold">Supervisor:</span> Emergency
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                {(formData.qrCodeText || formData.existingQRCode) && (
+                                  <div className="flex flex-col items-center justify-center flex-shrink-0">
+                                    {formData.useExistingQR && formData.existingQRCode ? (
+                                      <img 
+                                        src={formData.existingQRCode} 
+                                        alt="QR Code"
+                                        className="w-16 h-16 sm:w-20 sm:h-20 object-contain bg-white p-1"
+                                      />
+                                    ) : formData.qrCodeText ? (
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-white border border-gray-300 p-1">
+                                        <img 
+                                          src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                          alt="QR Code"
+                                          className="w-full h-full object-contain"
+                                        />
+                                      </div>
+                                    ) : null}
+                                    <p className="text-[9px] sm:text-[10px] text-black font-semibold mt-0.5">Scan</p>
+                                  </div>
                                 )}
                               </div>
-                            ))}
+                            </div>
                           </div>
                           
-                          {/* Title */}
-                          <div className="text-center">
-                            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase">
-                              {formData.title || 'SIGNAGE TITLE'}
-                            </h3>
-                            {/* Purpose/Subtitle */}
-                            {formData.purpose && (
-                              <p className="text-white font-semibold text-base sm:text-lg mt-2 uppercase">
-                                {formData.purpose}
-                              </p>
+                          {/* Bottom Black Footer */}
+                          <div className="bg-black px-3 py-1.5">
+                            <p className="text-[9px] sm:text-[10px] text-white text-center uppercase">
+                              ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        /* STANDARD SAFETY TEMPLATE */
+                        <>
+                          {/* Top Red Section */}
+                          <div 
+                            className={`${getCategoryColor(formData.category)} p-4 sm:p-6 flex flex-col relative`}
+                            style={{
+                              backgroundImage: signageBackgroundImage 
+                                ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${signageBackgroundImage})` 
+                                : 'none',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
+                          >
+                            {/* Warning Icons */}
+                            <div className="flex justify-center gap-4 mb-4">
+                              {[0, 1].map((index) => (
+                                <div key={index} className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-white rounded-full border-2 border-black">
+                                  {signageIcons[index] ? (
+                                    <img 
+                                      src={signageIcons[index]} 
+                                      alt={`Warning icon ${index + 1}`}
+                                      className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                                    />
+                                  ) : (
+                                    <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round"/>
+                                      <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {/* Title */}
+                            <div className="text-center">
+                              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase">
+                                {formData.title || 'SIGNAGE TITLE'}
+                              </h3>
+                              {/* Purpose/Subtitle */}
+                              {formData.purpose && (
+                                <p className="text-white font-semibold text-base sm:text-lg mt-2 uppercase">
+                                  {formData.purpose}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* White Content Section */}
+                          <div className="bg-white px-4 py-4 sm:py-6 flex-1">
+                            {/* Description */}
+                            {formData.description && (
+                              <div className="mb-4 sm:mb-6">
+                                <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
+                                  {formData.description}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {/* Hazards Section */}
+                            {formData.hazards && formData.hazards.length > 0 && (
+                              <div className="mb-4 sm:mb-6">
+                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># HAZARDS</h4>
+                                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-gray-800">
+                                  {formData.hazards.map((hazard, index) => (
+                                    <li key={index}>{hazard}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {/* Mandatory PPE Section */}
+                            {formData.ppe && formData.ppe.length > 0 && (
+                              <div className="mb-4 sm:mb-6">
+                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
+                                  # MANDATORY PPE ({formData.ppe.length})
+                                </h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+                                  {formData.ppe.map((ppeItem, index) => (
+                                    <div key={index} className="text-xs sm:text-sm font-medium text-gray-800 border border-gray-300 p-2 text-center">
+                                      {getPPEDisplayName(ppeItem).toUpperCase()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Safety Procedures Section */}
+                            {formData.procedures && formData.procedures.length > 0 && (
+                              <div className="mb-4 sm:mb-6">
+                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># SAFETY PROCEDURES</h4>
+                                <ol className="list-decimal list-inside space-y-1 text-sm sm:text-base text-gray-800">
+                                  {formData.procedures.map((procedure, index) => (
+                                    <li key={index}>{procedure}</li>
+                                  ))}
+                                </ol>
+                              </div>
+                            )}
+                            
+                            {/* Permit Required Section */}
+                            {formData.permitRequired && (
+                              <div className="mb-4 sm:mb-6 text-center">
+                                <div className="bg-yellow-400 border-2 border-black px-4 py-2 sm:py-3 inline-block">
+                                  <p className="text-base sm:text-lg font-bold text-black uppercase">
+                                    # PERMIT REQUIRED
+                                  </p>
+                                  {formData.permitType && (
+                                    <p className="text-sm sm:text-base font-semibold text-black mt-1 uppercase">
+                                      {formData.permitType}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
-                        </div>
-                        
-                        {/* White Content Section */}
-                        <div className="bg-white px-4 py-4 sm:py-6 flex-1">
-                          {/* Description */}
-                          {formData.description && (
-                            <div className="mb-4 sm:mb-6">
-                              <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-                                {formData.description}
-                              </p>
+                          
+                          {/* Orange Emergency Section */}
+                          {formData.emergencyContacts.length > 0 && (
+                            <div className="bg-orange-500 px-4 py-2 sm:py-3 flex items-center justify-center gap-2">
+                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                              <p className="text-white font-bold text-base sm:text-lg uppercase">EMERGENCY</p>
                             </div>
                           )}
                           
-                          {/* Hazards Section */}
-                          {formData.hazards && formData.hazards.length > 0 && (
-                            <div className="mb-4 sm:mb-6">
-                              <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># HAZARDS</h4>
-                              <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-gray-800">
-                                {formData.hazards.map((hazard, index) => (
-                                  <li key={index}>{hazard}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {/* Mandatory PPE Section */}
-                          {formData.ppe && formData.ppe.length > 0 && (
-                            <div className="mb-4 sm:mb-6">
-                              <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
-                                # MANDATORY PPE ({formData.ppe.length})
-                              </h4>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
-                                {formData.ppe.map((ppeItem, index) => (
-                                  <div key={index} className="text-xs sm:text-sm font-medium text-gray-800 border border-gray-300 p-2 text-center">
-                                    {getPPEDisplayName(ppeItem).toUpperCase()}
+                          {/* Light Beige Contact Information Section */}
+                          {formData.emergencyContacts.length > 0 && (
+                            <div className="bg-amber-50 px-4 py-3 sm:py-4 flex-1">
+                              <div className="space-y-1 sm:space-y-2">
+                                {formData.emergencyContacts.map((contact, index) => (
+                                  <div key={index} className="text-sm sm:text-base font-medium text-black">
+                                    {contact.label}: {contact.phone}
                                   </div>
                                 ))}
                               </div>
                             </div>
                           )}
                           
-                          {/* Safety Procedures Section */}
-                          {formData.procedures && formData.procedures.length > 0 && (
-                            <div className="mb-4 sm:mb-6">
-                              <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># SAFETY PROCEDURES</h4>
-                              <ol className="list-decimal list-inside space-y-1 text-sm sm:text-base text-gray-800">
-                                {formData.procedures.map((procedure, index) => (
-                                  <li key={index}>{procedure}</li>
-                                ))}
-                              </ol>
+                          {/* QR Code Section */}
+                          {(formData.qrCodeText || formData.existingQRCode) && (
+                            <div className="bg-white px-4 py-4 sm:py-6 flex items-center justify-center border-t-2 border-gray-200">
+                              {formData.useExistingQR && formData.existingQRCode ? (
+                                <img 
+                                  src={formData.existingQRCode} 
+                                  alt="QR Code"
+                                  className="w-32 h-32 sm:w-40 sm:h-40 object-contain"
+                                />
+                              ) : formData.qrCodeText ? (
+                                <div className="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center bg-white border-2 border-gray-300 p-2">
+                                  <img 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                    alt="QR Code"
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                              ) : null}
                             </div>
                           )}
                           
-                          {/* Permit Required Section */}
-                          {formData.permitRequired && (
-                            <div className="mb-4 sm:mb-6 text-center">
-                              <div className="bg-yellow-400 border-2 border-black px-4 py-2 sm:py-3 inline-block">
-                                <p className="text-base sm:text-lg font-bold text-black uppercase">
-                                  # PERMIT REQUIRED
-                                </p>
-                                {formData.permitType && (
-                                  <p className="text-sm sm:text-base font-semibold text-black mt-1 uppercase">
-                                    {formData.permitType}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Orange Emergency Section */}
-                        {formData.emergencyContacts.length > 0 && (
-                          <div className="bg-orange-500 px-4 py-2 sm:py-3 flex items-center justify-center gap-2">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            <p className="text-white font-bold text-base sm:text-lg uppercase">EMERGENCY</p>
+                          {/* Bottom Black Compliance Section */}
+                          <div className="bg-black px-4 py-2 sm:py-3">
+                            <p className="text-white text-xs sm:text-sm text-center uppercase">
+                              ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY
+                            </p>
                           </div>
-                        )}
-                        
-                        {/* Light Beige Contact Information Section */}
-                        {formData.emergencyContacts.length > 0 && (
-                          <div className="bg-amber-50 px-4 py-3 sm:py-4 flex-1">
-                            <div className="space-y-1 sm:space-y-2">
-                              {formData.emergencyContacts.map((contact, index) => (
-                                <div key={index} className="text-sm sm:text-base font-medium text-black">
-                                  {contact.label}: {contact.phone}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* QR Code Section */}
-                        {(formData.qrCodeText || formData.existingQRCode) && (
-                          <div className="bg-white px-4 py-4 sm:py-6 flex items-center justify-center border-t-2 border-gray-200">
-                            {formData.useExistingQR && formData.existingQRCode ? (
-                              <img 
-                                src={formData.existingQRCode} 
-                                alt="QR Code"
-                                className="w-32 h-32 sm:w-40 sm:h-40 object-contain"
-                              />
-                            ) : formData.qrCodeText ? (
-                              <div className="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center bg-white border-2 border-gray-300 p-2">
-                                <img 
-                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(formData.qrCodeText)}`}
-                                  alt="QR Code"
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                            ) : null}
-                          </div>
-                        )}
-                        
-                        {/* Bottom Black Compliance Section */}
-                        <div className="bg-black px-4 py-2 sm:py-3">
-                          <p className="text-white text-xs sm:text-sm text-center uppercase">
-                            ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY
-                          </p>
-                        </div>
-                      </>
+                        </>
+                      )
                     )}
                   </div>
                 ) : (

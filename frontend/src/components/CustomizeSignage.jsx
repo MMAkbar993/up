@@ -9,6 +9,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
+  const [resizeCorner, setResizeCorner] = useState(null) // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
   const fileInputRef = useRef(null)
   const iconInputRef = useRef(null)
 
@@ -106,7 +107,23 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     if (isResizing && selectedElement) {
       const deltaX = e.clientX - resizeStartData.x
       const deltaY = e.clientY - resizeStartData.y
-      const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+      
+      // Calculate the distance moved for uniform scaling
+      // For different corners, we need to adjust the direction
+      let delta = 0
+      if (resizeCorner === 'top-left') {
+        // Dragging down-right increases size, up-left decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
+      } else if (resizeCorner === 'top-right') {
+        // Dragging down-left increases size, up-right decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
+      } else if (resizeCorner === 'bottom-left') {
+        // Dragging up-right increases size, down-left decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
+      } else {
+        // bottom-right: Dragging down-right increases size, up-left decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+      }
       
       const selectedEl = elements.find(el => el.id === selectedElement)
       if (!selectedEl) return
@@ -139,14 +156,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const handleMouseUp = () => {
     setIsDragging(false)
     setIsResizing(false)
+    setResizeCorner(null)
     setResizeStartData({ size: 0, x: 0, y: 0 })
   }
 
-  const handleResizeStart = (e, element) => {
+  const handleResizeStart = (e, element, corner) => {
     e.preventDefault()
     e.stopPropagation()
     setIsResizing(true)
     setSelectedElement(element.id)
+    setResizeCorner(corner)
     
     const currentSize = element.type === 'text' ? element.fontSize : element.size
     setResizeStartData({
@@ -490,25 +509,82 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           draggable={false}
                         />
                       )}
-                      {/* Resize Handle */}
+                      {/* Resize Handles - All Four Corners */}
                       {selectedElement === element.id && (
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            bottom: '-8px',
-                            right: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nwse-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleResizeStart(e, element)}
-                        />
+                        <>
+                          {/* Top Left */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              top: '-8px',
+                              left: '-8px',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'nwse-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'top-left')}
+                          />
+                          {/* Top Right */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              top: '-8px',
+                              right: '-8px',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'nesw-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'top-right')}
+                          />
+                          {/* Bottom Left */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              bottom: '-8px',
+                              left: '-8px',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'nesw-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'bottom-left')}
+                          />
+                          {/* Bottom Right */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              bottom: '-8px',
+                              right: '-8px',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'nwse-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'bottom-right')}
+                          />
+                        </>
                       )}
                     </div>
                   ))}

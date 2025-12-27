@@ -142,7 +142,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         id: Date.now(),
         ...formData,
         photoUrl: URL.createObjectURL(formData.photo),
-        qrCodeText: formData.qrCodeText || `${formData.name} - ${formData.employeeId || formData.position}`
+        qrCodeText: formData.qrCodeText && formData.qrCodeText.trim().length > 0 ? formData.qrCodeText.trim() : ''
       }
       setPersons(prev => [...prev, newPerson])
       // Reset form
@@ -920,10 +920,10 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                           </div>
 
                           {/* QR Code */}
-                          {person.qrCodeText && (
+                          {person.qrCodeText && person.qrCodeText.trim().length > 0 && (
                             <div className="mt-auto flex justify-center pt-2">
                               <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(person.qrCodeText)}`}
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(person.qrCodeText.trim())}`}
                                 alt="QR Code"
                                 className="w-20 h-20 border-2 border-gray-300 p-1 bg-white rounded"
                               />
@@ -1159,10 +1159,10 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       </div>
 
                       {/* QR Code */}
-                      {viewingPerson.qrCodeText && (
+                      {viewingPerson.qrCodeText && viewingPerson.qrCodeText.trim().length > 0 && (
                         <div className="mt-auto">
                           <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(viewingPerson.qrCodeText)}`}
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(viewingPerson.qrCodeText.trim())}`}
                             alt="QR Code"
                             className="w-32 h-32 border-2 border-gray-300 p-2 bg-white rounded mx-auto"
                           />
@@ -1285,15 +1285,20 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
             height: auto !important;
             max-width: none !important;
             max-height: none !important;
-            background: white !important;
             overflow: visible !important;
             border-radius: 0 !important;
             box-shadow: none !important;
             z-index: 9999 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           /* Show all children of print-visible */
           .print-visible * {
             visibility: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           /* Hide non-print elements */
           .no-print {
