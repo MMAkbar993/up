@@ -4,7 +4,6 @@ import SignageGenerator from './SignageGenerator'
 import AIGenerator from './AIGenerator'
 import AuthorizedPersons from './AuthorizedPersons'
 import EmergencyTeam from './EmergencyTeam'
-import SafetyCommittee from './SafetyCommittee'
 import OrganizationChart from './OrganizationChart'
 import Blog from './Blog'
 import TemplateLibrary from './TemplateLibrary'
@@ -32,11 +31,6 @@ const Dashboard = () => {
   // If Emergency Team is selected, show that component
   if (activeNav === 'emergency') {
     return <EmergencyTeam activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-  }
-  
-  // If Safety Committee is selected, show that component
-  if (activeNav === 'safety-committee') {
-    return <SafetyCommittee activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
   
   // If Organization Chart is selected, show that component
