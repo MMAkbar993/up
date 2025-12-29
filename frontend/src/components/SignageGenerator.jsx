@@ -90,7 +90,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isDesigning, setIsDesigning] = useState(false)
   const [aiGeneratedData, setAiGeneratedData] = useState(null)
-  
+
   // Advanced Options state
   const [advancedOptions, setAdvancedOptions] = useState({
     autoLayout: true,
@@ -98,7 +98,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     autoContrastAdjustment: true,
     autoTextResizing: true
   })
-  
+
   // Manual controls state
   const [manualContrast, setManualContrast] = useState(100) // 0-200
   const [manualTextSize, setManualTextSize] = useState(24) // 12-72
@@ -110,12 +110,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [textElements, setTextElements] = useState([]) // Array of text elements with full editing capabilities
   const [selectedTextElement, setSelectedTextElement] = useState(null)
   const [textEditorOpen, setTextEditorOpen] = useState(false)
-  
+
   // Image & Icon Editing State
   const [imageElements, setImageElements] = useState([]) // Array of image elements
   const [selectedImageElement, setSelectedImageElement] = useState(null)
   const [imageEditorOpen, setImageEditorOpen] = useState(false)
-  
+
   // Panel visibility state
   const [backgroundPanelOpen, setBackgroundPanelOpen] = useState(false)
   const [sizeLayoutPanelOpen, setSizeLayoutPanelOpen] = useState(false)
@@ -141,16 +141,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       showNotification('Please enter a name for the signage', 'error')
       return
     }
-    
+
     const signageData = {
       id: Date.now(),
       name: saveModalName.trim(),
       type: signageType,
-      data: { 
-        formData: JSON.parse(JSON.stringify(formData)), 
-        identificationData: JSON.parse(JSON.stringify(identificationData)), 
-        textElements: JSON.parse(JSON.stringify(textElements)), 
-        imageElements: JSON.parse(JSON.stringify(imageElements)), 
+      data: {
+        formData: JSON.parse(JSON.stringify(formData)),
+        identificationData: JSON.parse(JSON.stringify(identificationData)),
+        textElements: JSON.parse(JSON.stringify(textElements)),
+        imageElements: JSON.parse(JSON.stringify(imageElements)),
         backgroundSettings: JSON.parse(JSON.stringify(backgroundSettings)),
         companyBranding: JSON.parse(JSON.stringify(companyBranding))
       },
@@ -158,7 +158,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       updatedAt: new Date().toISOString(),
       favorite: false
     }
-    
+
     setSavedSignages(prev => {
       const updated = [...prev]
       const existingIndex = updated.findIndex(s => s.name === saveModalName.trim())
@@ -171,29 +171,29 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       }
       return updated
     })
-    
+
     addAuditLog('save', { signageId: signageData.id, name: signageData.name })
     setSaveModalOpen(false)
     setSaveModalName('')
   }
-  
+
   // Design Mode State
   const [designMode, setDesignMode] = useState('template') // 'template' or 'free'
   const [canvasElements, setCanvasElements] = useState([]) // All elements on canvas
-  
+
   // Undo/Redo State
   const [history, setHistory] = useState([])
   const [historyIndex, setHistoryIndex] = useState(-1)
-  
+
   // Preview & Zoom State
   const [previewZoom, setPreviewZoom] = useState(100)
   const [showFullScreenPreview, setShowFullScreenPreview] = useState(false)
-  
+
   // Grid & Snap State
   const [showGrid, setShowGrid] = useState(false)
   const [snapToGrid, setSnapToGrid] = useState(true)
   const [gridSize, setGridSize] = useState(10)
-  
+
   // Export State
   const [exportSettings, setExportSettings] = useState({
     format: 'PDF',
@@ -202,7 +202,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     includeBleed: true,
     bleedSize: 3 // mm
   })
-  
+
   // Authorized Persons State
   const [authorizedPersons, setAuthorizedPersons] = useState([])
   const [authorizedPersonsLayout, setAuthorizedPersonsLayout] = useState({
@@ -212,7 +212,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     showQR: true,
     frameStyle: 'rounded'
   })
-  
+
   // Saved Signages State
   const [savedSignages, setSavedSignages] = useState(() => {
     // Load from localStorage on mount
@@ -224,19 +224,19 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       return []
     }
   })
-  
+
   // Auto-save current work state
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
   const [lastAutoSave, setLastAutoSave] = useState(null)
   const [favoriteSignages, setFavoriteSignages] = useState([])
-  
+
   // ISO 7010 & Safety Standards
   const [iso7010Icons, setIso7010Icons] = useState([])
   const [colorCompliance, setColorCompliance] = useState({
     enabled: true,
     warnings: []
   })
-  
+
   // Background & Color State
   const [backgroundSettings, setBackgroundSettings] = useState({
     type: 'solid', // 'solid', 'gradient', 'image'
@@ -249,25 +249,25 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     image: null,
     opacity: 100
   })
-  
+
   // High Contrast & Accessibility
   const [highContrastMode, setHighContrastMode] = useState(false)
   const [contrastRatio, setContrastRatio] = useState(null)
-  
+
   // Language & Translation
   const [currentLanguage, setCurrentLanguage] = useState('en')
   const [textTranslations, setTextTranslations] = useState({})
-  
+
   // AI Features State
   const [aiIconSuggestions, setAiIconSuggestions] = useState([])
   const [voiceToTextEnabled, setVoiceToTextEnabled] = useState(false)
-  
+
   // Version History
   const [versionHistory, setVersionHistory] = useState([])
-  
+
   // Role-based Access (for future)
   const [userRole, setUserRole] = useState('editor') // 'viewer', 'editor', 'admin'
-  
+
   // Audit Trail
   const [auditLog, setAuditLog] = useState([])
 
@@ -372,14 +372,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       })
       return 0.2126 * r + 0.7152 * g + 0.0722 * b
     }
-    
+
     const lum1 = getLuminance(color1)
     const lum2 = getLuminance(color2)
     const lighter = Math.max(lum1, lum2)
     const darker = Math.min(lum1, lum2)
     return (lighter + 0.05) / (darker + 0.05)
   }
-  
+
   const hexToRgb = (hex) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
     return result ? {
@@ -388,33 +388,33 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       b: parseInt(result[3], 16)
     } : null
   }
-  
+
   // Check if color combination is ISO compliant
   const checkColorCompliance = (category, textColor, bgColor) => {
     const warnings = []
     const standard = iso7010Colors[category]
-    
+
     if (standard) {
       const expectedBg = standard.bg
       const expectedText = standard.text
-      
+
       if (bgColor !== expectedBg) {
         warnings.push(`Background color should be ${standard.name} (${expectedBg}) for ${category} signs`)
       }
-      
+
       if (textColor !== expectedText) {
         warnings.push(`Text color should be ${expectedText} for optimal contrast on ${category} signs`)
       }
     }
-    
+
     const contrast = calculateContrastRatio(textColor, bgColor)
     if (contrast < 4.5) {
       warnings.push(`Low contrast ratio (${contrast.toFixed(2)}). Minimum recommended: 4.5 for normal text, 3.0 for large text`)
     }
-    
+
     return warnings
   }
-  
+
   // Auto-fit text to container
   const autoFitText = (text, containerWidth, containerHeight, fontSize, fontFamily) => {
     // This would be implemented with canvas measurement
@@ -424,14 +424,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     const lines = Math.ceil(text.length / charsPerLine)
     const lineHeight = fontSize * 1.2
     const totalHeight = lines * lineHeight
-    
+
     if (totalHeight > containerHeight) {
       const scale = containerHeight / totalHeight
       return Math.max(12, fontSize * scale)
     }
     return fontSize
   }
-  
+
   // Save to history for undo/redo
   const saveToHistory = (state) => {
     const newHistory = history.slice(0, historyIndex + 1)
@@ -439,7 +439,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setHistory(newHistory)
     setHistoryIndex(newHistory.length - 1)
   }
-  
+
   // Undo function
   const undo = () => {
     if (historyIndex > 0) {
@@ -448,7 +448,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
     return null
   }
-  
+
   // Redo function
   const redo = () => {
     if (historyIndex < history.length - 1) {
@@ -457,7 +457,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
     return null
   }
-  
+
   // Add audit log entry
   const addAuditLog = (action, details) => {
     const logEntry = {
@@ -563,7 +563,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Auto-save current work
   useEffect(() => {
     if (!autoSaveEnabled) return
-    
+
     const autoSaveTimeout = setTimeout(() => {
       const currentWork = {
         id: 'current-work',
@@ -579,7 +579,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         },
         updatedAt: new Date().toISOString()
       }
-      
+
       try {
         localStorage.setItem('currentWork', JSON.stringify(currentWork))
         setLastAutoSave(new Date())
@@ -587,7 +587,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         console.error('Error auto-saving work:', error)
       }
     }, 5000) // Auto-save every 5 seconds
-    
+
     return () => clearTimeout(autoSaveTimeout)
   }, [formData, identificationData, textElements, imageElements, backgroundSettings, companyBranding, signageType, autoSaveEnabled])
 
@@ -879,13 +879,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     const files = Array.from(e.target.files)
     const maxFiles = 7 - customPPEImages.length
     const filesToAdd = files.slice(0, maxFiles)
-    
+
     filesToAdd.forEach(file => {
       if (file.size > 5 * 1024 * 1024) {
         showNotification(`File ${file.name} exceeds 5MB limit`, 'error')
         return
       }
-      
+
       const reader = new FileReader()
       reader.onload = (event) => {
         setCustomPPEImages(prev => [...prev, {
@@ -897,12 +897,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       }
       reader.readAsDataURL(file)
     })
-    
+
     e.target.value = ''
   }
 
   const updatePPEImageName = (id, name) => {
-    setCustomPPEImages(prev => prev.map(img => 
+    setCustomPPEImages(prev => prev.map(img =>
       img.id === id ? { ...img, name } : img
     ))
   }
@@ -1004,18 +1004,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Handle logo drag
   const handleLogoDrag = (e, logoType) => {
     if (!draggingLogo) return
-    
+
     const previewElement = e.currentTarget.closest('.preview-container')
     if (!previewElement) return
-    
+
     const rect = previewElement.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
-    
+
     // Constrain to preview bounds
     const constrainedX = Math.max(0, Math.min(100, x))
     const constrainedY = Math.max(0, Math.min(100, y))
-    
+
     if (logoType === 'client') {
       setCompanyBranding({
         ...companyBranding,
@@ -1041,8 +1041,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setResizingLogo(logoType)
     setSelectedLogo(logoType)
     setLogoResizeCorner(corner)
-    const currentSize = logoType === 'client' 
-      ? companyBranding.clientLogoSize 
+    const currentSize = logoType === 'client'
+      ? companyBranding.clientLogoSize
       : companyBranding.contractorLogoSize
     setResizeStartData({
       size: currentSize,
@@ -1054,10 +1054,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Handle logo resize
   const handleLogoResize = (e) => {
     if (!resizingLogo) return
-    
+
     const deltaX = e.clientX - resizeStartData.x
     const deltaY = e.clientY - resizeStartData.y
-    
+
     // Calculate the distance moved for uniform scaling
     // For different corners, we need to adjust the direction
     let delta = 0
@@ -1074,9 +1074,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       // bottom-right: Dragging down-right increases size, up-left decreases
       delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
     }
-    
+
     const newSize = Math.max(20, Math.min(500, resizeStartData.size + delta))
-    
+
     if (resizingLogo === 'client') {
       setCompanyBranding({
         ...companyBranding,
@@ -1112,14 +1112,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setResizingElement(elementType)
     setSelectedElement(elementType)
     setElementResizeHandle(handle)
-    
-    const currentSize = elementType === 'icon' 
-      ? identificationData.iconSize 
+
+    const currentSize = elementType === 'icon'
+      ? identificationData.iconSize
       : identificationData.fontSize
     const currentPosition = elementType === 'icon'
       ? identificationData.iconPosition
       : identificationData.textPosition
-    
+
     setElementResizeStartData({
       size: currentSize,
       x: e.clientX,
@@ -1132,18 +1132,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Handle icon/text drag
   const handleElementDrag = (e, elementType) => {
     if (!draggingElement) return
-    
+
     const previewElement = e.currentTarget.closest('.preview-container')
     if (!previewElement) return
-    
+
     const rect = previewElement.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
-    
+
     // Constrain to preview bounds
     const constrainedX = Math.max(0, Math.min(100, x))
     const constrainedY = Math.max(0, Math.min(100, y))
-    
+
     if (elementType === 'icon') {
       setIdentificationData({
         ...identificationData,
@@ -1160,20 +1160,20 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Handle element resize
   const handleElementResize = (e) => {
     if (!resizingElement || !elementResizeHandle) return
-    
+
     const previewElement = e.currentTarget.closest('.preview-container')
     if (!previewElement) return
-    
+
     const rect = previewElement.getBoundingClientRect()
     const deltaXPixels = e.clientX - elementResizeStartData.x
     const deltaYPixels = e.clientY - elementResizeStartData.y
-    
+
     // For uniform sizing, we'll use the average of X and Y for corner handles
     // For edge handles, we use only the relevant axis
     let deltaSize = 0
     let deltaPosX = 0
     let deltaPosY = 0
-    
+
     // Calculate resize based on handle type
     switch (elementResizeHandle) {
       case 'top-left':
@@ -1221,21 +1221,21 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         deltaPosX = deltaXPixels / 2
         break
     }
-    
+
     // Calculate new size
     let newSize = elementResizeStartData.size + deltaSize
-    
+
     // Calculate new position (adjust to maintain the resize anchor point)
     const deltaXPercent = (deltaPosX / rect.width) * 100
     const deltaYPercent = (deltaPosY / rect.height) * 100
     let newPositionX = elementResizeStartData.positionX + deltaXPercent
     let newPositionY = elementResizeStartData.positionY + deltaYPercent
-    
+
     // Constrain size based on element type
     const maxSize = resizingElement === 'icon' ? 500 : 200
     const minSize = resizingElement === 'icon' ? 20 : 12
     newSize = Math.max(minSize, Math.min(maxSize, newSize))
-    
+
     // If size was constrained, adjust position to compensate
     const actualDeltaSize = newSize - elementResizeStartData.size
     if (actualDeltaSize !== deltaSize) {
@@ -1254,11 +1254,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         newPositionY += (sizeDiff / rect.height) * 50
       }
     }
-    
+
     // Constrain position
     newPositionX = Math.max(0, Math.min(100, newPositionX))
     newPositionY = Math.max(0, Math.min(100, newPositionY))
-    
+
     if (resizingElement === 'icon') {
       setIdentificationData({
         ...identificationData,
@@ -1315,8 +1315,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         setDraggingLogo(null)
         setSelectedLogo(logoType)
         setLogoResizeCorner('bottom-right')
-        const currentSize = logoType === 'client' 
-          ? companyBranding.clientLogoSize 
+        const currentSize = logoType === 'client'
+          ? companyBranding.clientLogoSize
           : companyBranding.contractorLogoSize
         setResizeStartData({
           size: currentSize,
@@ -1370,14 +1370,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   // Real-time AI generation function
   const generateSignageFromDescription = (description) => {
     if (!description.trim()) return null
-    
+
     // Parse description to extract information
     const lowerDesc = description.toLowerCase()
     let category = 'Danger'
     let title = description.split(',')[0].trim() || 'AI Generated Signage'
     const hazards = []
     const ppe = []
-    
+
     // Determine category based on keywords
     if (lowerDesc.includes('warning') || lowerDesc.includes('caution')) {
       category = 'Warning'
@@ -1386,7 +1386,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     } else if (lowerDesc.includes('danger')) {
       category = 'Danger'
     }
-    
+
     // Extract PPE requirements
     if (lowerDesc.includes('hard hat') || lowerDesc.includes('helmet')) ppe.push('hard-hat')
     if (lowerDesc.includes('safety glasses') || lowerDesc.includes('goggles')) ppe.push('safety-glasses')
@@ -1394,13 +1394,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     if (lowerDesc.includes('boots') || lowerDesc.includes('safety boots')) ppe.push('safety-boots')
     if (lowerDesc.includes('vest') || lowerDesc.includes('hi-vis')) ppe.push('hi-vis-vest')
     if (lowerDesc.includes('respirator') || lowerDesc.includes('mask')) ppe.push('respirator')
-    
+
     // Extract hazards
     if (lowerDesc.includes('electrical') || lowerDesc.includes('electric')) hazards.push('Electrical Hazard')
     if (lowerDesc.includes('chemical')) hazards.push('Chemical Hazard')
     if (lowerDesc.includes('fire')) hazards.push('Fire Hazard')
     if (lowerDesc.includes('height') || lowerDesc.includes('fall')) hazards.push('Fall Hazard')
-    
+
     // Auto-generate title if needed
     if (title.length < 5) {
       if (lowerDesc.includes('panel')) title = 'ELECTRICAL PANEL AREA'
@@ -1408,7 +1408,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       else if (lowerDesc.includes('mechanical')) title = 'MECHANICAL ROOM'
       else title = 'RESTRICTED AREA'
     }
-    
+
     return {
       title: title.toUpperCase(),
       category,
@@ -1504,7 +1504,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       const element = previewRef.current
       const scale = Math.min(dpi / 96, 3) // Limit scale to prevent memory issues
-      
+
       const canvas = await html2canvas(element, {
         scale: scale,
         backgroundColor: '#ffffff',
@@ -1515,7 +1515,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       const mimeType = format === 'JPG' ? 'image/jpeg' : 'image/png'
       const quality = format === 'JPG' ? 0.95 : 1.0
-      
+
       canvas.toBlob((blob) => {
         if (!blob) {
           showNotification('Failed to generate image', 'error')
@@ -1555,7 +1555,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         handlePrint()
         return
       }
-      
+
       const element = previewRef.current
       const canvas = await html2canvas(element, {
         scale: Math.min(dpi / 96, 3),
@@ -1590,13 +1590,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
   const handleExportSignage = async () => {
     const { format, dpi } = exportSettings
-    
+
     if (format === 'PDF') {
       await exportToPDF(dpi)
     } else {
       await exportToImage(format, dpi)
     }
-    
+
     setExportModalOpen(false)
   }
 
@@ -1614,7 +1614,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     // Create a new window for printing
     const printWindow = window.open('', '_blank')
     const printContent = previewRef.current.innerHTML
-    
+
     // Get computed styles for the preview container
     const styles = window.getComputedStyle(previewRef.current)
     const containerStyles = `
@@ -1655,7 +1655,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         }
       </style>
     `
-    
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -1670,9 +1670,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         </body>
       </html>
     `)
-    
+
     printWindow.document.close()
-    
+
     // Wait for images to load, then print
     printWindow.onload = () => {
       setTimeout(() => {
@@ -1708,7 +1708,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           width: previewRef.current.offsetWidth,
           height: previewRef.current.offsetHeight
         })
-        
+
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob)
@@ -1734,9 +1734,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         iframe.style.width = '0'
         iframe.style.height = '0'
         iframe.style.border = 'none'
-        
+
         document.body.appendChild(iframe)
-        
+
         const printDoc = iframe.contentWindow.document
         printDoc.open()
         printDoc.write(`
@@ -1767,7 +1767,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           </html>
         `)
         printDoc.close()
-        
+
         // Wait for content to load, then trigger print
         iframe.onload = () => {
           setTimeout(() => {
@@ -1793,7 +1793,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
               aria-label="Toggle menu"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1873,9 +1873,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   setImageElements([])
                   setCanvasElements([])
                 }}
-                className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  designMode === 'template' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${designMode === 'template' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 <span className="hidden sm:inline">Template Mode</span>
                 <span className="sm:hidden">Template</span>
@@ -1885,9 +1884,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   setDesignMode('free')
                   // Show template selection for free design
                 }}
-                className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                  designMode === 'free' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${designMode === 'free' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 <span className="hidden sm:inline">Free Design</span>
                 <span className="sm:hidden">Free</span>
@@ -1934,9 +1932,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             {/* Text Editor Button */}
             <button
               onClick={() => setTextEditorOpen(!textEditorOpen)}
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                textEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${textEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1947,9 +1944,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             {/* Image Editor Button */}
             <button
               onClick={() => setImageEditorOpen(!imageEditorOpen)}
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                imageEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${imageEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1959,9 +1955,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* ISO 7010 Icon Library */}
             <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                isoIconModalOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${isoIconModalOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               onClick={() => setIsoIconModalOpen(!isoIconModalOpen)}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1972,9 +1967,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Authorized Persons */}
             <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                authorizedPersonsPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${authorizedPersonsPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               onClick={() => setAuthorizedPersonsPanelOpen(!authorizedPersonsPanelOpen)}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1985,9 +1979,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Color & Background */}
             <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                backgroundPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${backgroundPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               onClick={() => setBackgroundPanelOpen(!backgroundPanelOpen)}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2023,9 +2016,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             {/* Grid Toggle */}
             <button
               onClick={() => setShowGrid(!showGrid)}
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                showGrid ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${showGrid ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               title="Toggle Grid"
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2087,9 +2079,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
             {/* Signage Library */}
             <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${
-                signageLibraryOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${signageLibraryOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               onClick={() => setSignageLibraryOpen(!signageLibraryOpen)}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2136,7 +2127,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 value={selectedTextElement?.fontFamily || 'Arial'}
                 onChange={(e) => {
                   if (selectedTextElement) {
-                    setTextElements(prev => prev.map(el => 
+                    setTextElements(prev => prev.map(el =>
                       el.id === selectedTextElement.id ? { ...el, fontFamily: e.target.value } : el
                     ))
                   }
@@ -2160,7 +2151,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedTextElement?.fontSize || 24}
                   onChange={(e) => {
                     if (selectedTextElement) {
-                      setTextElements(prev => prev.map(el => 
+                      setTextElements(prev => prev.map(el =>
                         el.id === selectedTextElement.id ? { ...el, fontSize: parseInt(e.target.value) } : el
                       ))
                     }
@@ -2178,7 +2169,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 value={selectedTextElement?.fontWeight || 'normal'}
                 onChange={(e) => {
                   if (selectedTextElement) {
-                    setTextElements(prev => prev.map(el => 
+                    setTextElements(prev => prev.map(el =>
                       el.id === selectedTextElement.id ? { ...el, fontWeight: e.target.value } : el
                     ))
                   }
@@ -2204,16 +2195,15 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     key={align}
                     onClick={() => {
                       if (selectedTextElement) {
-                        setTextElements(prev => prev.map(el => 
+                        setTextElements(prev => prev.map(el =>
                           el.id === selectedTextElement.id ? { ...el, textAlign: align } : el
                         ))
                       }
                     }}
-                    className={`flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-colors text-sm sm:text-base ${
-                      selectedTextElement?.textAlign === align
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    className={`flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-colors text-sm sm:text-base ${selectedTextElement?.textAlign === align
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 hover:border-gray-400'
+                      }`}
                     title={align.charAt(0).toUpperCase() + align.slice(1)}
                   >
                     {align === 'left' && '⬅'}
@@ -2234,7 +2224,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedTextElement?.color || '#000000'}
                   onChange={(e) => {
                     if (selectedTextElement) {
-                      setTextElements(prev => prev.map(el => 
+                      setTextElements(prev => prev.map(el =>
                         el.id === selectedTextElement.id ? { ...el, color: e.target.value } : el
                       ))
                       // Check compliance
@@ -2253,7 +2243,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedTextElement?.color || '#000000'}
                   onChange={(e) => {
                     if (selectedTextElement) {
-                      setTextElements(prev => prev.map(el => 
+                      setTextElements(prev => prev.map(el =>
                         el.id === selectedTextElement.id ? { ...el, color: e.target.value } : el
                       ))
                     }
@@ -2276,7 +2266,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedTextElement?.lineHeight || 1.2}
                   onChange={(e) => {
                     if (selectedTextElement) {
-                      setTextElements(prev => prev.map(el => 
+                      setTextElements(prev => prev.map(el =>
                         el.id === selectedTextElement.id ? { ...el, lineHeight: parseFloat(e.target.value) } : el
                       ))
                     }
@@ -2299,7 +2289,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedTextElement?.letterSpacing || 0}
                   onChange={(e) => {
                     if (selectedTextElement) {
-                      setTextElements(prev => prev.map(el => 
+                      setTextElements(prev => prev.map(el =>
                         el.id === selectedTextElement.id ? { ...el, letterSpacing: parseFloat(e.target.value) } : el
                       ))
                     }
@@ -2337,22 +2327,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         recognition.continuous = false
                         recognition.interimResults = false
                         recognition.lang = currentLanguage === 'ar' ? 'ar-SA' : currentLanguage
-                        
+
                         recognition.onresult = (event) => {
                           const transcript = event.results[0][0].transcript
                           if (selectedTextElement) {
-                            setTextElements(prev => prev.map(el => 
+                            setTextElements(prev => prev.map(el =>
                               el.id === selectedTextElement.id ? { ...el, text: transcript } : el
                             ))
                           }
                         }
-                        
+
                         recognition.onerror = () => {
                           showNotification('Voice recognition error. Please check your microphone permissions.', 'error')
                           showNotification('Voice recognition error. Please check your microphone permissions.', 'error')
                           setVoiceToTextEnabled(false)
                         }
-                        
+
                         recognition.start()
                       } else {
                         showNotification('Voice recognition not supported in this browser.', 'error')
@@ -2363,11 +2353,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       setVoiceToTextEnabled(false)
                     }
                   }}
-                  className={`px-3 py-2 rounded-lg border-2 transition-colors ${
-                    voiceToTextEnabled 
-                      ? 'bg-red-600 text-white border-red-600' 
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:border-gray-400'
-                  }`}
+                  className={`px-3 py-2 rounded-lg border-2 transition-colors ${voiceToTextEnabled
+                    ? 'bg-red-600 text-white border-red-600'
+                    : 'bg-gray-100 text-gray-700 border-gray-300 hover:border-gray-400'
+                    }`}
                   title="Voice to Text"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2385,7 +2374,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 checked={selectedTextElement?.autoFit || false}
                 onChange={(e) => {
                   if (selectedTextElement) {
-                    setTextElements(prev => prev.map(el => 
+                    setTextElements(prev => prev.map(el =>
                       el.id === selectedTextElement.id ? { ...el, autoFit: e.target.checked } : el
                     ))
                   }
@@ -2538,7 +2527,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedImageElement?.brightness || 100}
                   onChange={(e) => {
                     if (selectedImageElement) {
-                      setImageElements(prev => prev.map(el => 
+                      setImageElements(prev => prev.map(el =>
                         el.id === selectedImageElement.id ? { ...el, brightness: parseInt(e.target.value) } : el
                       ))
                     }
@@ -2560,7 +2549,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedImageElement?.contrast || 100}
                   onChange={(e) => {
                     if (selectedImageElement) {
-                      setImageElements(prev => prev.map(el => 
+                      setImageElements(prev => prev.map(el =>
                         el.id === selectedImageElement.id ? { ...el, contrast: parseInt(e.target.value) } : el
                       ))
                     }
@@ -2582,7 +2571,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedImageElement?.saturation || 100}
                   onChange={(e) => {
                     if (selectedImageElement) {
-                      setImageElements(prev => prev.map(el => 
+                      setImageElements(prev => prev.map(el =>
                         el.id === selectedImageElement.id ? { ...el, saturation: parseInt(e.target.value) } : el
                       ))
                     }
@@ -2604,7 +2593,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedImageElement?.opacity || 100}
                   onChange={(e) => {
                     if (selectedImageElement) {
-                      setImageElements(prev => prev.map(el => 
+                      setImageElements(prev => prev.map(el =>
                         el.id === selectedImageElement.id ? { ...el, opacity: parseInt(e.target.value) } : el
                       ))
                     }
@@ -2626,7 +2615,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   value={selectedImageElement?.rotation || 0}
                   onChange={(e) => {
                     if (selectedImageElement) {
-                      setImageElements(prev => prev.map(el => 
+                      setImageElements(prev => prev.map(el =>
                         el.id === selectedImageElement.id ? { ...el, rotation: parseInt(e.target.value) } : el
                       ))
                     }
@@ -2645,7 +2634,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 checked={selectedImageElement?.locked || false}
                 onChange={(e) => {
                   if (selectedImageElement) {
-                    setImageElements(prev => prev.map(el => 
+                    setImageElements(prev => prev.map(el =>
                       el.id === selectedImageElement.id ? { ...el, locked: e.target.checked } : el
                     ))
                   }
@@ -2670,27 +2659,27 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       canvas.height = img.height
                       const ctx = canvas.getContext('2d')
                       ctx.drawImage(img, 0, 0)
-                      
+
                       // Simple background removal (remove white/light backgrounds)
                       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
                       const data = imageData.data
-                      
+
                       for (let i = 0; i < data.length; i += 4) {
                         const r = data[i]
                         const g = data[i + 1]
                         const b = data[i + 2]
                         const brightness = (r + g + b) / 3
-                        
+
                         // Remove white/light backgrounds
                         if (brightness > 240) {
                           data[i + 3] = 0 // Make transparent
                         }
                       }
-                      
+
                       ctx.putImageData(imageData, 0, 0)
                       const newSrc = canvas.toDataURL('image/png')
-                      
-                      setImageElements(prev => prev.map(el => 
+
+                      setImageElements(prev => prev.map(el =>
                         el.id === selectedImageElement.id ? { ...el, src: newSrc } : el
                       ))
                       showNotification('Background removed (basic processing)', 'success')
@@ -2786,88 +2775,88 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       {backgroundPanelOpen && (
         <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Background Type */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Background Type</label>
-            <select
-              value={backgroundSettings.type}
-              onChange={(e) => setBackgroundSettings({ ...backgroundSettings, type: e.target.value })}
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="solid">Solid Color</option>
-              <option value="gradient">Gradient</option>
-              <option value="image">Image</option>
-            </select>
-          </div>
-
-          {/* Solid Color */}
-          {backgroundSettings.type === 'solid' && (
+            {/* Background Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={backgroundSettings.color}
-                  onChange={(e) => setBackgroundSettings({ ...backgroundSettings, color: e.target.value })}
-                  className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={backgroundSettings.color}
-                  onChange={(e) => setBackgroundSettings({ ...backgroundSettings, color: e.target.value })}
-                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Background Type</label>
+              <select
+                value={backgroundSettings.type}
+                onChange={(e) => setBackgroundSettings({ ...backgroundSettings, type: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="solid">Solid Color</option>
+                <option value="gradient">Gradient</option>
+                <option value="image">Image</option>
+              </select>
             </div>
-          )}
 
-          {/* ISO 7010 Color Presets */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">ISO 7010 Presets</label>
-            <select
-              value={formData.category}
-              onChange={(e) => {
-                const category = e.target.value
-                setFormData({ ...formData, category })
-                const preset = iso7010Colors[category]
-                if (preset) {
-                  setBackgroundSettings({ ...backgroundSettings, color: preset.bg })
-                }
-              }}
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {Object.keys(iso7010Colors).map(key => (
-                <option key={key} value={key}>{iso7010Colors[key].name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* High Contrast Mode */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="highContrast"
-              checked={highContrastMode}
-              onChange={(e) => setHighContrastMode(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-            />
-            <label htmlFor="highContrast" className="text-sm font-semibold text-gray-700">High Contrast Mode</label>
-          </div>
-
-          {/* Contrast Ratio Checker */}
-          {selectedTextElement && (
-            <div className="col-span-full">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Contrast Ratio</p>
-                <p className="text-lg font-bold">
-                  {contrastRatio ? contrastRatio.toFixed(2) : calculateContrastRatio(selectedTextElement.color, backgroundSettings.color).toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">
-                  {contrastRatio >= 4.5 ? '✓ WCAG AA Compliant' : contrastRatio >= 3.0 ? '⚠ Large Text Only' : '✗ Not Compliant'}
-                </p>
+            {/* Solid Color */}
+            {backgroundSettings.type === 'solid' && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={backgroundSettings.color}
+                    onChange={(e) => setBackgroundSettings({ ...backgroundSettings, color: e.target.value })}
+                    className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={backgroundSettings.color}
+                    onChange={(e) => setBackgroundSettings({ ...backgroundSettings, color: e.target.value })}
+                    className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
+            )}
+
+            {/* ISO 7010 Color Presets */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ISO 7010 Presets</label>
+              <select
+                value={formData.category}
+                onChange={(e) => {
+                  const category = e.target.value
+                  setFormData({ ...formData, category })
+                  const preset = iso7010Colors[category]
+                  if (preset) {
+                    setBackgroundSettings({ ...backgroundSettings, color: preset.bg })
+                  }
+                }}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {Object.keys(iso7010Colors).map(key => (
+                  <option key={key} value={key}>{iso7010Colors[key].name}</option>
+                ))}
+              </select>
             </div>
-          )}
+
+            {/* High Contrast Mode */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="highContrast"
+                checked={highContrastMode}
+                onChange={(e) => setHighContrastMode(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="highContrast" className="text-sm font-semibold text-gray-700">High Contrast Mode</label>
+            </div>
+
+            {/* Contrast Ratio Checker */}
+            {selectedTextElement && (
+              <div className="col-span-full">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 mb-1">Contrast Ratio</p>
+                  <p className="text-lg font-bold">
+                    {contrastRatio ? contrastRatio.toFixed(2) : calculateContrastRatio(selectedTextElement.color, backgroundSettings.color).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {contrastRatio >= 4.5 ? '✓ WCAG AA Compliant' : contrastRatio >= 3.0 ? '⚠ Large Text Only' : '✗ Not Compliant'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2875,104 +2864,102 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       {/* Size & Layout Control Panel */}
       {sizeLayoutPanelOpen && (
         <div className="bg-white border-b border-gray-200 shadow-lg max-w-[1920px] mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Sign Size */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Sign Size</label>
-            <select
-              value={formData.size}
-              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="A3">A3 (297 × 420 mm)</option>
-              <option value="A4">A4 (210 × 297 mm)</option>
-              <option value="A5">A5 (148 × 210 mm)</option>
-              <option value="Custom">Custom Size</option>
-            </select>
-          </div>
-
-          {/* Orientation */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Orientation</label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIdentificationData({ ...identificationData, orientation: 'Portrait' })}
-                className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
-                  identificationData.orientation === 'Portrait'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Sign Size */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Sign Size</label>
+              <select
+                value={formData.size}
+                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Portrait
-              </button>
-              <button
-                onClick={() => setIdentificationData({ ...identificationData, orientation: 'Landscape' })}
-                className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
-                  identificationData.orientation === 'Landscape'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                Landscape
-              </button>
+                <option value="A3">A3 (297 × 420 mm)</option>
+                <option value="A4">A4 (210 × 297 mm)</option>
+                <option value="A5">A5 (148 × 210 mm)</option>
+                <option value="Custom">Custom Size</option>
+              </select>
             </div>
-          </div>
 
-          {/* Custom Size (if selected) */}
-          {formData.size === 'Custom' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Width (mm)</label>
-                <input
-                  type="number"
-                  min="50"
-                  max="1000"
-                  value={signSizes.Custom.width}
-                  onChange={(e) => {
-                    // Update custom size
-                  }}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* Orientation */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Orientation</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIdentificationData({ ...identificationData, orientation: 'Portrait' })}
+                  className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${identificationData.orientation === 'Portrait'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                >
+                  Portrait
+                </button>
+                <button
+                  onClick={() => setIdentificationData({ ...identificationData, orientation: 'Landscape' })}
+                  className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${identificationData.orientation === 'Landscape'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                >
+                  Landscape
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Height (mm)</label>
-                <input
-                  type="number"
-                  min="50"
-                  max="1000"
-                  value={signSizes.Custom.height}
-                  onChange={(e) => {
-                    // Update custom size
-                  }}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          )}
+            </div>
 
-          {/* Margins */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Margins (mm)</label>
-            <input
-              type="number"
-              min="0"
-              max="50"
-              defaultValue="5"
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            {/* Custom Size (if selected) */}
+            {formData.size === 'Custom' && (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Width (mm)</label>
+                  <input
+                    type="number"
+                    min="50"
+                    max="1000"
+                    value={signSizes.Custom.width}
+                    onChange={(e) => {
+                      // Update custom size
+                    }}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Height (mm)</label>
+                  <input
+                    type="number"
+                    min="50"
+                    max="1000"
+                    value={signSizes.Custom.height}
+                    onChange={(e) => {
+                      // Update custom size
+                    }}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </>
+            )}
 
-          {/* Bleed Control */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="includeBleed"
-              checked={exportSettings.includeBleed}
-              onChange={(e) => setExportSettings({ ...exportSettings, includeBleed: e.target.checked })}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-            />
-            <label htmlFor="includeBleed" className="text-sm font-semibold text-gray-700">Include Bleed</label>
-          </div>
+            {/* Margins */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Margins (mm)</label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                defaultValue="5"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Bleed Control */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="includeBleed"
+                checked={exportSettings.includeBleed}
+                onChange={(e) => setExportSettings({ ...exportSettings, includeBleed: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="includeBleed" className="text-sm font-semibold text-gray-700">Include Bleed</label>
+            </div>
           </div>
         </div>
       )}
@@ -3070,7 +3057,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           if (file) {
                             const reader = new FileReader()
                             reader.onload = (event) => {
-                              setAuthorizedPersons(prev => prev.map(p => 
+                              setAuthorizedPersons(prev => prev.map(p =>
                                 p.id === person.id ? { ...p, photo: event.target.result } : p
                               ))
                             }
@@ -3096,7 +3083,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <input
                       type="text"
                       value={person.name}
-                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p => 
+                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p =>
                         p.id === person.id ? { ...p, name: e.target.value } : p
                       ))}
                       placeholder="Full Name"
@@ -3110,7 +3097,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <input
                       type="text"
                       value={person.idNumber}
-                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p => 
+                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p =>
                         p.id === person.id ? { ...p, idNumber: e.target.value } : p
                       ))}
                       placeholder="Employee ID"
@@ -3124,7 +3111,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <input
                       type="text"
                       value={person.designation}
-                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p => 
+                      onChange={(e) => setAuthorizedPersons(prev => prev.map(p =>
                         p.id === person.id ? { ...p, designation: e.target.value } : p
                       ))}
                       placeholder="Job Title"
@@ -3141,7 +3128,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         value={person.qrCodeText || ''}
                         onChange={(e) => {
                           const value = e.target.value
-                          setAuthorizedPersons(prev => prev.map(p => 
+                          setAuthorizedPersons(prev => prev.map(p =>
                             p.id === person.id ? { ...p, qrCodeText: value } : p
                           ))
                         }}
@@ -3156,7 +3143,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
                           <p className="text-xs text-gray-600 mb-1">QR Code Preview:</p>
                           <div className="w-24 h-24 mx-auto border-2 border-gray-300 bg-white flex items-center justify-center p-2">
-                            <img 
+                            <img
                               src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(person.qrCodeText.trim())}`}
                               alt="QR Code Preview"
                               className="w-full h-full object-contain"
@@ -3196,7 +3183,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Format Selection */}
               <div>
@@ -3206,11 +3193,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <button
                       key={format}
                       onClick={() => setExportSettings({ ...exportSettings, format })}
-                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${
-                        exportSettings.format === format
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
+                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${exportSettings.format === format
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
                     >
                       {format}
                     </button>
@@ -3226,11 +3212,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <button
                       key={dpi}
                       onClick={() => setExportSettings({ ...exportSettings, dpi })}
-                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${
-                        exportSettings.dpi === dpi
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
+                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${exportSettings.dpi === dpi
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
                     >
                       {dpi} DPI
                       {dpi === 300 && <span className="block text-xs mt-1">Print Quality</span>}
@@ -3247,11 +3232,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <button
                       key={mode}
                       onClick={() => setExportSettings({ ...exportSettings, colorMode: mode })}
-                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${
-                        exportSettings.colorMode === mode
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
+                      className={`px-4 py-3 rounded-lg border-2 transition-colors ${exportSettings.colorMode === mode
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
                     >
                       {mode}
                       {mode === 'CMYK' && <span className="block text-xs mt-1">Print Ready</span>}
@@ -3333,7 +3317,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </button>
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6">
               <div className="mb-4">
                 <input
@@ -3373,7 +3357,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-center group"
                           title={icon.name}
                         >
-                          <div 
+                          <div
                             className="w-12 h-12 mx-auto mb-2 rounded flex items-center justify-center text-2xl"
                             style={{ backgroundColor: `${icon.color}20`, color: icon.color }}
                           >
@@ -3410,7 +3394,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </button>
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6">
               <div className="flex gap-2 mb-4">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">All</button>
@@ -3434,7 +3418,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         <h3 className="font-semibold text-gray-900">{signage.name}</h3>
                         <button
                           onClick={() => {
-                            const updated = savedSignages.map(s => 
+                            const updated = savedSignages.map(s =>
                               s.id === signage.id ? { ...s, favorite: !s.favorite } : s
                             )
                             setSavedSignages(updated)
@@ -3509,7 +3493,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <div 
+            <div
               className="bg-white shadow-2xl"
               style={{
                 width: `${(previewZoom / 100) * 800}px`,
@@ -3526,7 +3510,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       <div className="flex relative max-w-[1920px] mx-auto">
         {/* Shared Sidebar */}
-        <Sidebar 
+        <Sidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           sidebarOpen={sidebarOpen}
@@ -3572,9 +3556,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 sm:p-12 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200">
                     {uploadedCustomImage ? (
                       <div className="space-y-4">
-                        <img 
-                          src={uploadedCustomImage} 
-                          alt="Uploaded custom image" 
+                        <img
+                          src={uploadedCustomImage}
+                          alt="Uploaded custom image"
                           className="max-w-full max-h-64 mx-auto rounded-lg object-contain"
                         />
                         <button
@@ -3607,13 +3591,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-md">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                   {/* Step 1: Describe */}
-                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${
-                    aiGenerationStep >= 1 ? 'bg-purple-50 border-2 border-purple-200' : 'bg-gray-50 border-2 border-gray-200'
-                  }`}>
+                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${aiGenerationStep >= 1 ? 'bg-purple-50 border-2 border-purple-200' : 'bg-gray-50 border-2 border-gray-200'
+                    }`}>
                     <div className="flex flex-col items-center text-center">
-                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${
-                        aiGenerationStep >= 1 ? 'bg-purple-200' : 'bg-gray-200'
-                      }`}>
+                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${aiGenerationStep >= 1 ? 'bg-purple-200' : 'bg-gray-200'
+                        }`}>
                         <span className="text-3xl font-black text-black">T</span>
                       </div>
                       <h3 className="font-bold text-base sm:text-lg text-gray-900 mb-2">Describe</h3>
@@ -3629,13 +3611,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   </div>
 
                   {/* Step 2: AI Analyzes */}
-                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${
-                    aiGenerationStep >= 2 ? 'bg-purple-50 border-2 border-purple-200' : 'bg-gray-50 border-2 border-gray-200'
-                  }`}>
+                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${aiGenerationStep >= 2 ? 'bg-purple-50 border-2 border-purple-200' : 'bg-gray-50 border-2 border-gray-200'
+                    }`}>
                     <div className="flex flex-col items-center text-center">
-                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${
-                        aiGenerationStep >= 2 ? 'bg-purple-100' : 'bg-gray-200'
-                      }`}>
+                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${aiGenerationStep >= 2 ? 'bg-purple-100' : 'bg-gray-200'
+                        }`}>
                         {isAnalyzing ? (
                           <svg className="w-8 h-8 text-orange-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -3659,20 +3639,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   </div>
 
                   {/* Step 3: Auto-Design */}
-                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${
-                    aiGenerationStep >= 3 ? 'bg-blue-50 border-2 border-blue-200' : 'bg-gray-50 border-2 border-gray-200'
-                  }`}>
+                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${aiGenerationStep >= 3 ? 'bg-blue-50 border-2 border-blue-200' : 'bg-gray-50 border-2 border-gray-200'
+                    }`}>
                     <div className="flex flex-col items-center text-center">
-                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${
-                        aiGenerationStep >= 3 ? 'bg-blue-100' : 'bg-gray-200'
-                      }`}>
+                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${aiGenerationStep >= 3 ? 'bg-blue-100' : 'bg-gray-200'
+                        }`}>
                         {isDesigning ? (
                           <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                         ) : (
                           <svg className="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M5 21h14V7l-7-4-7 4v14zm2-12h10v10H7V9zm2 2v6h6v-6H9zm2 2h2v2h-2v-2z"/>
-                            <rect x="9" y="13" width="6" height="2" fill="#FFFFFF"/>
-                            <rect x="9" y="16" width="6" height="2" fill="#FFFFFF"/>
+                            <path d="M5 21h14V7l-7-4-7 4v14zm2-12h10v10H7V9zm2 2v6h6v-6H9zm2 2h2v2h-2v-2z" />
+                            <rect x="9" y="13" width="6" height="2" fill="#FFFFFF" />
+                            <rect x="9" y="16" width="6" height="2" fill="#FFFFFF" />
                           </svg>
                         )}
                       </div>
@@ -3689,13 +3667,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   </div>
 
                   {/* Step 4: Export */}
-                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${
-                    aiGenerationStep >= 4 ? 'bg-green-50 border-2 border-green-200' : 'bg-gray-50 border-2 border-gray-200'
-                  }`}>
+                  <div className={`relative rounded-xl p-6 transition-all duration-300 ${aiGenerationStep >= 4 ? 'bg-green-50 border-2 border-green-200' : 'bg-gray-50 border-2 border-gray-200'
+                    }`}>
                     <div className="flex flex-col items-center text-center">
-                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${
-                        aiGenerationStep >= 4 ? 'bg-green-100' : 'bg-gray-200'
-                      }`}>
+                      <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${aiGenerationStep >= 4 ? 'bg-green-100' : 'bg-gray-200'
+                        }`}>
                         <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
@@ -3744,14 +3720,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoLayout: !prev.autoLayout }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoLayout ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoLayout ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoLayout ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoLayout ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -3771,14 +3745,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, includeImageIcon: !prev.includeImageIcon }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.includeImageIcon ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.includeImageIcon ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.includeImageIcon ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.includeImageIcon ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -3855,14 +3827,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoContrastAdjustment: !prev.autoContrastAdjustment }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoContrastAdjustment ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoContrastAdjustment ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoContrastAdjustment ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoContrastAdjustment ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -3901,14 +3871,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoTextResizing: !prev.autoTextResizing }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoTextResizing ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoTextResizing ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoTextResizing ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoTextResizing ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -3981,14 +3949,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, includeImageIcon: !prev.includeImageIcon }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.includeImageIcon ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.includeImageIcon ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.includeImageIcon ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.includeImageIcon ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -4067,14 +4033,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoContrastAdjustment: !prev.autoContrastAdjustment }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoContrastAdjustment ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoContrastAdjustment ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoContrastAdjustment ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoContrastAdjustment ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -4113,14 +4077,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoTextResizing: !prev.autoTextResizing }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoTextResizing ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoTextResizing ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoTextResizing ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoTextResizing ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -4181,14 +4143,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, includeImageIcon: !prev.includeImageIcon }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.includeImageIcon ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.includeImageIcon ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.includeImageIcon ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.includeImageIcon ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -4267,14 +4227,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoContrastAdjustment: !prev.autoContrastAdjustment }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoContrastAdjustment ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoContrastAdjustment ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoContrastAdjustment ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoContrastAdjustment ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -4313,14 +4271,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
                           <button
                             onClick={() => setAdvancedOptions(prev => ({ ...prev, autoTextResizing: !prev.autoTextResizing }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              advancedOptions.autoTextResizing ? 'bg-purple-600' : 'bg-gray-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${advancedOptions.autoTextResizing ? 'bg-purple-600' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                advancedOptions.autoTextResizing ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${advancedOptions.autoTextResizing ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -4389,16 +4345,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <button
                         onClick={() => setSignageType('safety')}
-                        className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
-                          signageType === 'safety'
-                            ? 'border-red-500 bg-red-50 shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${signageType === 'safety'
+                          ? 'border-red-500 bg-red-50 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
                       >
                         <div className="flex flex-col items-center gap-2 sm:gap-3">
-                          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
-                            signageType === 'safety' ? 'bg-red-500' : 'bg-gray-200'
-                          }`}>
+                          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${signageType === 'safety' ? 'bg-red-500' : 'bg-gray-200'
+                            }`}>
                             ⚠️
                           </div>
                           <div className="text-center">
@@ -4409,16 +4363,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       </button>
                       <button
                         onClick={() => setSignageType('identification')}
-                        className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${
-                          signageType === 'identification'
-                            ? 'border-blue-500 bg-blue-50 shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-200 min-h-[120px] sm:min-h-[140px] ${signageType === 'identification'
+                          ? 'border-blue-500 bg-blue-50 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
                       >
                         <div className="flex flex-col items-center gap-2 sm:gap-3">
-                          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${
-                            signageType === 'identification' ? 'bg-blue-500' : 'bg-gray-200'
-                          }`}>
+                          <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl ${signageType === 'identification' ? 'bg-blue-500' : 'bg-gray-200'
+                            }`}>
                             📍
                           </div>
                           <div className="text-center">
@@ -4433,84 +4385,136 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                 {/* All Other Form Sections - Scroll with page */}
                 <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-            {/* Identification Templates */}
-            {signageType === 'identification' && (
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Colorful Templates</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-h-96 overflow-y-auto pr-1 sm:pr-2">
-                  {templates.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => {
-                        setIdentificationData({
-                          ...identificationData,
-                          areaName: template.name,
-                          icon: template.icon
-                        })
-                      }}
-                      className={`${template.color} p-3 sm:p-4 rounded-lg sm:rounded-xl text-white hover:opacity-90 transition-opacity shadow-md hover:shadow-lg min-h-[100px] sm:min-h-[120px]`}
-                    >
-                      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{template.icon}</div>
-                      <div className="font-bold text-xs sm:text-sm mb-1">{template.name}</div>
-                      <div className="text-[10px] sm:text-xs opacity-90 line-clamp-2">{template.subtitle}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+                  {/* Identification Templates */}
+                  {signageType === 'identification' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Colorful Templates</h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-h-96 overflow-y-auto pr-1 sm:pr-2">
+                        {templates.map((template) => (
+                          <button
+                            key={template.id}
+                            onClick={() => {
+                              setIdentificationData({
+                                ...identificationData,
+                                areaName: template.name,
+                                icon: template.icon
+                              })
+                            }}
+                            className={`${template.color} p-3 sm:p-4 rounded-lg sm:rounded-xl text-white hover:opacity-90 transition-opacity shadow-md hover:shadow-lg min-h-[100px] sm:min-h-[120px]`}
+                          >
+                            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{template.icon}</div>
+                            <div className="font-bold text-xs sm:text-sm mb-1">{template.name}</div>
+                            <div className="text-[10px] sm:text-xs opacity-90 line-clamp-2">{template.subtitle}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Signage Configuration - Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4 sm:space-y-6">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Signage Configuration</h2>
-              
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                  Signage Title / Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., INLET AREA - HIGH RISK ZONE"
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                />
-              </div>
+                  {/* Signage Configuration - Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4 sm:space-y-6">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Signage Configuration</h2>
 
-              {/* Custom Icons and Background */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Warning Icons (Optional)
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[0, 1].map((index) => (
-                      <div key={index} className="space-y-2">
-                        <label className="block text-xs text-gray-600 mb-1">
-                          Icon #{index + 1}
+                      <div>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                          Signage Title / Name <span className="text-red-500">*</span>
                         </label>
-                        <div className="flex items-center gap-2">
-                          {signageIcons[index] ? (
-                            <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 rounded-lg bg-gray-50">
-                              <img 
-                                src={signageIcons[index]} 
-                                alt={`Icon ${index + 1}`}
-                                className="w-10 h-10 object-contain"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newIcons = [...signageIcons]
-                                  newIcons[index] = null
-                                  setSignageIcons(newIcons)
-                                }}
-                                className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
-                              >
-                                Remove
-                              </button>
+                        <input
+                          type="text"
+                          value={formData.title}
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                          placeholder="e.g., INLET AREA - HIGH RISK ZONE"
+                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        />
+                      </div>
+
+                      {/* Custom Icons and Background */}
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Warning Icons (Optional)
+                          </label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {[0, 1].map((index) => (
+                              <div key={index} className="space-y-2">
+                                <label className="block text-xs text-gray-600 mb-1">
+                                  Icon #{index + 1}
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  {signageIcons[index] ? (
+                                    <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 rounded-lg bg-gray-50">
+                                      <img
+                                        src={signageIcons[index]}
+                                        alt={`Icon ${index + 1}`}
+                                        className="w-10 h-10 object-contain"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newIcons = [...signageIcons]
+                                          newIcons[index] = null
+                                          setSignageIcons(newIcons)
+                                        }}
+                                        className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+                                      >
+                                        Remove
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <label className="flex-1 cursor-pointer">
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          const file = e.target.files[0]
+                                          if (file) {
+                                            const reader = new FileReader()
+                                            reader.onload = (event) => {
+                                              const newIcons = [...signageIcons]
+                                              newIcons[index] = event.target.result
+                                              setSignageIcons(newIcons)
+                                            }
+                                            reader.readAsDataURL(file)
+                                          }
+                                          e.target.value = ''
+                                        }}
+                                        className="hidden"
+                                      />
+                                      <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
+                                        Upload Icon
+                                      </div>
+                                    </label>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Background Image (Optional)
+                          </label>
+                          {signageBackgroundImage ? (
+                            <div className="space-y-2">
+                              <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
+                                <img
+                                  src={signageBackgroundImage}
+                                  alt="Background"
+                                  className="w-full h-32 object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setSignageBackgroundImage(null)}
+                                  className="absolute top-2 right-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           ) : (
-                            <label className="flex-1 cursor-pointer">
+                            <label className="block cursor-pointer">
                               <input
                                 type="file"
                                 accept="image/*"
@@ -4519,9 +4523,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   if (file) {
                                     const reader = new FileReader()
                                     reader.onload = (event) => {
-                                      const newIcons = [...signageIcons]
-                                      newIcons[index] = event.target.result
-                                      setSignageIcons(newIcons)
+                                      setSignageBackgroundImage(event.target.result)
                                     }
                                     reader.readAsDataURL(file)
                                   }
@@ -4530,1195 +4532,1190 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                 className="hidden"
                               />
                               <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
-                                Upload Icon
+                                Upload Background Image
                               </div>
                             </label>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Background Image (Optional)
-                  </label>
-                  {signageBackgroundImage ? (
-                    <div className="space-y-2">
-                      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden">
-                        <img 
-                          src={signageBackgroundImage} 
-                          alt="Background"
-                          className="w-full h-32 object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setSignageBackgroundImage(null)}
-                          className="absolute top-2 right-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <label className="block cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0]
-                          if (file) {
-                            const reader = new FileReader()
-                            reader.onload = (event) => {
-                              setSignageBackgroundImage(event.target.result)
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                          e.target.value = ''
-                        }}
-                        className="hidden"
-                      />
-                      <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
-                        Upload Background Image
-                      </div>
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Purpose / Description
-                </label>
-                <input
-                  type="text"
-                  value={formData.purpose}
-                  onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                  placeholder="e.g., Confined Space Entry Control"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Signage Category / Type <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
-                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-base bg-white text-left flex items-center justify-between ${
-                      categoryDropdownOpen 
-                        ? 'border-blue-500 focus:border-blue-500' 
-                        : 'border-gray-300 focus:border-blue-500'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-5 h-5 flex-shrink-0 rounded border border-gray-300"
-                        style={{ backgroundColor: getCategoryColorSquare(formData.category) }}
-                      />
-                      <span>{formData.category}</span>
-                    </div>
-                    <svg 
-                      className={`w-5 h-5 text-gray-500 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  
-                  {categoryDropdownOpen && (
-                    <>
-                      <div 
-                        className="fixed inset-0 z-10" 
-                        onClick={() => setCategoryDropdownOpen(false)}
-                      />
-                      <div className="absolute z-20 w-full mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-                        {categoryOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, category: option.value })
-                              setCategoryDropdownOpen(false)
-                            }}
-                            className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors ${
-                              formData.category === option.value ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                            }`}
-                          >
-                            <div 
-                              className="w-5 h-5 flex-shrink-0 rounded border border-gray-300"
-                              style={{ backgroundColor: option.color }}
-                            />
-                            <span className={formData.category === option.value ? 'font-semibold text-blue-700' : 'text-gray-700'}>
-                              {option.label}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Additional Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Enter detailed description...."
-                  rows="4"
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                  Location / Area
-                </label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="e.g., Building A - Floor 2"
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                  ISO 7010 Footer Text
-                </label>
-                <input
-                  type="text"
-                  value={formData.iso7010FooterText}
-                  onChange={(e) => setFormData({ ...formData, iso7010FooterText: e.target.value })}
-                  placeholder="ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY"
-                  className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                  Hazards / Warnings
-                </label>
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={newHazard}
-                    onChange={(e) => setNewHazard(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addHazard()}
-                    placeholder="Add hazard (e.g., H₂S Gas Present)"
-                    className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                  />
-                  <button
-                    onClick={addHazard}
-                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] text-lg sm:text-xl"
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.hazards.map((hazard, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-lg text-sm font-medium"
-                    >
-                      {hazard}
-                      <button
-                        onClick={() => removeHazard(index)}
-                        className="hover:text-red-900 font-bold"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            )}
-
-            {/* Customize Signage - Identification */}
-            {signageType === 'identification' && (
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4 sm:space-y-6">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Customize Signage</h2>
-                
-                {/* Area Name */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Area Name</label>
-                  <input
-                    type="text"
-                    value={identificationData.areaName}
-                    onChange={(e) => setIdentificationData({ ...identificationData, areaName: e.target.value })}
-                    className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                  />
-                </div>
-
-                {/* Icon */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Icon</label>
-                  <select
-                    value={identificationData.icon}
-                    onChange={(e) => setIdentificationData({ ...identificationData, icon: e.target.value, iconImage: null })}
-                    className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base mb-2"
-                  >
-                    {iconOptions.map((icon) => (
-                      <option key={icon} value={icon}>{icon}</option>
-                    ))}
-                  </select>
-                  <div className="mb-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Or Upload Icon Image</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleIconImageUpload}
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    />
-                    {identificationData.iconImage && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <img 
-                          src={identificationData.iconImage} 
-                          alt="Icon preview" 
-                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
-                        />
-                        <button
-                          onClick={() => setIdentificationData({ ...identificationData, iconImage: null })}
-                          className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Color Pickers */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
-                    <div className="space-y-2">
-                      <div 
-                        className="w-full h-16 rounded-lg border-2 border-gray-300 shadow-sm cursor-pointer relative overflow-hidden group"
-                        onClick={() => document.getElementById('bg-color-picker').click()}
-                        style={{ backgroundColor: identificationData.backgroundColor }}
-                      >
-                        <input
-                          id="bg-color-picker"
-                          type="color"
-                          value={identificationData.backgroundColor}
-                          onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
-                          className="absolute opacity-0 w-full h-full cursor-pointer"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-semibold px-3 py-1.5 rounded bg-white/95 backdrop-blur-sm text-gray-800 border border-gray-200 shadow-sm">
-                            {identificationData.backgroundColor.toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="absolute bottom-1 right-1 text-white/80 text-xs font-medium bg-black/30 px-2 py-0.5 rounded">
-                          Click to change
-                        </div>
-                      </div>
-                      <input
-                        type="text"
-                        value={identificationData.backgroundColor}
-                        onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm bg-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="#000000"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color (All Text)</label>
-                    <div className="space-y-2">
-                      <div 
-                        className="w-full h-16 rounded-lg border-2 border-gray-300 shadow-sm cursor-pointer relative overflow-hidden group"
-                        onClick={() => document.getElementById('text-color-picker').click()}
-                        style={{ backgroundColor: identificationData.textColor }}
-                      >
-                        <input
-                          id="text-color-picker"
-                          type="color"
-                          value={identificationData.textColor}
-                          onChange={(e) => setIdentificationData({ ...identificationData, textColor: e.target.value })}
-                          className="absolute opacity-0 w-full h-full cursor-pointer"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-semibold px-3 py-1.5 rounded bg-white/95 backdrop-blur-sm text-gray-800 border border-gray-200 shadow-sm">
-                            {identificationData.textColor.toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="absolute bottom-1 right-1 text-white/80 text-xs font-medium bg-black/30 px-2 py-0.5 rounded">
-                          Click to change
-                        </div>
-                      </div>
-                      <input
-                        type="text"
-                        value={identificationData.textColor}
-                        onChange={(e) => setIdentificationData({ ...identificationData, textColor: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm bg-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="#000000"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Icon Background Color</label>
-                    <div className="space-y-2">
-                      <div 
-                        className="w-full h-16 rounded-lg border-2 border-gray-300 shadow-sm cursor-pointer relative overflow-hidden group"
-                        onClick={() => document.getElementById('icon-bg-color-picker').click()}
-                        style={{ backgroundColor: identificationData.iconBgColor }}
-                      >
-                        <input
-                          id="icon-bg-color-picker"
-                          type="color"
-                          value={identificationData.iconBgColor}
-                          onChange={(e) => setIdentificationData({ ...identificationData, iconBgColor: e.target.value })}
-                          className="absolute opacity-0 w-full h-full cursor-pointer"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-semibold px-3 py-1.5 rounded bg-white/95 backdrop-blur-sm text-gray-800 border border-gray-200 shadow-sm">
-                            {identificationData.iconBgColor.toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="absolute bottom-1 right-1 text-white/80 text-xs font-medium bg-black/30 px-2 py-0.5 rounded">
-                          Click to change
-                        </div>
-                      </div>
-                      <input
-                        type="text"
-                        value={identificationData.iconBgColor}
-                        onChange={(e) => setIdentificationData({ ...identificationData, iconBgColor: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm bg-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="#000000"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Show Header */}
-                <div>
-                  <label className="flex items-center gap-3 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={identificationData.showHeader}
-                      onChange={(e) => setIdentificationData({ ...identificationData, showHeader: e.target.checked })}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-semibold text-gray-700">Show Header</span>
-                  </label>
-                  {identificationData.showHeader && (
-                    <input
-                      type="text"
-                      value={identificationData.headerText}
-                      onChange={(e) => setIdentificationData({ ...identificationData, headerText: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mt-2"
-                    />
-                  )}
-                </div>
-
-                {/* Show Footer */}
-                <div>
-                  <label className="flex items-center gap-3 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={identificationData.showFooter}
-                      onChange={(e) => setIdentificationData({ ...identificationData, showFooter: e.target.checked })}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-semibold text-gray-700">Show Footer</span>
-                  </label>
-                  {identificationData.showFooter && (
-                    <input
-                      type="text"
-                      value={identificationData.footerText}
-                      onChange={(e) => setIdentificationData({ ...identificationData, footerText: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mt-2"
-                    />
-                  )}
-                </div>
-
-                {/* Area Image / Background Image */}
-                <div>
-                  <label className="flex items-center gap-3 mb-3">
-                    <input
-                      type="checkbox"
-                      checked={identificationData.showImage}
-                      onChange={(e) => setIdentificationData({ ...identificationData, showImage: e.target.checked })}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-semibold text-gray-700">Background Image</span>
-                  </label>
-                  {identificationData.showImage && (
-                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Upload Background Image</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Purpose / Description
+                        </label>
                         <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleBackgroundImageUpload}
-                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          type="text"
+                          value={formData.purpose}
+                          onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                          placeholder="e.g., Confined Space Entry Control"
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                         />
-                        {identificationData.backgroundImage && (
-                          <div className="mt-2">
-                            <img 
-                              src={identificationData.backgroundImage} 
-                              alt="Background preview" 
-                              className="w-full rounded-lg border-2 border-gray-300 max-h-[200px] object-cover"
-                            />
-                            <button
-                              onClick={() => setIdentificationData({ ...identificationData, backgroundImage: null })}
-                              className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Signage Category / Type <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                            className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-base bg-white text-left flex items-center justify-between ${categoryDropdownOpen
+                              ? 'border-blue-500 focus:border-blue-500'
+                              : 'border-gray-300 focus:border-blue-500'
+                              }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-5 h-5 flex-shrink-0 rounded border border-gray-300"
+                                style={{ backgroundColor: getCategoryColorSquare(formData.category) }}
+                              />
+                              <span>{formData.category}</span>
+                            </div>
+                            <svg
+                              className={`w-5 h-5 text-gray-500 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              Remove Background
-                            </button>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
+                          {categoryDropdownOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setCategoryDropdownOpen(false)}
+                              />
+                              <div className="absolute z-20 w-full mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                {categoryOptions.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData({ ...formData, category: option.value })
+                                      setCategoryDropdownOpen(false)
+                                    }}
+                                    className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors ${formData.category === option.value ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                                      }`}
+                                  >
+                                    <div
+                                      className="w-5 h-5 flex-shrink-0 rounded border border-gray-300"
+                                      style={{ backgroundColor: option.color }}
+                                    />
+                                    <span className={formData.category === option.value ? 'font-semibold text-blue-700' : 'text-gray-700'}>
+                                      {option.label}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Additional Description
+                        </label>
+                        <textarea
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          placeholder="Enter detailed description...."
+                          rows="4"
+                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                          Location / Area
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          placeholder="e.g., Building A - Floor 2"
+                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                          ISO 7010 Footer Text
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.iso7010FooterText}
+                          onChange={(e) => setFormData({ ...formData, iso7010FooterText: e.target.value })}
+                          placeholder="ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY"
+                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                          Hazards / Warnings
+                        </label>
+                        <div className="flex gap-2 mb-3">
+                          <input
+                            type="text"
+                            value={newHazard}
+                            onChange={(e) => setNewHazard(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && addHazard()}
+                            placeholder="Add hazard (e.g., H₂S Gas Present)"
+                            className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                          />
+                          <button
+                            onClick={addHazard}
+                            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] text-lg sm:text-xl"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.hazards.map((hazard, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-lg text-sm font-medium"
+                            >
+                              {hazard}
+                              <button
+                                onClick={() => removeHazard(index)}
+                                className="hover:text-red-900 font-bold"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Customize Signage - Identification */}
+                  {signageType === 'identification' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4 sm:space-y-6">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Customize Signage</h2>
+
+                      {/* Area Name */}
+                      <div>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Area Name</label>
+                        <input
+                          type="text"
+                          value={identificationData.areaName}
+                          onChange={(e) => setIdentificationData({ ...identificationData, areaName: e.target.value })}
+                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        />
+                      </div>
+
+                      {/* Icon */}
+                      <div>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Icon</label>
+                        <select
+                          value={identificationData.icon}
+                          onChange={(e) => setIdentificationData({ ...identificationData, icon: e.target.value, iconImage: null })}
+                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base mb-2"
+                        >
+                          {iconOptions.map((icon) => (
+                            <option key={icon} value={icon}>{icon}</option>
+                          ))}
+                        </select>
+                        <div className="mb-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Or Upload Icon Image</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleIconImageUpload}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                          {identificationData.iconImage && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <img
+                                src={identificationData.iconImage}
+                                alt="Icon preview"
+                                className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                              />
+                              <button
+                                onClick={() => setIdentificationData({ ...identificationData, iconImage: null })}
+                                className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Color Pickers */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
+                          <div className="space-y-2">
+                            <div
+                              className="w-full h-16 rounded-lg border-2 border-gray-300 shadow-sm cursor-pointer relative overflow-hidden group"
+                              onClick={() => document.getElementById('bg-color-picker').click()}
+                              style={{ backgroundColor: identificationData.backgroundColor }}
+                            >
+                              <input
+                                id="bg-color-picker"
+                                type="color"
+                                value={identificationData.backgroundColor}
+                                onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
+                                className="absolute opacity-0 w-full h-full cursor-pointer"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xs font-semibold px-3 py-1.5 rounded bg-white/95 backdrop-blur-sm text-gray-800 border border-gray-200 shadow-sm">
+                                  {identificationData.backgroundColor.toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="absolute bottom-1 right-1 text-white/80 text-xs font-medium bg-black/30 px-2 py-0.5 rounded">
+                                Click to change
+                              </div>
+                            </div>
+                            <input
+                              type="text"
+                              value={identificationData.backgroundColor}
+                              onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
+                              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm bg-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="#000000"
+                            />
                           </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color (All Text)</label>
+                          <div className="space-y-2">
+                            <div
+                              className="w-full h-16 rounded-lg border-2 border-gray-300 shadow-sm cursor-pointer relative overflow-hidden group"
+                              onClick={() => document.getElementById('text-color-picker').click()}
+                              style={{ backgroundColor: identificationData.textColor }}
+                            >
+                              <input
+                                id="text-color-picker"
+                                type="color"
+                                value={identificationData.textColor}
+                                onChange={(e) => setIdentificationData({ ...identificationData, textColor: e.target.value })}
+                                className="absolute opacity-0 w-full h-full cursor-pointer"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xs font-semibold px-3 py-1.5 rounded bg-white/95 backdrop-blur-sm text-gray-800 border border-gray-200 shadow-sm">
+                                  {identificationData.textColor.toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="absolute bottom-1 right-1 text-white/80 text-xs font-medium bg-black/30 px-2 py-0.5 rounded">
+                                Click to change
+                              </div>
+                            </div>
+                            <input
+                              type="text"
+                              value={identificationData.textColor}
+                              onChange={(e) => setIdentificationData({ ...identificationData, textColor: e.target.value })}
+                              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm bg-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="#000000"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Icon Background Color</label>
+                          <div className="space-y-2">
+                            <div
+                              className="w-full h-16 rounded-lg border-2 border-gray-300 shadow-sm cursor-pointer relative overflow-hidden group"
+                              onClick={() => document.getElementById('icon-bg-color-picker').click()}
+                              style={{ backgroundColor: identificationData.iconBgColor }}
+                            >
+                              <input
+                                id="icon-bg-color-picker"
+                                type="color"
+                                value={identificationData.iconBgColor}
+                                onChange={(e) => setIdentificationData({ ...identificationData, iconBgColor: e.target.value })}
+                                className="absolute opacity-0 w-full h-full cursor-pointer"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xs font-semibold px-3 py-1.5 rounded bg-white/95 backdrop-blur-sm text-gray-800 border border-gray-200 shadow-sm">
+                                  {identificationData.iconBgColor.toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="absolute bottom-1 right-1 text-white/80 text-xs font-medium bg-black/30 px-2 py-0.5 rounded">
+                                Click to change
+                              </div>
+                            </div>
+                            <input
+                              type="text"
+                              value={identificationData.iconBgColor}
+                              onChange={(e) => setIdentificationData({ ...identificationData, iconBgColor: e.target.value })}
+                              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-xs sm:text-sm bg-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="#000000"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Show Header */}
+                      <div>
+                        <label className="flex items-center gap-3 mb-2">
+                          <input
+                            type="checkbox"
+                            checked={identificationData.showHeader}
+                            onChange={(e) => setIdentificationData({ ...identificationData, showHeader: e.target.checked })}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-semibold text-gray-700">Show Header</span>
+                        </label>
+                        {identificationData.showHeader && (
+                          <input
+                            type="text"
+                            value={identificationData.headerText}
+                            onChange={(e) => setIdentificationData({ ...identificationData, headerText: e.target.value })}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mt-2"
+                          />
                         )}
-                        {!identificationData.backgroundImage && (
-                          <div className="border-2 border-gray-300 rounded-xl p-4 bg-gray-50 min-h-[200px] flex items-center justify-center mt-2">
-                            <div className="text-center text-gray-500">
-                              <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              <p className="text-sm">No background image uploaded</p>
-                              <p className="text-xs mt-1">Upload an image to use as background</p>
+                      </div>
+
+                      {/* Show Footer */}
+                      <div>
+                        <label className="flex items-center gap-3 mb-2">
+                          <input
+                            type="checkbox"
+                            checked={identificationData.showFooter}
+                            onChange={(e) => setIdentificationData({ ...identificationData, showFooter: e.target.checked })}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-semibold text-gray-700">Show Footer</span>
+                        </label>
+                        {identificationData.showFooter && (
+                          <input
+                            type="text"
+                            value={identificationData.footerText}
+                            onChange={(e) => setIdentificationData({ ...identificationData, footerText: e.target.value })}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mt-2"
+                          />
+                        )}
+                      </div>
+
+                      {/* Area Image / Background Image */}
+                      <div>
+                        <label className="flex items-center gap-3 mb-3">
+                          <input
+                            type="checkbox"
+                            checked={identificationData.showImage}
+                            onChange={(e) => setIdentificationData({ ...identificationData, showImage: e.target.checked })}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-semibold text-gray-700">Background Image</span>
+                        </label>
+                        {identificationData.showImage && (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Upload Background Image</label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleBackgroundImageUpload}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                              />
+                              {identificationData.backgroundImage && (
+                                <div className="mt-2">
+                                  <img
+                                    src={identificationData.backgroundImage}
+                                    alt="Background preview"
+                                    className="w-full rounded-lg border-2 border-gray-300 max-h-[200px] object-cover"
+                                  />
+                                  <button
+                                    onClick={() => setIdentificationData({ ...identificationData, backgroundImage: null })}
+                                    className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                  >
+                                    Remove Background
+                                  </button>
+                                </div>
+                              )}
+                              {!identificationData.backgroundImage && (
+                                <div className="border-2 border-gray-300 rounded-xl p-4 bg-gray-50 min-h-[200px] flex items-center justify-center mt-2">
+                                  <div className="text-center text-gray-500">
+                                    <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p className="text-sm">No background image uploaded</p>
+                                    <p className="text-xs mt-1">Upload an image to use as background</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Image Position</label>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {['Top', 'Center', 'Bottom', 'Background'].map((pos) => (
+                                  <button
+                                    key={pos}
+                                    onClick={() => setIdentificationData({ ...identificationData, imagePosition: pos })}
+                                    className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 transition-all text-xs sm:text-sm min-h-[44px] ${identificationData.imagePosition === pos
+                                      ? 'bg-blue-600 text-white border-blue-600'
+                                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                                      }`}
+                                  >
+                                    {pos}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Image Opacity: {identificationData.imageOpacity}%
+                              </label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={identificationData.imageOpacity}
+                                onChange={(e) => setIdentificationData({ ...identificationData, imageOpacity: parseInt(e.target.value) })}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              />
                             </div>
                           </div>
                         )}
                       </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Image Position</label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {['Top', 'Center', 'Bottom', 'Background'].map((pos) => (
-                            <button
-                              key={pos}
-                              onClick={() => setIdentificationData({ ...identificationData, imagePosition: pos })}
-                              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 transition-all text-xs sm:text-sm min-h-[44px] ${
-                                identificationData.imagePosition === pos
-                                  ? 'bg-blue-600 text-white border-blue-600'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-                              }`}
-                            >
-                              {pos}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Image Opacity: {identificationData.imageOpacity}%
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={identificationData.imageOpacity}
-                          onChange={(e) => setIdentificationData({ ...identificationData, imageOpacity: parseInt(e.target.value) })}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* Font and Icon Size */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Font: {identificationData.fontSize}px
-                    </label>
-                    <input
-                      type="range"
-                      min="24"
-                      max="96"
-                      value={identificationData.fontSize}
-                      onChange={(e) => setIdentificationData({ ...identificationData, fontSize: parseInt(e.target.value) })}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Icon: {identificationData.iconSize}px
-                    </label>
-                    <input
-                      type="range"
-                      min="40"
-                      max="120"
-                      value={identificationData.iconSize}
-                      onChange={(e) => setIdentificationData({ ...identificationData, iconSize: parseInt(e.target.value) })}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Position Controls */}
-                <div>
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Drag to Reposition:</span>
-                    <span className="text-xs text-gray-600">Click and drag the icon or text in the preview to move them</span>
-                    <button 
-                      onClick={() => setIdentificationData({
-                        ...identificationData,
-                        iconPosition: { x: 50, y: 50 },
-                        textPosition: { x: 50, y: 70 }
-                      })}
-                      className="ml-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
-                    >
-                      Reset Positions
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="text-gray-600">Icon Position:</span>
-                      <span className="ml-2 font-mono text-gray-800">
-                        X: {identificationData.iconPosition.x.toFixed(1)}%, Y: {identificationData.iconPosition.y.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Text Position:</span>
-                      <span className="ml-2 font-mono text-gray-800">
-                        X: {identificationData.textPosition.x.toFixed(1)}%, Y: {identificationData.textPosition.y.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Show Border */}
-                <div>
-                  <label className="flex items-center gap-3 mb-3">
-                    <input
-                      type="checkbox"
-                      checked={identificationData.showBorder}
-                      onChange={(e) => setIdentificationData({ ...identificationData, showBorder: e.target.checked })}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-semibold text-gray-700">Show Border</span>
-                  </label>
-                  {identificationData.showBorder && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Color</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="color"
-                            value={identificationData.borderColor}
-                            onChange={(e) => setIdentificationData({ ...identificationData, borderColor: e.target.value })}
-                            className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
-                          />
-                          <input
-                            type="text"
-                            value={identificationData.borderColor}
-                            onChange={(e) => setIdentificationData({ ...identificationData, borderColor: e.target.value })}
-                            className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Width: {identificationData.borderWidth}px
-                        </label>
-                        <input
-                          type="range"
-                          min="1"
-                          max="10"
-                          value={identificationData.borderWidth}
-                          onChange={(e) => setIdentificationData({ ...identificationData, borderWidth: parseInt(e.target.value) })}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Paper Size and Orientation */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Paper Size</label>
-                    <select
-                      value={formData.size}
-                      onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                    >
-                      <option value="A4">A4 (210 x 297 mm)</option>
-                      <option value="A3">A3 (297 x 420 mm)</option>
-                      <option value="A2">A2 (420 x 594 mm)</option>
-                      <option value="Letter">Letter (8.5 x 11 in)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Orientation</label>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setIdentificationData({ ...identificationData, orientation: 'Landscape' })}
-                        className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all text-sm sm:text-base min-h-[44px] ${
-                          identificationData.orientation === 'Landscape'
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-                        }`}
-                      >
-                        Landscape
-                      </button>
-                      <button
-                        onClick={() => setIdentificationData({ ...identificationData, orientation: 'Portrait' })}
-                        className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all text-sm sm:text-base min-h-[44px] ${
-                          identificationData.orientation === 'Portrait'
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-                        }`}
-                      >
-                        Portrait
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Export Buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
-                    Export PNG
-                  </button>
-                  <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
-                    Export PDF
-                  </button>
-                  <button 
-                    onClick={handlePrint}
-                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px] flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    Print
-                  </button>
-                  <button 
-                    onClick={handleDownload}
-                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px] flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* PPE Required - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                  PPE Required (Multi-Select)
-                </h2>
-                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-semibold self-start sm:self-auto">
-                  {formData.ppe.length} Selected
-                </span>
-              </div>
-              
-              <div className="space-y-3">
-                {Object.entries(ppeCategories).map(([category, items]) => (
-                  <div key={category} className="border-2 border-gray-200 rounded-xl overflow-hidden bg-white">
-                    <button
-                      onClick={() => togglePPECategory(category)}
-                      className="w-full px-4 py-3.5 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors rounded-t-xl"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{ppeCategoryIcons[category] || '⚙️'}</span>
-                        <span className="font-semibold text-gray-900 text-base">
-                          {category} ({items.length} items)
-                        </span>
-                      </div>
-                      <svg
-                        className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${
-                          expandedPPECategories.includes(category) ? 'rotate-180' : ''
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {expandedPPECategories.includes(category) && (
-                      <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 bg-white border-t-2 border-gray-100">
-                        {items.map((item) => (
-                          <label
-                            key={item.id}
-                            className="flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 bg-white min-h-[44px]"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.ppe.includes(item.id)}
-                              onChange={() => togglePPE(item.id)}
-                              className="w-5 h-5 text-blue-600 rounded border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 cursor-pointer flex-shrink-0"
-                            />
-                            <span className="text-lg sm:text-xl flex-shrink-0">{item.icon}</span>
-                            <span className="text-xs sm:text-sm font-medium text-gray-700 flex-1 leading-tight">{item.name}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            )}
-
-            {/* Upload Custom PPE Images - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
-                <div className="flex items-center gap-3">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <div>
-                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                      Upload Custom PPE Images
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Add your own PPE images (up to 7 images, max 5MB each).
-                    </p>
-                  </div>
-                </div>
-                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-100 text-purple-700 rounded-full text-xs sm:text-sm font-semibold self-start sm:self-auto">
-                  {customPPEImages.length}/7
-                </span>
-              </div>
-
-              {/* Upload Button */}
-              <div className="mb-6">
-                <label className="block">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePPEImageUpload}
-                    disabled={customPPEImages.length >= 7}
-                    className="hidden"
-                    id="ppe-image-upload"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('ppe-image-upload')?.click()}
-                    disabled={customPPEImages.length >= 7}
-                    className={`w-full px-6 py-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl ${
-                      customPPEImages.length >= 7
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-purple-600 hover:bg-purple-700'
-                    }`}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Browse & Upload PPE Images
-                  </button>
-                </label>
-              </div>
-
-              {/* Uploaded Images */}
-              {customPPEImages.length > 0 && (
-                <div className="space-y-4 mb-6">
-                  {customPPEImages.map((ppeImage, index) => (
-                    <div key={ppeImage.id} className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        {/* Image Preview */}
-                        <div className="flex-shrink-0">
-                          <div className="w-32 h-32 sm:w-40 sm:h-40 border-2 border-white rounded-lg overflow-hidden bg-white shadow-md">
-                            <img 
-                              src={ppeImage.image} 
-                              alt={`PPE ${index + 1}`}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Name Input */}
-                        <div className="flex-1">
+                      {/* Font and Icon Size */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            PPE Name #{index + 1}
+                            Font: {identificationData.fontSize}px
                           </label>
                           <input
-                            type="text"
-                            value={ppeImage.name}
-                            onChange={(e) => updatePPEImageName(ppeImage.id, e.target.value)}
-                            placeholder="e.g., Safety Goggles, Fire Blanket"
-                            className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-base"
+                            type="range"
+                            min="24"
+                            max="96"
+                            value={identificationData.fontSize}
+                            onChange={(e) => setIdentificationData({ ...identificationData, fontSize: parseInt(e.target.value) })}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                           />
-                          <p className="text-xs text-gray-600 mt-2">
-                            This name will appear below the PPE icon.
-                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Icon: {identificationData.iconSize}px
+                          </label>
+                          <input
+                            type="range"
+                            min="40"
+                            max="120"
+                            value={identificationData.iconSize}
+                            onChange={(e) => setIdentificationData({ ...identificationData, iconSize: parseInt(e.target.value) })}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Position Controls */}
+                      <div>
+                        <div className="flex items-center gap-4 mb-3">
+                          <span className="text-sm font-semibold text-gray-700">Drag to Reposition:</span>
+                          <span className="text-xs text-gray-600">Click and drag the icon or text in the preview to move them</span>
                           <button
-                            type="button"
-                            onClick={() => removePPEImage(ppeImage.id)}
-                            className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                            onClick={() => setIdentificationData({
+                              ...identificationData,
+                              iconPosition: { x: 50, y: 50 },
+                              textPosition: { x: 50, y: 70 }
+                            })}
+                            className="ml-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
                           >
-                            Remove Image
+                            Reset Positions
                           </button>
                         </div>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <span className="text-gray-600">Icon Position:</span>
+                            <span className="ml-2 font-mono text-gray-800">
+                              X: {identificationData.iconPosition.x.toFixed(1)}%, Y: {identificationData.iconPosition.y.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Text Position:</span>
+                            <span className="ml-2 font-mono text-gray-800">
+                              X: {identificationData.textPosition.x.toFixed(1)}%, Y: {identificationData.textPosition.y.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Show Border */}
+                      <div>
+                        <label className="flex items-center gap-3 mb-3">
+                          <input
+                            type="checkbox"
+                            checked={identificationData.showBorder}
+                            onChange={(e) => setIdentificationData({ ...identificationData, showBorder: e.target.checked })}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-semibold text-gray-700">Show Border</span>
+                        </label>
+                        {identificationData.showBorder && (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Color</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="color"
+                                  value={identificationData.borderColor}
+                                  onChange={(e) => setIdentificationData({ ...identificationData, borderColor: e.target.value })}
+                                  className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
+                                />
+                                <input
+                                  type="text"
+                                  value={identificationData.borderColor}
+                                  onChange={(e) => setIdentificationData({ ...identificationData, borderColor: e.target.value })}
+                                  className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Width: {identificationData.borderWidth}px
+                              </label>
+                              <input
+                                type="range"
+                                min="1"
+                                max="10"
+                                value={identificationData.borderWidth}
+                                onChange={(e) => setIdentificationData({ ...identificationData, borderWidth: parseInt(e.target.value) })}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Paper Size and Orientation */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Paper Size</label>
+                          <select
+                            value={formData.size}
+                            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                          >
+                            <option value="A4">A4 (210 x 297 mm)</option>
+                            <option value="A3">A3 (297 x 420 mm)</option>
+                            <option value="A2">A2 (420 x 594 mm)</option>
+                            <option value="Letter">Letter (8.5 x 11 in)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Orientation</label>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setIdentificationData({ ...identificationData, orientation: 'Landscape' })}
+                              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all text-sm sm:text-base min-h-[44px] ${identificationData.orientation === 'Landscape'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                                }`}
+                            >
+                              Landscape
+                            </button>
+                            <button
+                              onClick={() => setIdentificationData({ ...identificationData, orientation: 'Portrait' })}
+                              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all text-sm sm:text-base min-h-[44px] ${identificationData.orientation === 'Portrait'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                                }`}
+                            >
+                              Portrait
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Export Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                        <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
+                          Export PNG
+                        </button>
+                        <button className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]">
+                          Export PDF
+                        </button>
+                        <button
+                          onClick={handlePrint}
+                          className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px] flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                          </svg>
+                          Print
+                        </button>
+                        <button
+                          onClick={handleDownload}
+                          className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px] flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Download
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Informational Note */}
-              <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    These custom PPE images will appear in your signage along with the standard PPE icons selected above.
-                  </p>
-                </div>
-              </div>
-            </div>
-            )}
-
-            {/* Safety Procedures - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Safety Procedures</h2>
-              <div className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  value={newProcedure}
-                  onChange={(e) => setNewProcedure(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addProcedure()}
-                  placeholder="Add procedure (e.g., Gas test required)"
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                />
-                <button
-                  onClick={addProcedure}
-                  className="px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] text-lg sm:text-xl"
-                >
-                  +
-                </button>
-              </div>
-              <div className="space-y-2">
-                {formData.procedures.map((procedure, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between px-4 py-3 bg-green-50 border-2 border-green-200 rounded-lg"
-                  >
-                    <span className="text-gray-900 font-medium">{procedure}</span>
-                    <button
-                      onClick={() => removeProcedure(index)}
-                      className="text-red-600 hover:text-red-800 font-bold text-xl"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            )}
-
-            {/* Permit Required - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
-                <div>
-                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">Permit Required</h2>
-                  <p className="text-xs sm:text-sm text-gray-600">Enable if a permit is needed for this area</p>
-                </div>
-                <button
-                  onClick={() => setFormData({ ...formData, permitRequired: !formData.permitRequired })}
-                  className={`relative w-14 h-7 sm:w-16 sm:h-8 rounded-full transition-colors self-start sm:self-auto ${
-                    formData.permitRequired ? 'bg-blue-600' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                      formData.permitRequired ? 'translate-x-7 sm:translate-x-8' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-              
-              {/* Permit Type Input - Shows when permit is required */}
-              {formData.permitRequired && (
-                <div className="mt-4 pt-4 border-t-2 border-gray-200">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Permit Type <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.permitType}
-                    onChange={(e) => setFormData({ ...formData, permitType: e.target.value })}
-                    placeholder="e.g., Hot Work Permit, Confined Space Entry Permit, Electrical Work Permit"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                  />
-                  <p className="text-xs text-gray-600 mt-2">
-                    Specify the type of permit required for this area.
-                  </p>
-                </div>
-              )}
-            </div>
-            )}
-
-            {/* Emergency Contacts - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-3 sm:space-y-4">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Emergency Contacts</h2>
-              
-              {formData.emergencyContacts.map((contact, index) => (
-                <div key={index} className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={contact.label}
-                    onChange={(e) => updateContact(index, 'label', e.target.value)}
-                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                    placeholder="Label"
-                  />
-                  <input
-                    type="text"
-                    value={contact.phone}
-                    onChange={(e) => updateContact(index, 'phone', e.target.value)}
-                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                    placeholder="Phone"
-                  />
-                  {formData.emergencyContacts.length > 2 && (
-                    <button
-                      onClick={() => removeContact(index)}
-                      className="px-4 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl hover:bg-red-700 transition-colors min-h-[44px] text-lg sm:text-xl"
-                    >
-                      ×
-                    </button>
                   )}
-                </div>
-              ))}
 
-              <div className="border-t-2 border-gray-200 pt-4">
-                <div className="text-sm font-semibold text-gray-700 mb-3">Add Contact:</div>
-                <div className="flex flex-col sm:flex-row gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newContact.label}
-                    onChange={(e) => setNewContact({ ...newContact, label: e.target.value })}
-                    placeholder="Label (e.g. Fire Dept)"
-                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                  />
-                  <input
-                    type="text"
-                    value={newContact.phone}
-                    onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                    placeholder="Phone Number"
-                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                  />
-                </div>
-                <button
-                  onClick={addContact}
-                  className="w-full px-4 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-            )}
-
-            {/* QR Code - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">QR Code (Optional)</h2>
-              
-              {/* QR Code Type Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">QR Code Type</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="qrCodeType"
-                      checked={!formData.useExistingQR}
-                      onChange={() => setFormData({ ...formData, useExistingQR: false })}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">Generate New QR Code</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="qrCodeType"
-                      checked={formData.useExistingQR}
-                      onChange={() => setFormData({ ...formData, useExistingQR: true })}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">Use Existing QR Code</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* New QR Code Input */}
-              {!formData.useExistingQR && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    QR Code Text / URL
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.qrCodeText}
-                    onChange={(e) => setFormData({ ...formData, qrCodeText: e.target.value })}
-                    placeholder="Enter URL or text to generate QR code"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                  />
-                  <p className="text-xs text-gray-600 mt-2">
-                    Enter a URL or text that will be encoded in the QR code.
-                  </p>
-                </div>
-              )}
-
-              {/* Existing QR Code Upload */}
-              {formData.useExistingQR && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Upload Existing QR Code Image
-                  </label>
-                  {formData.existingQRCode ? (
-                    <div className="space-y-2">
-                      <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                        <img 
-                          src={formData.existingQRCode} 
-                          alt="Existing QR Code"
-                          className="w-32 h-32 mx-auto object-contain"
-                        />
+                  {/* PPE Required - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                          PPE Required (Multi-Select)
+                        </h2>
+                        <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-semibold self-start sm:self-auto">
+                          {formData.ppe.length} Selected
+                        </span>
                       </div>
+
+                      <div className="space-y-3">
+                        {Object.entries(ppeCategories).map(([category, items]) => (
+                          <div key={category} className="border-2 border-gray-200 rounded-xl overflow-hidden bg-white">
+                            <button
+                              onClick={() => togglePPECategory(category)}
+                              className="w-full px-4 py-3.5 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors rounded-t-xl"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-xl">{ppeCategoryIcons[category] || '⚙️'}</span>
+                                <span className="font-semibold text-gray-900 text-base">
+                                  {category} ({items.length} items)
+                                </span>
+                              </div>
+                              <svg
+                                className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${expandedPPECategories.includes(category) ? 'rotate-180' : ''
+                                  }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            {expandedPPECategories.includes(category) && (
+                              <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 bg-white border-t-2 border-gray-100">
+                                {items.map((item) => (
+                                  <label
+                                    key={item.id}
+                                    className="flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 bg-white min-h-[44px]"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={formData.ppe.includes(item.id)}
+                                      onChange={() => togglePPE(item.id)}
+                                      className="w-5 h-5 text-blue-600 rounded border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 cursor-pointer flex-shrink-0"
+                                    />
+                                    <span className="text-lg sm:text-xl flex-shrink-0">{item.icon}</span>
+                                    <span className="text-xs sm:text-sm font-medium text-gray-700 flex-1 leading-tight">{item.name}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Custom PPE Images - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                        <div className="flex items-center gap-3">
+                          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <div>
+                            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                              Upload Custom PPE Images
+                            </h2>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Add your own PPE images (up to 7 images, max 5MB each).
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-100 text-purple-700 rounded-full text-xs sm:text-sm font-semibold self-start sm:self-auto">
+                          {customPPEImages.length}/7
+                        </span>
+                      </div>
+
+                      {/* Upload Button */}
+                      <div className="mb-6">
+                        <label className="block">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handlePPEImageUpload}
+                            disabled={customPPEImages.length >= 7}
+                            className="hidden"
+                            id="ppe-image-upload"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('ppe-image-upload')?.click()}
+                            disabled={customPPEImages.length >= 7}
+                            className={`w-full px-6 py-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl ${customPPEImages.length >= 7
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-purple-600 hover:bg-purple-700'
+                              }`}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Browse & Upload PPE Images
+                          </button>
+                        </label>
+                      </div>
+
+                      {/* Uploaded Images */}
+                      {customPPEImages.length > 0 && (
+                        <div className="space-y-4 mb-6">
+                          {customPPEImages.map((ppeImage, index) => (
+                            <div key={ppeImage.id} className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+                              <div className="flex flex-col sm:flex-row gap-4">
+                                {/* Image Preview */}
+                                <div className="flex-shrink-0">
+                                  <div className="w-32 h-32 sm:w-40 sm:h-40 border-2 border-white rounded-lg overflow-hidden bg-white shadow-md">
+                                    <img
+                                      src={ppeImage.image}
+                                      alt={`PPE ${index + 1}`}
+                                      className="w-full h-full object-contain"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Name Input */}
+                                <div className="flex-1">
+                                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    PPE Name #{index + 1}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={ppeImage.name}
+                                    onChange={(e) => updatePPEImageName(ppeImage.id, e.target.value)}
+                                    placeholder="e.g., Safety Goggles, Fire Blanket"
+                                    className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-base"
+                                  />
+                                  <p className="text-xs text-gray-600 mt-2">
+                                    This name will appear below the PPE icon.
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => removePPEImage(ppeImage.id)}
+                                    className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                  >
+                                    Remove Image
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Informational Note */}
+                      <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <p className="text-sm text-gray-700">
+                            These custom PPE images will appear in your signage along with the standard PPE icons selected above.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Safety Procedures - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Safety Procedures</h2>
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={newProcedure}
+                          onChange={(e) => setNewProcedure(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addProcedure()}
+                          placeholder="Add procedure (e.g., Gas test required)"
+                          className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        />
+                        <button
+                          onClick={addProcedure}
+                          className="px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg min-w-[44px] min-h-[44px] text-lg sm:text-xl"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {formData.procedures.map((procedure, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between px-4 py-3 bg-green-50 border-2 border-green-200 rounded-lg"
+                          >
+                            <span className="text-gray-900 font-medium">{procedure}</span>
+                            <button
+                              onClick={() => removeProcedure(index)}
+                              className="text-red-600 hover:text-red-800 font-bold text-xl"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Permit Required - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
+                        <div>
+                          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">Permit Required</h2>
+                          <p className="text-xs sm:text-sm text-gray-600">Enable if a permit is needed for this area</p>
+                        </div>
+                        <button
+                          onClick={() => setFormData({ ...formData, permitRequired: !formData.permitRequired })}
+                          className={`relative w-14 h-7 sm:w-16 sm:h-8 rounded-full transition-colors self-start sm:self-auto ${formData.permitRequired ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                        >
+                          <span
+                            className={`absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-6 h-6 bg-white rounded-full transition-transform ${formData.permitRequired ? 'translate-x-7 sm:translate-x-8' : 'translate-x-0'
+                              }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Permit Type Input - Shows when permit is required */}
+                      {formData.permitRequired && (
+                        <div className="mt-4 pt-4 border-t-2 border-gray-200">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Permit Type <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.permitType}
+                            onChange={(e) => setFormData({ ...formData, permitType: e.target.value })}
+                            placeholder="e.g., Hot Work Permit, Confined Space Entry Permit, Electrical Work Permit"
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                          />
+                          <p className="text-xs text-gray-600 mt-2">
+                            Specify the type of permit required for this area.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Emergency Contacts - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-3 sm:space-y-4">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Emergency Contacts</h2>
+
+                      {formData.emergencyContacts.map((contact, index) => (
+                        <div key={index} className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            value={contact.label}
+                            onChange={(e) => updateContact(index, 'label', e.target.value)}
+                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                            placeholder="Label"
+                          />
+                          <input
+                            type="text"
+                            value={contact.phone}
+                            onChange={(e) => updateContact(index, 'phone', e.target.value)}
+                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                            placeholder="Phone"
+                          />
+                          {formData.emergencyContacts.length > 2 && (
+                            <button
+                              onClick={() => removeContact(index)}
+                              className="px-4 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl hover:bg-red-700 transition-colors min-h-[44px] text-lg sm:text-xl"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+
+                      <div className="border-t-2 border-gray-200 pt-4">
+                        <div className="text-sm font-semibold text-gray-700 mb-3">Add Contact:</div>
+                        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+                          <input
+                            type="text"
+                            value={newContact.label}
+                            onChange={(e) => setNewContact({ ...newContact, label: e.target.value })}
+                            placeholder="Label (e.g. Fire Dept)"
+                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                          />
+                          <input
+                            type="text"
+                            value={newContact.phone}
+                            onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                            placeholder="Phone Number"
+                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                          />
+                        </div>
+                        <button
+                          onClick={addContact}
+                          className="w-full px-4 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base min-h-[44px]"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* QR Code - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md space-y-4">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">QR Code (Optional)</h2>
+
+                      {/* QR Code Type Selection */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">QR Code Type</label>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="qrCodeType"
+                              checked={!formData.useExistingQR}
+                              onChange={() => setFormData({ ...formData, useExistingQR: false })}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-sm text-gray-700">Generate New QR Code</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="qrCodeType"
+                              checked={formData.useExistingQR}
+                              onChange={() => setFormData({ ...formData, useExistingQR: true })}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-sm text-gray-700">Use Existing QR Code</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* New QR Code Input */}
+                      {!formData.useExistingQR && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            QR Code Text / URL
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.qrCodeText}
+                            onChange={(e) => setFormData({ ...formData, qrCodeText: e.target.value })}
+                            placeholder="Enter URL or text to generate QR code"
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                          />
+                          <p className="text-xs text-gray-600 mt-2">
+                            Enter a URL or text that will be encoded in the QR code.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Existing QR Code Upload */}
+                      {formData.useExistingQR && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Upload Existing QR Code Image
+                          </label>
+                          {formData.existingQRCode ? (
+                            <div className="space-y-2">
+                              <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                                <img
+                                  src={formData.existingQRCode}
+                                  alt="Existing QR Code"
+                                  className="w-32 h-32 mx-auto object-contain"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, existingQRCode: '' })}
+                                className="w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                              >
+                                Remove QR Code
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="block cursor-pointer">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files[0]
+                                  if (file) {
+                                    const reader = new FileReader()
+                                    reader.onload = (event) => {
+                                      setFormData({ ...formData, existingQRCode: event.target.result })
+                                    }
+                                    reader.readAsDataURL(file)
+                                  }
+                                  e.target.value = ''
+                                }}
+                                className="hidden"
+                              />
+                              <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
+                                Click to upload QR code image
+                              </div>
+                            </label>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Show Only Title and QR Code Option */}
+                      <div className="pt-4 border-t-2 border-gray-200">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.showOnlyTitleAndQR}
+                            onChange={(e) => setFormData({ ...formData, showOnlyTitleAndQR: e.target.checked })}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <div>
+                            <span className="text-sm font-semibold text-gray-700 block">Show Only Title and QR Code</span>
+                            <span className="text-xs text-gray-600">Display only the title and QR code on the paper (no other sections)</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Size and Resolution - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Select Size</label>
+                        <select
+                          value={formData.size}
+                          onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        >
+                          <option value="A4">A4 (210x297 mm)</option>
+                          <option value="A3">A3 (297x420 mm)</option>
+                          <option value="A2">A2 (420x594 mm)</option>
+                          <option value="Letter">Letter (8.5x11 in)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Resolution</label>
+                        <select
+                          value={formData.resolution}
+                          onChange={(e) => setFormData({ ...formData, resolution: e.target.value })}
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                        >
+                          <option value="300">Print Quality (300 DPI)</option>
+                          <option value="150">Standard (150 DPI)</option>
+                          <option value="72">Web Quality (72 DPI)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons - Only show for Safety */}
+                  {signageType === 'safety' && (
+                    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <button className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[44px] sm:min-h-[52px]">
+                        Generate Signage
+                      </button>
                       <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, existingQRCode: '' })}
-                        className="w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                        onClick={() => setShowBrandingModal(true)}
+                        className="px-4 sm:px-6 py-3 sm:py-4 bg-blue-100 text-blue-700 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base lg:text-lg hover:bg-blue-200 transition-colors min-h-[44px] sm:min-h-[52px]"
                       >
-                        Remove QR Code
+                        Add Company Branding
                       </button>
                     </div>
-                  ) : (
-                    <label className="block cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0]
-                          if (file) {
-                            const reader = new FileReader()
-                            reader.onload = (event) => {
-                              setFormData({ ...formData, existingQRCode: event.target.result })
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                          e.target.value = ''
-                        }}
-                        className="hidden"
-                      />
-                      <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
-                        Click to upload QR code image
-                      </div>
-                    </label>
                   )}
                 </div>
-              )}
 
-              {/* Show Only Title and QR Code Option */}
-              <div className="pt-4 border-t-2 border-gray-200">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.showOnlyTitleAndQR}
-                    onChange={(e) => setFormData({ ...formData, showOnlyTitleAndQR: e.target.checked })}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <div>
-                    <span className="text-sm font-semibold text-gray-700 block">Show Only Title and QR Code</span>
-                    <span className="text-xs text-gray-600">Display only the title and QR code on the paper (no other sections)</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-            )}
+                {/* Company Branding Modal */}
+                {showBrandingModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                      <div className="sticky top-0 bg-white border-b-2 border-gray-200 p-6 flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-900">Company Branding</h2>
+                        <button
+                          onClick={() => setShowBrandingModal(false)}
+                          className="text-gray-500 hover:text-gray-700 text-2xl"
+                        >
+                          ×
+                        </button>
+                      </div>
 
-            {/* Size and Resolution - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Select Size</label>
-                <select
-                  value={formData.size}
-                  onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                >
-                  <option value="A4">A4 (210x297 mm)</option>
-                  <option value="A3">A3 (297x420 mm)</option>
-                  <option value="A2">A2 (420x594 mm)</option>
-                  <option value="Letter">Letter (8.5x11 in)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Resolution</label>
-                <select
-                  value={formData.resolution}
-                  onChange={(e) => setFormData({ ...formData, resolution: e.target.value })}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                >
-                  <option value="300">Print Quality (300 DPI)</option>
-                  <option value="150">Standard (150 DPI)</option>
-                  <option value="72">Web Quality (72 DPI)</option>
-                </select>
-              </div>
-            </div>
-            )}
-
-            {/* Action Buttons - Only show for Safety */}
-            {signageType === 'safety' && (
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <button className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[44px] sm:min-h-[52px]">
-                Generate Signage
-              </button>
-              <button 
-                onClick={() => setShowBrandingModal(true)}
-                className="px-4 sm:px-6 py-3 sm:py-4 bg-blue-100 text-blue-700 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base lg:text-lg hover:bg-blue-200 transition-colors min-h-[44px] sm:min-h-[52px]"
-              >
-                Add Company Branding
-              </button>
-            </div>
-            )}
-                </div>
-
-            {/* Company Branding Modal */}
-            {showBrandingModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                  <div className="sticky top-0 bg-white border-b-2 border-gray-200 p-6 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-gray-900">Company Branding</h2>
-                    <button
-                      onClick={() => setShowBrandingModal(false)}
-                      className="text-gray-500 hover:text-gray-700 text-2xl"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  
-                  <div className="p-6 space-y-6">
-                    {/* Client Logo */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Client Logo</h3>
-                      {companyBranding.clientLogo ? (
-                        <div className="space-y-3">
-                          <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                            <img 
-                              src={companyBranding.clientLogo} 
-                              alt="Client Logo"
-                              className="h-24 mx-auto object-contain"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <label className="flex-1 cursor-pointer">
+                      <div className="p-6 space-y-6">
+                        {/* Client Logo */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-gray-900">Client Logo</h3>
+                          {companyBranding.clientLogo ? (
+                            <div className="space-y-3">
+                              <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                                <img
+                                  src={companyBranding.clientLogo}
+                                  alt="Client Logo"
+                                  className="h-24 mx-auto object-contain"
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <label className="flex-1 cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files[0]
+                                      if (file) {
+                                        const reader = new FileReader()
+                                        reader.onload = (event) => {
+                                          setCompanyBranding({ ...companyBranding, clientLogo: event.target.result })
+                                        }
+                                        reader.readAsDataURL(file)
+                                      }
+                                      e.target.value = ''
+                                    }}
+                                    className="hidden"
+                                  />
+                                  <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm font-medium">
+                                    Change Logo
+                                  </div>
+                                </label>
+                                <button
+                                  onClick={() => setCompanyBranding({ ...companyBranding, clientLogo: null })}
+                                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Logo Size: {companyBranding.clientLogoSize}px
+                                  </label>
+                                  <input
+                                    type="range"
+                                    min="40"
+                                    max="200"
+                                    value={companyBranding.clientLogoSize}
+                                    onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoSize: parseInt(e.target.value) })}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  />
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={companyBranding.clientLogoLocked || false}
+                                    onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoLocked: e.target.checked })}
+                                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <span className="text-sm font-semibold text-gray-700">Lock Position</span>
+                                </label>
+                              </div>
+                            </div>
+                          ) : (
+                            <label className="block cursor-pointer">
                               <input
                                 type="file"
                                 accept="image/*"
@@ -5735,81 +5732,70 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                 }}
                                 className="hidden"
                               />
-                              <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm font-medium">
-                                Change Logo
+                              <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
+                                Upload Client Logo
                               </div>
                             </label>
-                            <button
-                              onClick={() => setCompanyBranding({ ...companyBranding, clientLogo: null })}
-                              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Logo Size: {companyBranding.clientLogoSize}px
-                              </label>
-                              <input
-                                type="range"
-                                min="40"
-                                max="200"
-                                value={companyBranding.clientLogoSize}
-                                onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoSize: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                              />
-                            </div>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={companyBranding.clientLogoLocked || false}
-                                onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoLocked: e.target.checked })}
-                                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                              />
-                              <span className="text-sm font-semibold text-gray-700">Lock Position</span>
-                            </label>
-                          </div>
+                          )}
                         </div>
-                      ) : (
-                        <label className="block cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files[0]
-                              if (file) {
-                                const reader = new FileReader()
-                                reader.onload = (event) => {
-                                  setCompanyBranding({ ...companyBranding, clientLogo: event.target.result })
-                                }
-                                reader.readAsDataURL(file)
-                              }
-                              e.target.value = ''
-                            }}
-                            className="hidden"
-                          />
-                          <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
-                            Upload Client Logo
-                          </div>
-                        </label>
-                      )}
-                    </div>
 
-                    {/* Contractor Logo */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Contractor Logo</h3>
-                      {companyBranding.contractorLogo ? (
-                        <div className="space-y-3">
-                          <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                            <img 
-                              src={companyBranding.contractorLogo} 
-                              alt="Contractor Logo"
-                              className="h-24 mx-auto object-contain"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <label className="flex-1 cursor-pointer">
+                        {/* Contractor Logo */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-gray-900">Contractor Logo</h3>
+                          {companyBranding.contractorLogo ? (
+                            <div className="space-y-3">
+                              <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                                <img
+                                  src={companyBranding.contractorLogo}
+                                  alt="Contractor Logo"
+                                  className="h-24 mx-auto object-contain"
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <label className="flex-1 cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files[0]
+                                      if (file) {
+                                        const reader = new FileReader()
+                                        reader.onload = (event) => {
+                                          setCompanyBranding({ ...companyBranding, contractorLogo: event.target.result })
+                                        }
+                                        reader.readAsDataURL(file)
+                                      }
+                                      e.target.value = ''
+                                    }}
+                                    className="hidden"
+                                  />
+                                  <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm font-medium">
+                                    Change Logo
+                                  </div>
+                                </label>
+                                <button
+                                  onClick={() => setCompanyBranding({ ...companyBranding, contractorLogo: null })}
+                                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                  Logo Size: {companyBranding.contractorLogoSize}px
+                                </label>
+                                <input
+                                  type="range"
+                                  min="40"
+                                  max="200"
+                                  value={companyBranding.contractorLogoSize}
+                                  onChange={(e) => setCompanyBranding({ ...companyBranding, contractorLogoSize: parseInt(e.target.value) })}
+                                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <label className="block cursor-pointer">
                               <input
                                 type="file"
                                 accept="image/*"
@@ -5826,1320 +5812,1277 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                 }}
                                 className="hidden"
                               />
-                              <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm font-medium">
-                                Change Logo
+                              <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
+                                Upload Contractor Logo
                               </div>
                             </label>
-                            <button
-                              onClick={() => setCompanyBranding({ ...companyBranding, contractorLogo: null })}
-                              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Logo Size: {companyBranding.contractorLogoSize}px
-                            </label>
-                            <input
-                              type="range"
-                              min="40"
-                              max="200"
-                              value={companyBranding.contractorLogoSize}
-                              onChange={(e) => setCompanyBranding({ ...companyBranding, contractorLogoSize: parseInt(e.target.value) })}
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                            />
-                          </div>
+                          )}
                         </div>
-                      ) : (
-                        <label className="block cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files[0]
-                              if (file) {
-                                const reader = new FileReader()
-                                reader.onload = (event) => {
-                                  setCompanyBranding({ ...companyBranding, contractorLogo: event.target.result })
-                                }
-                                reader.readAsDataURL(file)
-                              }
-                              e.target.value = ''
-                            }}
-                            className="hidden"
-                          />
-                          <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
-                            Upload Contractor Logo
-                          </div>
-                        </label>
-                      )}
-                    </div>
 
-                    {/* Instructions */}
-                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                      <p className="text-sm text-gray-700">
-                        <strong>Tip:</strong> After uploading logos, you can drag them to adjust their position in the preview area. Use the blue resize handle in the bottom-right corner of each logo to resize them with your cursor.
-                      </p>
-                    </div>
+                        {/* Instructions */}
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                          <p className="text-sm text-gray-700">
+                            <strong>Tip:</strong> After uploading logos, you can drag them to adjust their position in the preview area. Use the blue resize handle in the bottom-right corner of each logo to resize them with your cursor.
+                          </p>
+                        </div>
 
-                    {/* Close Button */}
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => setShowBrandingModal(false)}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        {/* Close Button */}
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => setShowBrandingModal(false)}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Live Preview Panel */}
+              <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0 order-first lg:order-last">
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md sticky top-[110px] sm:top-[130px] md:top-[150px] lg:top-[170px] z-30">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
+                    <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-semibold self-start sm:self-auto">
+                      {signageType === 'identification'
+                        ? `${formData.size} • ${identificationData.orientation.toLowerCase()} • ${formData.resolution} DPI`
+                        : `${formData.size} - ${formData.resolution}dpi`
+                      }
+                    </span>
+                  </div>
+
+                  <div
+                    ref={previewRef}
+                    className="border-2 sm:border-3 md:border-4 border-black rounded-lg overflow-hidden mb-3 sm:mb-4 md:mb-6 bg-white preview-container relative"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={() => {
+                      handleLogoDragEnd()
+                      handleLogoResizeEnd()
+                      handleElementDragEnd()
+                      handleElementResizeEnd()
+                    }}
+                    onMouseLeave={() => {
+                      handleLogoDragEnd()
+                      handleLogoResizeEnd()
+                      handleElementDragEnd()
+                      handleElementResizeEnd()
+                    }}
+                    onClick={(e) => {
+                      // Deselect logo if clicking on the preview container background (not on a logo or its handles)
+                      if (!e.target.closest('.logo-draggable') && !draggingLogo && !resizingLogo) {
+                        setSelectedLogo(null)
+                      }
+                      // Deselect element if clicking on the preview container background (not on an element or its handles)
+                      if (!e.target.closest('.icon-draggable') && !e.target.closest('.text-draggable') && !e.target.classList.contains('element-resize-handle') && !draggingElement && !resizingElement) {
+                        setSelectedElement(null)
+                      }
+                    }}
+                  >
+                    {/* Company Branding Logos - Draggable and Resizable */}
+                    {companyBranding.clientLogo && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: `${companyBranding.clientLogoPosition.x}%`,
+                          top: `${companyBranding.clientLogoPosition.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          cursor: resizingLogo === 'client' ? 'nwse-resize' : (draggingLogo === 'client' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
+                          zIndex: 1000,
+                          userSelect: 'none'
+                        }}
+                        onMouseDown={(e) => {
+                          // Don't start drag if clicking on resize handle
+                          if (e.target.classList.contains('resize-handle')) return
+                          e.preventDefault()
+                          handleLogoDragStart(e, 'client')
+                        }}
+                        onMouseEnter={(e) => {
+                          // Show resize cursor when Shift is held
+                          if ((e.shiftKey || isShiftPressed) && !resizingLogo && !draggingLogo) {
+                            e.currentTarget.style.cursor = 'nwse-resize'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!resizingLogo && !draggingLogo) {
+                            e.currentTarget.style.cursor = isShiftPressed ? 'nwse-resize' : 'grab'
+                          }
+                        }}
+                        className="logo-draggable"
                       >
-                        Done
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Live Preview Panel */}
-          <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0 order-first lg:order-last">
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md sticky top-[110px] sm:top-[130px] md:top-[150px] lg:top-[170px] z-30">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
-                <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-semibold self-start sm:self-auto">
-                  {signageType === 'identification' 
-                    ? `${formData.size} • ${identificationData.orientation.toLowerCase()} • ${formData.resolution} DPI`
-                    : `${formData.size} - ${formData.resolution}dpi`
-                  }
-                </span>
-              </div>
-              
-              <div 
-                ref={previewRef}
-                className="border-2 sm:border-3 md:border-4 border-black rounded-lg overflow-hidden mb-3 sm:mb-4 md:mb-6 bg-white preview-container relative"
-                onMouseMove={handleMouseMove}
-                onMouseUp={() => {
-                  handleLogoDragEnd()
-                  handleLogoResizeEnd()
-                  handleElementDragEnd()
-                  handleElementResizeEnd()
-                }}
-                onMouseLeave={() => {
-                  handleLogoDragEnd()
-                  handleLogoResizeEnd()
-                  handleElementDragEnd()
-                  handleElementResizeEnd()
-                }}
-                onClick={(e) => {
-                  // Deselect logo if clicking on the preview container background (not on a logo or its handles)
-                  if (!e.target.closest('.logo-draggable') && !draggingLogo && !resizingLogo) {
-                    setSelectedLogo(null)
-                  }
-                  // Deselect element if clicking on the preview container background (not on an element or its handles)
-                  if (!e.target.closest('.icon-draggable') && !e.target.closest('.text-draggable') && !e.target.classList.contains('element-resize-handle') && !draggingElement && !resizingElement) {
-                    setSelectedElement(null)
-                  }
-                }}
-              >
-                {/* Company Branding Logos - Draggable and Resizable */}
-                {companyBranding.clientLogo && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: `${companyBranding.clientLogoPosition.x}%`,
-                      top: `${companyBranding.clientLogoPosition.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                      cursor: resizingLogo === 'client' ? 'nwse-resize' : (draggingLogo === 'client' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
-                      zIndex: 1000,
-                      userSelect: 'none'
-                    }}
-                    onMouseDown={(e) => {
-                      // Don't start drag if clicking on resize handle
-                      if (e.target.classList.contains('resize-handle')) return
-                      e.preventDefault()
-                      handleLogoDragStart(e, 'client')
-                    }}
-                    onMouseEnter={(e) => {
-                      // Show resize cursor when Shift is held
-                      if ((e.shiftKey || isShiftPressed) && !resizingLogo && !draggingLogo) {
-                        e.currentTarget.style.cursor = 'nwse-resize'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!resizingLogo && !draggingLogo) {
-                        e.currentTarget.style.cursor = isShiftPressed ? 'nwse-resize' : 'grab'
-                      }
-                    }}
-                    className="logo-draggable"
-                  >
-                    <img 
-                      src={companyBranding.clientLogo} 
-                      alt="Client Logo"
-                      style={{
-                        width: `${companyBranding.clientLogoSize}px`,
-                        height: 'auto',
-                        pointerEvents: 'none',
-                        filter: (draggingLogo === 'client' || resizingLogo === 'client' || selectedLogo === 'client') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
-                      }}
-                      draggable={false}
-                    />
-                    {/* Resize Handles - All Four Corners */}
-                    {selectedLogo === 'client' && (
-                      <>
-                        {/* Top Left */}
-                        <div
-                          className="resize-handle"
+                        <img
+                          src={companyBranding.clientLogo}
+                          alt="Client Logo"
                           style={{
-                            position: 'absolute',
-                            top: '-8px',
-                            left: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nwse-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            width: `${companyBranding.clientLogoSize}px`,
+                            height: 'auto',
+                            pointerEvents: 'none',
+                            filter: (draggingLogo === 'client' || resizingLogo === 'client' || selectedLogo === 'client') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                           }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-left')}
+                          draggable={false}
                         />
-                        {/* Top Right */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            top: '-8px',
-                            right: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nesw-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-right')}
-                        />
-                        {/* Bottom Left */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            bottom: '-8px',
-                            left: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nesw-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-left')}
-                        />
-                        {/* Bottom Right */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            bottom: '-8px',
-                            right: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nwse-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-right')}
-                        />
-                      </>
-                    )}
-                  </div>
-                )}
-                
-                {companyBranding.contractorLogo && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: `${companyBranding.contractorLogoPosition.x}%`,
-                      top: `${companyBranding.contractorLogoPosition.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                      cursor: resizingLogo === 'contractor' ? 'nwse-resize' : (draggingLogo === 'contractor' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
-                      zIndex: 1000,
-                      userSelect: 'none'
-                    }}
-                    onMouseDown={(e) => {
-                      // Don't start drag if clicking on resize handle
-                      if (e.target.classList.contains('resize-handle')) return
-                      e.preventDefault()
-                      handleLogoDragStart(e, 'contractor')
-                    }}
-                    onMouseEnter={(e) => {
-                      // Show resize cursor when Shift is held
-                      if ((e.shiftKey || isShiftPressed) && !resizingLogo && !draggingLogo) {
-                        e.currentTarget.style.cursor = 'nwse-resize'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!resizingLogo && !draggingLogo) {
-                        e.currentTarget.style.cursor = isShiftPressed ? 'nwse-resize' : 'grab'
-                      }
-                    }}
-                    className="logo-draggable"
-                  >
-                    <img 
-                      src={companyBranding.contractorLogo} 
-                      alt="Contractor Logo"
-                      style={{
-                        width: `${companyBranding.contractorLogoSize}px`,
-                        height: 'auto',
-                        pointerEvents: 'none',
-                        filter: (draggingLogo === 'contractor' || resizingLogo === 'contractor' || selectedLogo === 'contractor') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
-                      }}
-                      draggable={false}
-                    />
-                    {/* Resize Handles - All Four Corners */}
-                    {selectedLogo === 'contractor' && (
-                      <>
-                        {/* Top Left */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            top: '-8px',
-                            left: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nwse-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-left')}
-                        />
-                        {/* Top Right */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            top: '-8px',
-                            right: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nesw-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-right')}
-                        />
-                        {/* Bottom Left */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            bottom: '-8px',
-                            left: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nesw-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-left')}
-                        />
-                        {/* Bottom Right */}
-                        <div
-                          className="resize-handle"
-                          style={{
-                            position: 'absolute',
-                            bottom: '-8px',
-                            right: '-8px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#3B82F6',
-                            border: '2px solid white',
-                            borderRadius: '50%',
-                            cursor: 'nwse-resize',
-                            zIndex: 1001,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                          onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-right')}
-                        />
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {signageType === 'safety' ? (
-                  <div className="flex flex-col min-h-[300px] sm:min-h-[400px]">
-                    {/* Show Only Title and QR Code Mode */}
-                    {formData.showOnlyTitleAndQR ? (
-                      <div className="flex flex-col items-center justify-center p-6 sm:p-8 min-h-[300px] sm:min-h-[400px] relative">
-                        {/* Title */}
-                        <div className="mb-6 sm:mb-8 text-center">
-                          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 uppercase">
-                            {formData.title || 'SIGNAGE TITLE'}
-                          </h3>
-                        </div>
-                        
-                        {/* QR Code */}
-                        {(formData.qrCodeText || formData.existingQRCode) && (
-                          <div className="flex items-center justify-center">
-                            {formData.useExistingQR && formData.existingQRCode ? (
-                              <img 
-                                src={formData.existingQRCode} 
-                                alt="QR Code"
-                                className="w-48 h-48 sm:w-64 sm:h-64 object-contain border-2 border-gray-300 p-2 bg-white"
-                              />
-                            ) : formData.qrCodeText ? (
-                              <div className="w-48 h-48 sm:w-64 sm:h-64 border-2 border-gray-300 bg-white flex items-center justify-center p-4">
-                                <img 
-                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(formData.qrCodeText)}`}
-                                  alt="QR Code"
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                            ) : null}
-                          </div>
+                        {/* Resize Handles - All Four Corners */}
+                        {selectedLogo === 'client' && (
+                          <>
+                            {/* Top Left */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                left: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-left')}
+                            />
+                            {/* Top Right */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                right: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-right')}
+                            />
+                            {/* Bottom Left */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                left: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-left')}
+                            />
+                            {/* Bottom Right */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                right: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-right')}
+                            />
+                          </>
                         )}
                       </div>
-                    ) : (
-                      // Check if this is a Hot Work template
-                      (formData.title && formData.title.toLowerCase().includes('hot work')) ? (
-                        /* HOT WORK TEMPLATE - Matching the second image design exactly */
-                        <>
-                          {/* Red Header Section */}
-                          <div className="bg-red-600 p-3 sm:p-4 flex flex-col">
-                            {/* Warning Icons */}
-                            <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                              {[0, 1].map((index) => (
-                                <div key={index} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-full">
-                                  {signageIcons[index] ? (
-                                    <img 
-                                      src={signageIcons[index]} 
-                                      alt={`Warning icon ${index + 1}`}
-                                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
-                                    />
-                                  ) : (
-                                    <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round"/>
-                                      <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
-                                    </svg>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                            
+                    )}
+
+                    {companyBranding.contractorLogo && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: `${companyBranding.contractorLogoPosition.x}%`,
+                          top: `${companyBranding.contractorLogoPosition.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          cursor: resizingLogo === 'contractor' ? 'nwse-resize' : (draggingLogo === 'contractor' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
+                          zIndex: 1000,
+                          userSelect: 'none'
+                        }}
+                        onMouseDown={(e) => {
+                          // Don't start drag if clicking on resize handle
+                          if (e.target.classList.contains('resize-handle')) return
+                          e.preventDefault()
+                          handleLogoDragStart(e, 'contractor')
+                        }}
+                        onMouseEnter={(e) => {
+                          // Show resize cursor when Shift is held
+                          if ((e.shiftKey || isShiftPressed) && !resizingLogo && !draggingLogo) {
+                            e.currentTarget.style.cursor = 'nwse-resize'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!resizingLogo && !draggingLogo) {
+                            e.currentTarget.style.cursor = isShiftPressed ? 'nwse-resize' : 'grab'
+                          }
+                        }}
+                        className="logo-draggable"
+                      >
+                        <img
+                          src={companyBranding.contractorLogo}
+                          alt="Contractor Logo"
+                          style={{
+                            width: `${companyBranding.contractorLogoSize}px`,
+                            height: 'auto',
+                            pointerEvents: 'none',
+                            filter: (draggingLogo === 'contractor' || resizingLogo === 'contractor' || selectedLogo === 'contractor') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                          }}
+                          draggable={false}
+                        />
+                        {/* Resize Handles - All Four Corners */}
+                        {selectedLogo === 'contractor' && (
+                          <>
+                            {/* Top Left */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                left: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-left')}
+                            />
+                            {/* Top Right */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                right: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-right')}
+                            />
+                            {/* Bottom Left */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                left: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-left')}
+                            />
+                            {/* Bottom Right */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                right: '-8px',
+                                width: '16px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-right')}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {signageType === 'safety' ? (
+                      <div className="flex flex-col min-h-[300px] sm:min-h-[400px]">
+                        {/* Show Only Title and QR Code Mode */}
+                        {formData.showOnlyTitleAndQR ? (
+                          <div className="flex flex-col items-center justify-center p-6 sm:p-8 min-h-[300px] sm:min-h-[400px] relative">
                             {/* Title */}
-                            <div className="text-center mb-2">
-                              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white uppercase mb-1">
-                                {formData.title || 'Hot Work - Welding, Cutting & Grinding'}
-                              </h3>
-                              <p className="text-white text-xs sm:text-sm font-semibold uppercase">
-                                HOT WORK ACTIVITY PERMIT NEEDED
-                              </p>
-                            </div>
-                            
-                            {/* Description on White Background */}
-                            <div className="bg-white px-3 py-2 mt-2">
-                              <p className="text-[10px] sm:text-xs text-black leading-relaxed mb-1">
-                                {formData.description || 'Any operation involving open flames, sparks, or heat that could ignite flammable materials including welding, torch cutting, grinding, brazing.'}
-                              </p>
-                              <p className="text-[10px] sm:text-xs text-black font-semibold">
-                                Required PPE: Welding helmet with proper shade, Fire-resistant clothing, Welding gloves, Safety boots, Respirator for confined spaces.
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Hazards Section - Red Header */}
-                          {formData.hazards && formData.hazards.length > 0 && (
-                            <div className="mb-1.5 sm:mb-2">
-                              <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">A HAZARDS</h4>
-                              </div>
-                              <div className="bg-white px-3 py-2">
-                                <ul className="space-y-0.5">
-                                  {formData.hazards.map((hazard, index) => (
-                                    <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
-                                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2L1 21h22L12 2z"/>
-                                      </svg>
-                                      <span>{hazard}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Mandatory PPE Section - Blue Header with Grid */}
-                          {formData.ppe && formData.ppe.length > 0 && (
-                            <div className="mb-1.5 sm:mb-2">
-                              <div className="bg-blue-600 px-3 py-1.5 flex items-center gap-1.5">
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
-                                </div>
-                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">MANDATORY PPE ({formData.ppe.length})</h4>
-                              </div>
-                              <div className="bg-blue-600 px-2 py-2">
-                                <div className="grid grid-cols-5 gap-1">
-                                  {formData.ppe.slice(0, 15).map((ppeItem, index) => {
-                                    const ppeName = getPPEDisplayName(ppeItem).toLowerCase();
-                                    const getPPEIcon = () => {
-                                      if (ppeName.includes('helmet')) return '🪖';
-                                      if (ppeName.includes('goggle')) return '🥽';
-                                      if (ppeName.includes('ear')) return '🎧';
-                                      if (ppeName.includes('glove') && !ppeName.includes('insulated')) return '🧤';
-                                      if (ppeName.includes('boot') && !ppeName.includes('insulated')) return '👢';
-                                      if (ppeName.includes('high-vis') || ppeName.includes('high vis')) return '👔';
-                                      if (ppeName.includes('respirator')) return '😷';
-                                      if (ppeName.includes('harness')) return '🦺';
-                                      if (ppeName.includes('arc flash') || ppeName.includes('arc flash suit')) return '⚡';
-                                      if (ppeName.includes('insulated glove')) return '🧤';
-                                      if (ppeName.includes('insulated boot')) return '👢';
-                                      if (ppeName.includes('voltage') || ppeName.includes('detector')) return '🔌';
-                                      if (ppeName.includes('face shield')) return '🛡️';
-                                      if (ppeName.includes('arc clothing')) return '👔';
-                                      if (ppeName.includes('mat') || ppeName.includes('safety mat')) return '📖';
-                                      return '🛡️';
-                                    };
-                                    return (
-                                      <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
-                                        <div className="text-base sm:text-lg mb-0.5">
-                                          {getPPEIcon()}
-                                        </div>
-                                        <div className="text-[7px] sm:text-[8px] font-semibold leading-tight px-0.5">
-                                          {getPPEDisplayName(ppeItem).toUpperCase().replace(/\s+/g, ' ')}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Safety Procedures Section - Green Header */}
-                          {formData.procedures && formData.procedures.length > 0 && (
-                            <div className="mb-1.5 sm:mb-2">
-                              <div className="bg-green-600 px-3 py-1.5 flex items-center gap-1.5">
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
-                                </div>
-                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">SAFETY PROCEDURES</h4>
-                              </div>
-                              <div className="bg-white px-3 py-2">
-                                <ol className="space-y-0.5">
-                                  {formData.procedures.map((procedure, index) => (
-                                    <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
-                                      <span className="bg-green-600 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[8px] sm:text-[10px] font-bold flex-shrink-0">{index + 1}</span>
-                                      <span>{procedure}</span>
-                                    </li>
-                                  ))}
-                                </ol>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Permit Required Section - Red Header */}
-                          {formData.permitRequired && (
-                            <div className="mb-1.5 sm:mb-2">
-                              <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
-                                  <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </div>
-                                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">PERMIT REQUIRED</h4>
-                              </div>
-                              <div className="bg-white px-3 py-2 text-center">
-                                <p className="text-xs sm:text-sm font-bold text-black uppercase">
-                                  {formData.permitType || 'HOT WORK'}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Emergency Section - Orange Header */}
-                          <div className="mb-1.5 sm:mb-2">
-                            <div className="bg-orange-500 px-3 py-1.5 flex items-center gap-1.5">
-                              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              <h4 className="text-white font-bold text-xs sm:text-sm uppercase">EMERGENCY</h4>
-                            </div>
-                            <div className="bg-orange-100 px-3 py-2">
-                              <div className="flex gap-3">
-                                <div className="flex-1 space-y-0.5">
-                                  {formData.emergencyContacts.length > 0 ? (
-                                    formData.emergencyContacts.map((contact, index) => (
-                                      <div key={index} className="text-[10px] sm:text-xs font-medium text-black">
-                                        <span className="font-semibold">{contact.label}:</span> {contact.phone}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <>
-                                      <div className="text-[10px] sm:text-xs font-medium text-black">
-                                        <span className="font-semibold">Fire Department:</span> 911
-                                      </div>
-                                      <div className="text-[10px] sm:text-xs font-medium text-black">
-                                        <span className="font-semibold">Site Safety Officer:</span> Emergency
-                                      </div>
-                                      <div className="text-[10px] sm:text-xs font-medium text-black">
-                                        <span className="font-semibold">Supervisor:</span> Emergency
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                                {(formData.qrCodeText || formData.existingQRCode) && (
-                                  <div className="flex flex-col items-center justify-center flex-shrink-0">
-                                    {formData.useExistingQR && formData.existingQRCode ? (
-                                      <img 
-                                        src={formData.existingQRCode} 
-                                        alt="QR Code"
-                                        className="w-16 h-16 sm:w-20 sm:h-20 object-contain bg-white p-1"
-                                      />
-                                    ) : formData.qrCodeText ? (
-                                      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-white border border-gray-300 p-1">
-                                        <img 
-                                          src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(formData.qrCodeText)}`}
-                                          alt="QR Code"
-                                          className="w-full h-full object-contain"
-                                        />
-                                      </div>
-                                    ) : null}
-                                    <p className="text-[9px] sm:text-[10px] text-black font-semibold mt-0.5">Scan</p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Bottom Black Footer */}
-                          <div className="bg-black px-3 py-1.5">
-                            <p className="text-[9px] sm:text-[10px] text-white text-center uppercase">
-                              {formData.iso7010FooterText || 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY'}
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        /* STANDARD SAFETY TEMPLATE */
-                        <>
-                          {/* Top Red Section */}
-                          <div 
-                            className={`${getCategoryColor(formData.category)} p-4 sm:p-6 flex flex-col relative`}
-                            style={{
-                              backgroundImage: signageBackgroundImage 
-                                ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${signageBackgroundImage})` 
-                                : 'none',
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center'
-                            }}
-                          >
-                            {/* Warning Icons */}
-                            <div className="flex justify-center gap-4 mb-4">
-                              {[0, 1].map((index) => (
-                                <div key={index} className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-white rounded-full border-2 border-black">
-                                  {signageIcons[index] ? (
-                                    <img 
-                                      src={signageIcons[index]} 
-                                      alt={`Warning icon ${index + 1}`}
-                                      className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                                    />
-                                  ) : (
-                                    <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round"/>
-                                      <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
-                                    </svg>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Title */}
-                            <div className="text-center">
-                              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase">
+                            <div className="mb-6 sm:mb-8 text-center">
+                              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 uppercase">
                                 {formData.title || 'SIGNAGE TITLE'}
                               </h3>
-                              {/* Purpose/Subtitle */}
-                              {formData.purpose && (
-                                <p className="text-white font-semibold text-base sm:text-lg mt-2 uppercase">
-                                  {formData.purpose}
-                                </p>
-                              )}
                             </div>
+
+                            {/* QR Code */}
+                            {(formData.qrCodeText || formData.existingQRCode) && (
+                              <div className="flex items-center justify-center">
+                                {formData.useExistingQR && formData.existingQRCode ? (
+                                  <img
+                                    src={formData.existingQRCode}
+                                    alt="QR Code"
+                                    className="w-48 h-48 sm:w-64 sm:h-64 object-contain border-2 border-gray-300 p-2 bg-white"
+                                  />
+                                ) : formData.qrCodeText ? (
+                                  <div className="w-48 h-48 sm:w-64 sm:h-64 border-2 border-gray-300 bg-white flex items-center justify-center p-4">
+                                    <img
+                                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                      alt="QR Code"
+                                      className="w-full h-full object-contain"
+                                    />
+                                  </div>
+                                ) : null}
+                              </div>
+                            )}
                           </div>
-                          
-                          {/* White Content Section */}
-                          <div className="bg-white px-4 py-4 sm:py-6 flex-1">
-                            {/* Description */}
-                            {formData.description && (
-                              <div className="mb-4 sm:mb-6">
-                                <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-                                  {formData.description}
-                                </p>
-                              </div>
-                            )}
-                            
-                            {/* Hazards Section */}
-                            {formData.hazards && formData.hazards.length > 0 && (
-                              <div className="mb-4 sm:mb-6">
-                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># HAZARDS</h4>
-                                <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-gray-800">
-                                  {formData.hazards.map((hazard, index) => (
-                                    <li key={index}>{hazard}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            
-                            {/* Mandatory PPE Section */}
-                            {formData.ppe && formData.ppe.length > 0 && (
-                              <div className="mb-4 sm:mb-6">
-                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
-                                  # MANDATORY PPE ({formData.ppe.length})
-                                </h4>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
-                                  {formData.ppe.map((ppeItem, index) => (
-                                    <div key={index} className="text-xs sm:text-sm font-medium text-gray-800 border border-gray-300 p-2 text-center">
-                                      {getPPEDisplayName(ppeItem).toUpperCase()}
+                        ) : (
+                          // Check if this is a Hot Work template
+                          (formData.title && formData.title.toLowerCase().includes('hot work')) ? (
+                            /* HOT WORK TEMPLATE - Matching the second image design exactly */
+                            <>
+                              {/* Red Header Section */}
+                              <div className="bg-red-600 p-3 sm:p-4 flex flex-col">
+                                {/* Warning Icons */}
+                                <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                                  {[0, 1].map((index) => (
+                                    <div key={index} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-full">
+                                      {signageIcons[index] ? (
+                                        <img
+                                          src={signageIcons[index]}
+                                          alt={`Warning icon ${index + 1}`}
+                                          className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+                                        />
+                                      ) : (
+                                        <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round" />
+                                          <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
-                              </div>
-                            )}
-                            
-                            {/* Safety Procedures Section */}
-                            {formData.procedures && formData.procedures.length > 0 && (
-                              <div className="mb-4 sm:mb-6">
-                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># SAFETY PROCEDURES</h4>
-                                <ol className="list-decimal list-inside space-y-1 text-sm sm:text-base text-gray-800">
-                                  {formData.procedures.map((procedure, index) => (
-                                    <li key={index}>{procedure}</li>
-                                  ))}
-                                </ol>
-                              </div>
-                            )}
-                            
-                            {/* Permit Required Section */}
-                            {formData.permitRequired && (
-                              <div className="mb-4 sm:mb-6 text-center">
-                                <div className="bg-yellow-400 border-2 border-black px-4 py-2 sm:py-3 inline-block">
-                                  <p className="text-base sm:text-lg font-bold text-black uppercase">
-                                    # PERMIT REQUIRED
+
+                                {/* Title */}
+                                <div className="text-center mb-2">
+                                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white uppercase mb-1">
+                                    {formData.title || 'Hot Work - Welding, Cutting & Grinding'}
+                                  </h3>
+                                  <p className="text-white text-xs sm:text-sm font-semibold uppercase">
+                                    HOT WORK ACTIVITY PERMIT NEEDED
                                   </p>
-                                  {formData.permitType && (
-                                    <p className="text-sm sm:text-base font-semibold text-black mt-1 uppercase">
-                                      {formData.permitType}
+                                </div>
+
+                                {/* Description on White Background */}
+                                <div className="bg-white px-3 py-2 mt-2">
+                                  <p className="text-[10px] sm:text-xs text-black leading-relaxed mb-1">
+                                    {formData.description || 'Any operation involving open flames, sparks, or heat that could ignite flammable materials including welding, torch cutting, grinding, brazing.'}
+                                  </p>
+                                  <p className="text-[10px] sm:text-xs text-black font-semibold">
+                                    Required PPE: Welding helmet with proper shade, Fire-resistant clothing, Welding gloves, Safety boots, Respirator for confined spaces.
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Hazards Section - Red Header */}
+                              {formData.hazards && formData.hazards.length > 0 && (
+                                <div className="mb-1.5 sm:mb-2">
+                                  <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">A HAZARDS</h4>
+                                  </div>
+                                  <div className="bg-white px-3 py-2">
+                                    <ul className="space-y-0.5">
+                                      {formData.hazards.map((hazard, index) => (
+                                        <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
+                                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2L1 21h22L12 2z" />
+                                          </svg>
+                                          <span>{hazard}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Mandatory PPE Section - Blue Header with Grid */}
+                              {formData.ppe && formData.ppe.length > 0 && (
+                                <div className="mb-1.5 sm:mb-2">
+                                  <div className="bg-blue-600 px-3 py-1.5 flex items-center gap-1.5">
+                                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                      <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
+                                    </div>
+                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">MANDATORY PPE ({formData.ppe.length})</h4>
+                                  </div>
+                                  <div className="bg-blue-600 px-2 py-2">
+                                    <div className="grid grid-cols-5 gap-1">
+                                      {formData.ppe.slice(0, 15).map((ppeItem, index) => {
+                                        const ppeName = getPPEDisplayName(ppeItem).toLowerCase();
+                                        const getPPEIcon = () => {
+                                          if (ppeName.includes('helmet')) return '🪖';
+                                          if (ppeName.includes('goggle')) return '🥽';
+                                          if (ppeName.includes('ear')) return '🎧';
+                                          if (ppeName.includes('glove') && !ppeName.includes('insulated')) return '🧤';
+                                          if (ppeName.includes('boot') && !ppeName.includes('insulated')) return '👢';
+                                          if (ppeName.includes('high-vis') || ppeName.includes('high vis')) return '👔';
+                                          if (ppeName.includes('respirator')) return '😷';
+                                          if (ppeName.includes('harness')) return '🦺';
+                                          if (ppeName.includes('arc flash') || ppeName.includes('arc flash suit')) return '⚡';
+                                          if (ppeName.includes('insulated glove')) return '🧤';
+                                          if (ppeName.includes('insulated boot')) return '👢';
+                                          if (ppeName.includes('voltage') || ppeName.includes('detector')) return '🔌';
+                                          if (ppeName.includes('face shield')) return '🛡️';
+                                          if (ppeName.includes('arc clothing')) return '👔';
+                                          if (ppeName.includes('mat') || ppeName.includes('safety mat')) return '📖';
+                                          return '🛡️';
+                                        };
+                                        return (
+                                          <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
+                                            <div className="text-base sm:text-lg mb-0.5">
+                                              {getPPEIcon()}
+                                            </div>
+                                            <div className="text-[7px] sm:text-[8px] font-semibold leading-tight px-0.5">
+                                              {getPPEDisplayName(ppeItem).toUpperCase().replace(/\s+/g, ' ')}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Safety Procedures Section - Green Header */}
+                              {formData.procedures && formData.procedures.length > 0 && (
+                                <div className="mb-1.5 sm:mb-2">
+                                  <div className="bg-green-600 px-3 py-1.5 flex items-center gap-1.5">
+                                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                      <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
+                                    </div>
+                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">SAFETY PROCEDURES</h4>
+                                  </div>
+                                  <div className="bg-white px-3 py-2">
+                                    <ol className="space-y-0.5">
+                                      {formData.procedures.map((procedure, index) => (
+                                        <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
+                                          <span className="bg-green-600 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[8px] sm:text-[10px] font-bold flex-shrink-0">{index + 1}</span>
+                                          <span>{procedure}</span>
+                                        </li>
+                                      ))}
+                                    </ol>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Permit Required Section - Red Header */}
+                              {formData.permitRequired && (
+                                <div className="mb-1.5 sm:mb-2">
+                                  <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
+                                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                      <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </div>
+                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">PERMIT REQUIRED</h4>
+                                  </div>
+                                  <div className="bg-white px-3 py-2 text-center">
+                                    <p className="text-xs sm:text-sm font-bold text-black uppercase">
+                                      {formData.permitType || 'HOT WORK'}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Emergency Section - Orange Header */}
+                              <div className="mb-1.5 sm:mb-2">
+                                <div className="bg-orange-500 px-3 py-1.5 flex items-center gap-1.5">
+                                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                  <h4 className="text-white font-bold text-xs sm:text-sm uppercase">EMERGENCY</h4>
+                                </div>
+                                <div className="bg-orange-100 px-3 py-2">
+                                  <div className="flex gap-3">
+                                    <div className="flex-1 space-y-0.5">
+                                      {formData.emergencyContacts.length > 0 ? (
+                                        formData.emergencyContacts.map((contact, index) => (
+                                          <div key={index} className="text-[10px] sm:text-xs font-medium text-black">
+                                            <span className="font-semibold">{contact.label}:</span> {contact.phone}
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <>
+                                          <div className="text-[10px] sm:text-xs font-medium text-black">
+                                            <span className="font-semibold">Fire Department:</span> 911
+                                          </div>
+                                          <div className="text-[10px] sm:text-xs font-medium text-black">
+                                            <span className="font-semibold">Site Safety Officer:</span> Emergency
+                                          </div>
+                                          <div className="text-[10px] sm:text-xs font-medium text-black">
+                                            <span className="font-semibold">Supervisor:</span> Emergency
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                    {(formData.qrCodeText || formData.existingQRCode) && (
+                                      <div className="flex flex-col items-center justify-center flex-shrink-0">
+                                        {formData.useExistingQR && formData.existingQRCode ? (
+                                          <img
+                                            src={formData.existingQRCode}
+                                            alt="QR Code"
+                                            className="w-16 h-16 sm:w-20 sm:h-20 object-contain bg-white p-1"
+                                          />
+                                        ) : formData.qrCodeText ? (
+                                          <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-white border border-gray-300 p-1">
+                                            <img
+                                              src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                              alt="QR Code"
+                                              className="w-full h-full object-contain"
+                                            />
+                                          </div>
+                                        ) : null}
+                                        <p className="text-[9px] sm:text-[10px] text-black font-semibold mt-0.5">Scan</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Bottom Black Footer */}
+                              <div className="bg-black px-3 py-1.5">
+                                <p className="text-[9px] sm:text-[10px] text-white text-center uppercase">
+                                  {formData.iso7010FooterText || 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY'}
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            /* STANDARD SAFETY TEMPLATE */
+                            <>
+                              {/* Top Red Section */}
+                              <div
+                                className={`${getCategoryColor(formData.category)} p-4 sm:p-6 flex flex-col relative`}
+                                style={{
+                                  backgroundImage: signageBackgroundImage
+                                    ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${signageBackgroundImage})`
+                                    : 'none',
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center'
+                                }}
+                              >
+                                {/* Warning Icons */}
+                                <div className="flex justify-center gap-4 mb-4">
+                                  {[0, 1].map((index) => (
+                                    <div key={index} className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-white rounded-full border-2 border-black">
+                                      {signageIcons[index] ? (
+                                        <img
+                                          src={signageIcons[index]}
+                                          alt={`Warning icon ${index + 1}`}
+                                          className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                                        />
+                                      ) : (
+                                        <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round" />
+                                          <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Title */}
+                                <div className="text-center">
+                                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase">
+                                    {formData.title || 'SIGNAGE TITLE'}
+                                  </h3>
+                                  {/* Purpose/Subtitle */}
+                                  {formData.purpose && (
+                                    <p className="text-white font-semibold text-base sm:text-lg mt-2 uppercase">
+                                      {formData.purpose}
                                     </p>
                                   )}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                          
-                          {/* Orange Emergency Section */}
-                          {formData.emergencyContacts.length > 0 && (
-                            <div className="bg-orange-500 px-4 py-2 sm:py-3 flex items-center justify-center gap-2">
-                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              <p className="text-white font-bold text-base sm:text-lg uppercase">EMERGENCY</p>
-                            </div>
-                          )}
-                          
-                          {/* Light Beige Contact Information Section */}
-                          {formData.emergencyContacts.length > 0 && (
-                            <div className="bg-amber-50 px-4 py-3 sm:py-4 flex-1">
-                              <div className="space-y-1 sm:space-y-2">
-                                {formData.emergencyContacts.map((contact, index) => (
-                                  <div key={index} className="text-sm sm:text-base font-medium text-black">
-                                    {contact.label}: {contact.phone}
+
+                              {/* White Content Section */}
+                              <div className="bg-white px-4 py-4 sm:py-6 flex-1">
+                                {/* Description */}
+                                {formData.description && (
+                                  <div className="mb-4 sm:mb-6">
+                                    <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
+                                      {formData.description}
+                                    </p>
                                   </div>
-                                ))}
+                                )}
+
+                                {/* Hazards Section */}
+                                {formData.hazards && formData.hazards.length > 0 && (
+                                  <div className="mb-4 sm:mb-6">
+                                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># HAZARDS</h4>
+                                    <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-gray-800">
+                                      {formData.hazards.map((hazard, index) => (
+                                        <li key={index}>{hazard}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {/* Mandatory PPE Section */}
+                                {formData.ppe && formData.ppe.length > 0 && (
+                                  <div className="mb-4 sm:mb-6">
+                                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
+                                      # MANDATORY PPE ({formData.ppe.length})
+                                    </h4>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+                                      {formData.ppe.map((ppeItem, index) => (
+                                        <div key={index} className="text-xs sm:text-sm font-medium text-gray-800 border border-gray-300 p-2 text-center">
+                                          {getPPEDisplayName(ppeItem).toUpperCase()}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Safety Procedures Section */}
+                                {formData.procedures && formData.procedures.length > 0 && (
+                                  <div className="mb-4 sm:mb-6">
+                                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># SAFETY PROCEDURES</h4>
+                                    <ol className="list-decimal list-inside space-y-1 text-sm sm:text-base text-gray-800">
+                                      {formData.procedures.map((procedure, index) => (
+                                        <li key={index}>{procedure}</li>
+                                      ))}
+                                    </ol>
+                                  </div>
+                                )}
+
+                                {/* Permit Required Section */}
+                                {formData.permitRequired && (
+                                  <div className="mb-4 sm:mb-6 text-center">
+                                    <div className="bg-yellow-400 border-2 border-black px-4 py-2 sm:py-3 inline-block">
+                                      <p className="text-base sm:text-lg font-bold text-black uppercase">
+                                        # PERMIT REQUIRED
+                                      </p>
+                                      {formData.permitType && (
+                                        <p className="text-sm sm:text-base font-semibold text-black mt-1 uppercase">
+                                          {formData.permitType}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          )}
-                          
-                          {/* QR Code Section */}
-                          {(formData.qrCodeText || formData.existingQRCode) && (
-                            <div className="bg-white px-4 py-4 sm:py-6 flex items-center justify-center border-t-2 border-gray-200">
-                              {formData.useExistingQR && formData.existingQRCode ? (
-                                <img 
-                                  src={formData.existingQRCode} 
-                                  alt="QR Code"
-                                  className="w-32 h-32 sm:w-40 sm:h-40 object-contain"
-                                />
-                              ) : formData.qrCodeText ? (
-                                <div className="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center bg-white border-2 border-gray-300 p-2">
-                                  <img 
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(formData.qrCodeText)}`}
-                                    alt="QR Code"
-                                    className="w-full h-full object-contain"
-                                  />
+
+                              {/* Orange Emergency Section */}
+                              {formData.emergencyContacts.length > 0 && (
+                                <div className="bg-orange-500 px-4 py-2 sm:py-3 flex items-center justify-center gap-2">
+                                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                  <p className="text-white font-bold text-base sm:text-lg uppercase">EMERGENCY</p>
                                 </div>
-                              ) : null}
-                            </div>
-                          )}
-                          
-                          {/* Bottom Black Compliance Section */}
-                          <div className="bg-black px-4 py-2 sm:py-3">
-                            <p className="text-white text-xs sm:text-sm text-center uppercase">
-                              {formData.iso7010FooterText || 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY'}
+                              )}
+
+                              {/* Light Beige Contact Information Section */}
+                              {formData.emergencyContacts.length > 0 && (
+                                <div className="bg-amber-50 px-4 py-3 sm:py-4 flex-1">
+                                  <div className="space-y-1 sm:space-y-2">
+                                    {formData.emergencyContacts.map((contact, index) => (
+                                      <div key={index} className="text-sm sm:text-base font-medium text-black">
+                                        {contact.label}: {contact.phone}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* QR Code Section */}
+                              {(formData.qrCodeText || formData.existingQRCode) && (
+                                <div className="bg-white px-4 py-4 sm:py-6 flex items-center justify-center border-t-2 border-gray-200">
+                                  {formData.useExistingQR && formData.existingQRCode ? (
+                                    <img
+                                      src={formData.existingQRCode}
+                                      alt="QR Code"
+                                      className="w-32 h-32 sm:w-40 sm:h-40 object-contain"
+                                    />
+                                  ) : formData.qrCodeText ? (
+                                    <div className="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center bg-white border-2 border-gray-300 p-2">
+                                      <img
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                        alt="QR Code"
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                  ) : null}
+                                </div>
+                              )}
+
+                              {/* Bottom Black Compliance Section */}
+                              <div className="bg-black px-4 py-2 sm:py-3">
+                                <p className="text-white text-xs sm:text-sm text-center uppercase">
+                                  {formData.iso7010FooterText || 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY'}
+                                </p>
+                              </div>
+                            </>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        className="p-6 min-h-[400px] flex flex-col relative"
+                        style={{
+                          backgroundColor: identificationData.backgroundColor,
+                          backgroundImage: identificationData.showImage && identificationData.imagePosition === 'Background'
+                            ? (identificationData.backgroundImage
+                              ? `linear-gradient(rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100}), rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100})), url('${identificationData.backgroundImage}')`
+                              : `linear-gradient(rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100}), rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100})), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzM0ODVjYSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE1MCIgcj0iODAiIGZpbGw9IiM2M2I1ZjYiLz48Y2lyY2xlIGN4PSIzMDAiIGN5PSIxNTAiIHI9IjgwIiBmaWxsPSIjNjNiNWY2Ii8+PC9zdmc+')`)
+                            : 'none',
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        }}
+                      >
+                        {/* Header */}
+                        {identificationData.showHeader && (
+                          <div className="text-center mb-4">
+                            <p
+                              className="font-bold text-lg"
+                              style={{ color: identificationData.textColor }}
+                            >
+                              {identificationData.headerText}
                             </p>
                           </div>
-                        </>
-                      )
-                    )}
-                  </div>
-                ) : (
-                  <div 
-                    className="p-6 min-h-[400px] flex flex-col relative"
-                    style={{ 
-                      backgroundColor: identificationData.backgroundColor,
-                      backgroundImage: identificationData.showImage && identificationData.imagePosition === 'Background' 
-                        ? (identificationData.backgroundImage 
-                          ? `linear-gradient(rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100}), rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100})), url('${identificationData.backgroundImage}')`
-                          : `linear-gradient(rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100}), rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100})), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzM0ODVjYSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE1MCIgcj0iODAiIGZpbGw9IiM2M2I1ZjYiLz48Y2lyY2xlIGN4PSIzMDAiIGN5PSIxNTAiIHI9IjgwIiBmaWxsPSIjNjNiNWY2Ii8+PC9zdmc+')`)
-                        : 'none',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
-                  >
-                    {/* Header */}
-                    {identificationData.showHeader && (
-                      <div className="text-center mb-4">
-                        <p 
-                          className="font-bold text-lg"
-                          style={{ color: identificationData.textColor }}
+                        )}
+
+                        {/* Draggable Icon */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: `${identificationData.iconPosition.x}%`,
+                            top: `${identificationData.iconPosition.y}%`,
+                            transform: 'translate(-50%, -50%)',
+                            cursor: draggingElement === 'icon' ? 'grabbing' : (resizingElement === 'icon' ? getResizeCursor(elementResizeHandle) : 'grab'),
+                            zIndex: 1000,
+                            userSelect: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleElementDragStart('icon', e)
+                          }}
+                          className="icon-draggable"
                         >
-                          {identificationData.headerText}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {/* Draggable Icon */}
-                    <div 
-                      style={{
-                        position: 'absolute',
-                        left: `${identificationData.iconPosition.x}%`,
-                        top: `${identificationData.iconPosition.y}%`,
-                        transform: 'translate(-50%, -50%)',
-                        cursor: draggingElement === 'icon' ? 'grabbing' : (resizingElement === 'icon' ? getResizeCursor(elementResizeHandle) : 'grab'),
-                        zIndex: 1000,
-                        userSelect: 'none'
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleElementDragStart('icon', e)
-                      }}
-                      className="icon-draggable"
-                    >
-                      <div 
-                        className="rounded-full flex items-center justify-center text-white relative"
-                        style={{ 
-                          backgroundColor: identificationData.iconBgColor,
-                          width: `${identificationData.iconSize}px`,
-                          height: `${identificationData.iconSize}px`,
-                          fontSize: `${identificationData.iconSize * 0.6}px`,
-                          filter: (draggingElement === 'icon' || resizingElement === 'icon' || selectedElement === 'icon') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
-                        }}
-                      >
-                        {identificationData.iconImage ? (
-                          <img 
-                            src={identificationData.iconImage} 
-                            alt="Icon" 
+                          <div
+                            className="rounded-full flex items-center justify-center text-white relative"
                             style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'contain',
-                              borderRadius: '50%'
+                              backgroundColor: identificationData.iconBgColor,
+                              width: `${identificationData.iconSize}px`,
+                              height: `${identificationData.iconSize}px`,
+                              fontSize: `${identificationData.iconSize * 0.6}px`,
+                              filter: (draggingElement === 'icon' || resizingElement === 'icon' || selectedElement === 'icon') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                             }}
-                            draggable={false}
-                          />
-                        ) : (
-                          getIconEmoji(identificationData.icon)
-                        )}
-                        
-                        {/* Resize Handles - All 8 handles (4 corners + 4 edges) */}
-                        {selectedElement === 'icon' && (
-                          <>
-                            {/* Corner Handles */}
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                left: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nwse-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'top-left')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                right: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nesw-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'top-right')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                bottom: '-6px',
-                                right: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nwse-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'bottom-right')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                bottom: '-6px',
-                                left: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nesw-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'bottom-left')
-                              }}
-                            />
-                            {/* Edge Handles - Middle of each edge */}
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                top: '-8px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                width: '40px',
-                                height: '16px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ns-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'top')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                right: '-8px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                width: '16px',
-                                height: '40px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ew-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'right')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                bottom: '-8px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                width: '40px',
-                                height: '16px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ns-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'bottom')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                left: '-8px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                width: '16px',
-                                height: '40px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ew-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'icon', 'left')
-                              }}
-                            />
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Draggable Area Name */}
-                    <div 
-                      style={{
-                        position: 'absolute',
-                        left: `${identificationData.textPosition.x}%`,
-                        top: `${identificationData.textPosition.y}%`,
-                        transform: 'translate(-50%, -50%)',
-                        cursor: draggingElement === 'text' ? 'grabbing' : (resizingElement === 'text' ? getResizeCursor(elementResizeHandle) : 'grab'),
-                        zIndex: 1000,
-                        userSelect: 'none'
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleElementDragStart('text', e)
-                      }}
-                      className="text-draggable"
-                    >
-                      <h3 
-                        className="font-bold uppercase whitespace-nowrap relative"
-                        style={{ 
-                          color: identificationData.textColor,
-                          fontSize: `${identificationData.fontSize}px`,
-                          filter: (draggingElement === 'text' || resizingElement === 'text' || selectedElement === 'text') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
-                        }}
-                      >
-                        {identificationData.areaName}
-                        
-                        {/* Resize Handles - All 8 handles (4 corners + 4 edges) */}
-                        {selectedElement === 'text' && (
-                          <>
-                            {/* Corner Handles */}
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                left: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nwse-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'top-left')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                right: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nesw-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'top-right')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                bottom: '-6px',
-                                right: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nwse-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'bottom-right')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                bottom: '-6px',
-                                left: '-6px',
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '50%',
-                                cursor: 'nesw-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'bottom-left')
-                              }}
-                            />
-                            {/* Edge Handles - Middle of each edge */}
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                top: '-8px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                width: '40px',
-                                height: '16px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ns-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'top')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                right: '-8px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                width: '16px',
-                                height: '40px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ew-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'right')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                bottom: '-8px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                width: '40px',
-                                height: '16px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ns-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'bottom')
-                              }}
-                            />
-                            <div
-                              className="element-resize-handle"
-                              style={{
-                                position: 'absolute',
-                                left: '-8px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                width: '16px',
-                                height: '40px',
-                                backgroundColor: '#3B82F6',
-                                border: '2px solid white',
-                                borderRadius: '8px',
-                                cursor: 'ew-resize',
-                                zIndex: 1002,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto'
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleElementResizeStart(e, 'text', 'left')
-                              }}
-                            />
-                          </>
-                        )}
-                      </h3>
-                    </div>
-                    
-                    {/* Footer */}
-                    {identificationData.showFooter && (
-                      <div className="text-center absolute bottom-0 left-0 right-0 pb-4">
-                        <p 
-                          className="font-medium text-sm"
-                          style={{ color: identificationData.textColor }}
+                          >
+                            {identificationData.iconImage ? (
+                              <img
+                                src={identificationData.iconImage}
+                                alt="Icon"
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'contain',
+                                  borderRadius: '50%'
+                                }}
+                                draggable={false}
+                              />
+                            ) : (
+                              getIconEmoji(identificationData.icon)
+                            )}
+
+                            {/* Resize Handles - All 8 handles (4 corners + 4 edges) */}
+                            {selectedElement === 'icon' && (
+                              <>
+                                {/* Corner Handles */}
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    left: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nwse-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'top-left')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    right: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nesw-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'top-right')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-6px',
+                                    right: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nwse-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'bottom-right')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-6px',
+                                    left: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nesw-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'bottom-left')
+                                  }}
+                                />
+                                {/* Edge Handles - Middle of each edge */}
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-8px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    width: '40px',
+                                    height: '16px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ns-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'top')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    right: '-8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '16px',
+                                    height: '40px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ew-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'right')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-8px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    width: '40px',
+                                    height: '16px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ns-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'bottom')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    left: '-8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '16px',
+                                    height: '40px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ew-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'icon', 'left')
+                                  }}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Draggable Area Name */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: `${identificationData.textPosition.x}%`,
+                            top: `${identificationData.textPosition.y}%`,
+                            transform: 'translate(-50%, -50%)',
+                            cursor: draggingElement === 'text' ? 'grabbing' : (resizingElement === 'text' ? getResizeCursor(elementResizeHandle) : 'grab'),
+                            zIndex: 1000,
+                            userSelect: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleElementDragStart('text', e)
+                          }}
+                          className="text-draggable"
                         >
-                          {identificationData.footerText}
-                        </p>
+                          <h3
+                            className="font-bold uppercase whitespace-nowrap relative"
+                            style={{
+                              color: identificationData.textColor,
+                              fontSize: `${identificationData.fontSize}px`,
+                              filter: (draggingElement === 'text' || resizingElement === 'text' || selectedElement === 'text') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                            }}
+                          >
+                            {identificationData.areaName}
+
+                            {/* Resize Handles - All 8 handles (4 corners + 4 edges) */}
+                            {selectedElement === 'text' && (
+                              <>
+                                {/* Corner Handles */}
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    left: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nwse-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'top-left')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    right: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nesw-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'top-right')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-6px',
+                                    right: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nwse-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'bottom-right')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-6px',
+                                    left: '-6px',
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '50%',
+                                    cursor: 'nesw-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'bottom-left')
+                                  }}
+                                />
+                                {/* Edge Handles - Middle of each edge */}
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-8px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    width: '40px',
+                                    height: '16px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ns-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'top')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    right: '-8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '16px',
+                                    height: '40px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ew-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'right')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-8px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    width: '40px',
+                                    height: '16px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ns-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'bottom')
+                                  }}
+                                />
+                                <div
+                                  className="element-resize-handle"
+                                  style={{
+                                    position: 'absolute',
+                                    left: '-8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    width: '16px',
+                                    height: '40px',
+                                    backgroundColor: '#3B82F6',
+                                    border: '2px solid white',
+                                    borderRadius: '8px',
+                                    cursor: 'ew-resize',
+                                    zIndex: 1002,
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'auto'
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleElementResizeStart(e, 'text', 'left')
+                                  }}
+                                />
+                              </>
+                            )}
+                          </h3>
+                        </div>
+
+                        {/* Footer */}
+                        {identificationData.showFooter && (
+                          <div className="text-center absolute bottom-0 left-0 right-0 pb-4">
+                            <p
+                              className="font-medium text-sm"
+                              style={{ color: identificationData.textColor }}
+                            >
+                              {identificationData.footerText}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Border */}
+                        {identificationData.showBorder && (
+                          <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              border: `${identificationData.borderWidth}px solid ${identificationData.borderColor}`
+                            }}
+                          />
+                        )}
                       </div>
-                    )}
-                    
-                    {/* Border */}
-                    {identificationData.showBorder && (
-                      <div 
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          border: `${identificationData.borderWidth}px solid ${identificationData.borderColor}`
-                        }}
-                      />
                     )}
                   </div>
-                )}
+
+                  <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <button
+                      onClick={handlePrint}
+                      className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base min-h-[44px]"
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                      Print
+                    </button>
+                    <button
+                      onClick={handleDownload}
+                      className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base min-h-[44px]"
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download
+                    </button>
+                  </div>
+
+                  <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg sm:rounded-xl">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
+                      Signage is optimized to fit all content on a single {formData.size} page. All sections automatically scaled and limited to ensure professional print-ready output.
+                    </p>
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <button 
-                  onClick={handlePrint}
-                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base min-h-[44px]"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  Print
-                </button>
-                <button 
-                  onClick={handleDownload}
-                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base min-h-[44px]"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download
-                </button>
-              </div>
-              
-              <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg sm:rounded-xl">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
-                  Signage is optimized to fit all content on a single {formData.size} page. All sections automatically scaled and limited to ensure professional print-ready output.
-                </p>
-              </div>
-            </div>
-          </div>
             </>
           )}
         </main>
@@ -7165,7 +7108,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -7211,11 +7154,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       {/* Notification Toast */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${
-          notification.type === 'success' ? 'bg-green-500 text-white' : 
-          notification.type === 'error' ? 'bg-red-500 text-white' : 
-          'bg-blue-500 text-white'
-        }`}>
+        <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+            'bg-blue-500 text-white'
+          }`}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {notification.type === 'success' ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -7252,12 +7194,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                <img 
-                  src={selectedImageElement.src} 
-                  alt="Crop preview" 
+                <img
+                  src={selectedImageElement.src}
+                  alt="Crop preview"
                   className="max-w-full h-auto mx-auto"
                 />
               </div>

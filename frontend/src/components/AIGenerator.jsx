@@ -49,7 +49,7 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,18 +98,16 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
 
         {/* Sidebar */}
         <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
+          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+            }`}
         >
           <nav className="space-y-2 lg:space-y-3">
             {/* Dashboard */}
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'dashboard'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'dashboard'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => {
                 setActiveNav('dashboard')
                 setSidebarOpen(false)
@@ -132,11 +130,10 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                 CREATE SIGNAGE
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'generator'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'generator'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('generator')
                   setSidebarOpen(false)
@@ -153,11 +150,10 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'templates'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'templates'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('templates')
                   setSidebarOpen(false)
@@ -174,11 +170,10 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'ai-generator'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'ai-generator'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('ai-generator')
                   setSidebarOpen(false)
@@ -198,11 +193,10 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'customize-signage'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'customize-signage'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('customize-signage')
                   setSidebarOpen(false)
@@ -226,11 +220,10 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                 MANAGE PERSONNEL
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'authorized'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'authorized'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('authorized')
                   setSidebarOpen(false)
@@ -247,11 +240,10 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'emergency'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'emergency'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('emergency')
                   setSidebarOpen(false)
@@ -277,18 +269,17 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
               <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
                 RESOURCES
               </div>
-              
+
               {/* Blog & Tutorials */}
-              <button 
+              <button
                 onClick={() => {
                   setActiveNav('blog')
                   setSidebarOpen(false)
                 }}
-                className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${
-                  activeNav === 'blog'
+                className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${activeNav === 'blog'
                     ? 'bg-blue-600 text-white'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3 lg:gap-4">
                   <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,14 +442,12 @@ const AIGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) =
                       </div>
                       <button
                         onClick={() => toggleAdvancedOption(option.key)}
-                        className={`relative w-12 h-7 sm:w-14 sm:h-8 rounded-full transition-colors flex-shrink-0 ${
-                          advancedOptions[option.key] ? 'bg-purple-600' : 'bg-gray-300'
-                        }`}
+                        className={`relative w-12 h-7 sm:w-14 sm:h-8 rounded-full transition-colors flex-shrink-0 ${advancedOptions[option.key] ? 'bg-purple-600' : 'bg-gray-300'
+                          }`}
                       >
                         <span
-                          className={`absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                            advancedOptions[option.key] ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0'
-                          }`}
+                          className={`absolute top-0.5 left-0.5 sm:top-1 sm:left-1 w-6 h-6 bg-white rounded-full transition-transform ${advancedOptions[option.key] ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0'
+                            }`}
                         />
                       </button>
                     </div>

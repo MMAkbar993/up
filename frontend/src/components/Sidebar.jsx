@@ -11,28 +11,26 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 lg:w-72 xl:w-80 bg-white min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <nav className="space-y-2 lg:space-y-3">
           {/* Dashboard */}
           <div
-            className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-              activeNav === 'dashboard'
+            className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'dashboard'
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                 : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-            }`}
+              }`}
             onClick={() => handleNavigation('dashboard')}
           >
             <div className="flex items-center gap-3 lg:gap-4">
@@ -52,11 +50,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               CREATE SIGNAGE
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'generator'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'generator'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('generator')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -70,11 +67,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               </div>
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'templates'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'templates'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('templates')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -88,11 +84,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               </div>
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'ai-generator'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'ai-generator'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('ai-generator')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -109,11 +104,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               </div>
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'customize-signage'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'customize-signage'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('customize-signage')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -134,11 +128,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               MANAGE PERSONNEL
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'authorized'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'authorized'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('authorized')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -152,11 +145,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               </div>
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'emergency'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'emergency'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('emergency')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -173,11 +165,10 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
               </div>
             </div>
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'organization-chart'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'organization-chart'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('organization-chart')}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -197,14 +188,13 @@ const Sidebar = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
             <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
               RESOURCES
             </div>
-            
+
             {/* Blog & Tutorials */}
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 mb-3 ${
-                activeNav === 'blog'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 mb-3 ${activeNav === 'blog'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => handleNavigation('blog')}
             >
               <div className="flex items-center gap-3 lg:gap-4">

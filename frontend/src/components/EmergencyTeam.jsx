@@ -44,7 +44,7 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
   }
 
   const updateCommitteeMember = (id, field, value) => {
-    setSafetyCommittee(prev => prev.map(member => 
+    setSafetyCommittee(prev => prev.map(member =>
       member.id === id ? { ...member, [field]: value } : member
     ))
   }
@@ -52,7 +52,7 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
   const removeCommitteeMember = (id) => {
     setSafetyCommittee(prev => {
       // Remove the member and also remove any parent references
-      return prev.filter(member => member.id !== id).map(member => 
+      return prev.filter(member => member.id !== id).map(member =>
         member.parentId === id ? { ...member, parentId: null } : member
       )
     })
@@ -73,7 +73,7 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +113,7 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
 
       <div className="flex relative max-w-[1920px] mx-auto">
         {/* Shared Sidebar */}
-        <Sidebar 
+        <Sidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           sidebarOpen={sidebarOpen}
@@ -176,9 +176,9 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                           max="72"
                           value={selectedTextElement.fontSize || 16}
                           onChange={(e) => {
-                            setTextElements(prev => prev.map(el => 
-                              el.id === selectedTextElement.id 
-                                ? { ...el, fontSize: parseInt(e.target.value) } 
+                            setTextElements(prev => prev.map(el =>
+                              el.id === selectedTextElement.id
+                                ? { ...el, fontSize: parseInt(e.target.value) }
                                 : el
                             ))
                             setSelectedTextElement({ ...selectedTextElement, fontSize: parseInt(e.target.value) })
@@ -193,9 +193,9 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                           type="color"
                           value={selectedTextElement.color || '#000000'}
                           onChange={(e) => {
-                            setTextElements(prev => prev.map(el => 
-                              el.id === selectedTextElement.id 
-                                ? { ...el, color: e.target.value } 
+                            setTextElements(prev => prev.map(el =>
+                              el.id === selectedTextElement.id
+                                ? { ...el, color: e.target.value }
                                 : el
                             ))
                             setSelectedTextElement({ ...selectedTextElement, color: e.target.value })
@@ -208,9 +208,9 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                         <select
                           value={selectedTextElement.fontWeight || 'normal'}
                           onChange={(e) => {
-                            setTextElements(prev => prev.map(el => 
-                              el.id === selectedTextElement.id 
-                                ? { ...el, fontWeight: e.target.value } 
+                            setTextElements(prev => prev.map(el =>
+                              el.id === selectedTextElement.id
+                                ? { ...el, fontWeight: e.target.value }
                                 : el
                             ))
                             setSelectedTextElement({ ...selectedTextElement, fontWeight: e.target.value })
@@ -254,99 +254,99 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                   {safetyCommittee.length > 0 && (
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {safetyCommittee.map((member) => (
-                            <div key={member.id} className="p-3 border-2 border-gray-200 rounded-lg">
-                              {/* Photo Upload */}
-                              <div className="mb-3 flex justify-center">
-                                {member.photo ? (
-                                  <div className="relative">
-                                    <img 
-                                      src={member.photo} 
-                                      alt={member.name || 'Member'} 
-                                      className="w-16 h-16 rounded-full object-cover border-2 border-blue-500"
-                                    />
-                                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
-                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      </svg>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                          if (e.target.files[0]) {
-                                            handleMemberPhotoUpload(member.id, e.target.files[0])
-                                          }
-                                          e.target.value = ''
-                                        }}
-                                        className="hidden"
-                                      />
-                                    </label>
-                                    <button
-                                      onClick={() => updateCommitteeMember(member.id, 'photo', null)}
-                                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <label className="cursor-pointer">
-                                    <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
-                                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                      </svg>
-                                    </div>
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      onChange={(e) => {
-                                        if (e.target.files[0]) {
-                                          handleMemberPhotoUpload(member.id, e.target.files[0])
-                                        }
-                                        e.target.value = ''
-                                      }}
-                                      className="hidden"
-                                    />
-                                  </label>
-                                )}
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="Name"
-                                value={member.name}
-                                onChange={(e) => updateCommitteeMember(member.id, 'name', e.target.value)}
-                                className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                              />
-                              <input
-                                type="text"
-                                placeholder="Role"
-                                value={member.role}
-                                onChange={(e) => updateCommitteeMember(member.id, 'role', e.target.value)}
-                                className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                              />
-                              <div className="flex gap-2 mb-2">
-                                <input
-                                  type="tel"
-                                  placeholder="Phone"
-                                  value={member.phone}
-                                  onChange={(e) => updateCommitteeMember(member.id, 'phone', e.target.value)}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        <div key={member.id} className="p-3 border-2 border-gray-200 rounded-lg">
+                          {/* Photo Upload */}
+                          <div className="mb-3 flex justify-center">
+                            {member.photo ? (
+                              <div className="relative">
+                                <img
+                                  src={member.photo}
+                                  alt={member.name || 'Member'}
+                                  className="w-16 h-16 rounded-full object-cover border-2 border-blue-500"
                                 />
+                                <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      if (e.target.files[0]) {
+                                        handleMemberPhotoUpload(member.id, e.target.files[0])
+                                      }
+                                      e.target.value = ''
+                                    }}
+                                    className="hidden"
+                                  />
+                                </label>
                                 <button
-                                  onClick={() => removeCommitteeMember(member.id)}
-                                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                                  onClick={() => updateCommitteeMember(member.id, 'photo', null)}
+                                  className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
                                 >
                                   ×
                                 </button>
                               </div>
-                              <input
-                                type="email"
-                                placeholder="Email"
-                                value={member.email || ''}
-                                onChange={(e) => updateCommitteeMember(member.id, 'email', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                              />
-                            </div>
-                          ))}
+                            ) : (
+                              <label className="cursor-pointer">
+                                <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
+                                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    if (e.target.files[0]) {
+                                      handleMemberPhotoUpload(member.id, e.target.files[0])
+                                    }
+                                    e.target.value = ''
+                                  }}
+                                  className="hidden"
+                                />
+                              </label>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Name"
+                            value={member.name}
+                            onChange={(e) => updateCommitteeMember(member.id, 'name', e.target.value)}
+                            className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Role"
+                            value={member.role}
+                            onChange={(e) => updateCommitteeMember(member.id, 'role', e.target.value)}
+                            className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                          <div className="flex gap-2 mb-2">
+                            <input
+                              type="tel"
+                              placeholder="Phone"
+                              value={member.phone}
+                              onChange={(e) => updateCommitteeMember(member.id, 'phone', e.target.value)}
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            />
+                            <button
+                              onClick={() => removeCommitteeMember(member.id)}
+                              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <input
+                            type="email"
+                            placeholder="Email"
+                            value={member.email || ''}
+                            onChange={(e) => updateCommitteeMember(member.id, 'email', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -357,8 +357,8 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md border-2 border-blue-500">
                 <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6">Preview</h2>
-                
-                <div 
+
+                <div
                   ref={previewRef}
                   className="bg-white border-4 border-black rounded-lg overflow-hidden preview-container relative"
                   style={{
@@ -393,17 +393,17 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {safetyCommittee.map((member) => (
-                          <div 
-                            key={member.id} 
+                          <div
+                            key={member.id}
                             className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow"
                           >
                             <div className="text-center">
                               {/* Photo */}
                               <div className="mb-3 flex justify-center">
                                 {member.photo ? (
-                                  <img 
-                                    src={member.photo} 
-                                    alt={member.name || 'Member'} 
+                                  <img
+                                    src={member.photo}
+                                    alt={member.name || 'Member'}
                                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-blue-500 shadow-md"
                                   />
                                 ) : (
@@ -414,19 +414,19 @@ const EmergencyTeam = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen })
                                   </div>
                                 )}
                               </div>
-                              
+
                               {/* Name */}
                               <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
                                 {member.name || 'Unnamed Member'}
                               </h3>
-                              
+
                               {/* Role */}
                               <div className="mb-2">
                                 <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
                                   {member.role || 'No Role'}
                                 </span>
                               </div>
-                              
+
                               {/* Contact Info */}
                               <div className="space-y-1 text-sm text-gray-600">
                                 {member.phone && (

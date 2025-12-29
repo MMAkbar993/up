@@ -74,7 +74,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchQuery.toLowerCase())
+      template.description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesIndustry = selectedIndustry === 'All Industries' || template.industry === selectedIndustry
     const matchesCategory = selectedCategory === 'All Categories' || template.categories.includes(selectedCategory)
     const matchesRiskLevel = selectedRiskLevel === 'All' || template.riskLevel === selectedRiskLevel
@@ -99,7 +99,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,18 +148,16 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
 
         {/* Sidebar - Same as Dashboard */}
         <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
+          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+            }`}
         >
           <nav className="space-y-2 lg:space-y-3">
             {/* Dashboard */}
             <div
-              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                activeNav === 'dashboard'
+              className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'dashboard'
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-              }`}
+                }`}
               onClick={() => {
                 setActiveNav('dashboard')
                 setSidebarOpen(false)
@@ -182,11 +180,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 CREATE SIGNAGE
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'generator'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'generator'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('generator')
                   setSidebarOpen(false)
@@ -203,11 +200,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'templates'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'templates'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('templates')
                   setSidebarOpen(false)
@@ -224,11 +220,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'ai-generator'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'ai-generator'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('ai-generator')
                   setSidebarOpen(false)
@@ -248,11 +243,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'customize-signage'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'customize-signage'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('customize-signage')
                   setSidebarOpen(false)
@@ -276,11 +270,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 MANAGE PERSONNEL
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'authorized'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'authorized'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('authorized')
                   setSidebarOpen(false)
@@ -297,11 +290,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 </div>
               </div>
               <div
-                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                  activeNav === 'emergency'
+                className={`p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-200 ${activeNav === 'emergency'
                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30'
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                }`}
+                  }`}
                 onClick={() => {
                   setActiveNav('emergency')
                   setSidebarOpen(false)
@@ -327,18 +319,17 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
               <div className="text-xs lg:text-sm font-semibold text-gray-500 uppercase px-3 mb-3 lg:mb-4 tracking-wider">
                 RESOURCES
               </div>
-              
+
               {/* Blog & Tutorials */}
-              <button 
+              <button
                 onClick={() => {
                   setActiveNav('blog')
                   setSidebarOpen(false)
                 }}
-                className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${
-                  activeNav === 'blog'
+                className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${activeNav === 'blog'
                     ? 'bg-blue-600 text-white'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3 lg:gap-4">
                   <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,11 +445,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                   <button
                     key={level}
                     onClick={() => setSelectedRiskLevel(level === 'All' ? 'All' : level.toUpperCase())}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedRiskLevel === (level === 'All' ? 'All' : level.toUpperCase())
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedRiskLevel === (level === 'All' ? 'All' : level.toUpperCase())
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     {level}
                   </button>
@@ -471,9 +461,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                 <div className="flex gap-2 border-2 border-gray-300 rounded-lg p-1">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded transition-colors ${
-                      viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`p-2 rounded transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -481,9 +470,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded transition-colors ${
-                      viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`p-2 rounded transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -495,16 +483,15 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
           </div>
 
           {/* Template Grid */}
-          <div className={viewMode === 'grid' 
+          <div className={viewMode === 'grid'
             ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mb-6'
             : 'space-y-4 mb-6'
           }>
             {paginatedTemplates.map(template => (
               <div
                 key={template.id}
-                className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden ${
-                  viewMode === 'list' ? 'flex gap-4 p-4' : 'p-4'
-                }`}
+                className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden ${viewMode === 'list' ? 'flex gap-4 p-4' : 'p-4'
+                  }`}
               >
                 {viewMode === 'grid' ? (
                   <>
@@ -556,7 +543,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                         </svg>
                         Use Template
                       </button>
-                      <button 
+                      <button
                         onClick={() => setPreviewTemplate(template)}
                         className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                         title="Preview Template"
@@ -610,7 +597,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                           </svg>
                           Use Template
                         </button>
-                        <button 
+                        <button
                           onClick={() => setPreviewTemplate(template)}
                           className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                           title="Preview Template"
@@ -634,11 +621,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentPage === 1
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPage === 1
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 Previous
               </button>
@@ -648,11 +634,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentPage === totalPages
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPage === totalPages
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 Next
               </button>
@@ -681,11 +666,10 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
               <div className="bg-white border-4 border-black rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '4/3', minHeight: '400px' }}>
                 <div className="h-full flex flex-col">
                   {/* Top Section - Category Color */}
-                  <div className={`flex-1 flex flex-col items-center justify-center p-8 ${
-                    previewTemplate.riskLevel === 'HIGH' ? 'bg-red-600' :
-                    previewTemplate.riskLevel === 'MEDIUM' ? 'bg-yellow-500' :
-                    'bg-blue-600'
-                  }`}>
+                  <div className={`flex-1 flex flex-col items-center justify-center p-8 ${previewTemplate.riskLevel === 'HIGH' ? 'bg-red-600' :
+                      previewTemplate.riskLevel === 'MEDIUM' ? 'bg-yellow-500' :
+                        'bg-blue-600'
+                    }`}>
                     {/* Icon */}
                     <div className="text-8xl mb-4">{previewTemplate.icon}</div>
                     {/* Title */}
@@ -697,16 +681,15 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                       {previewTemplate.description}
                     </p>
                   </div>
-                  
+
                   {/* Bottom Section - Info */}
                   <div className="bg-gray-100 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${
-                          previewTemplate.riskLevel === 'HIGH' ? 'bg-red-100 text-red-800 border-red-300' :
-                          previewTemplate.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                          'bg-blue-100 text-blue-800 border-blue-300'
-                        }`}>
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${previewTemplate.riskLevel === 'HIGH' ? 'bg-red-100 text-red-800 border-red-300' :
+                            previewTemplate.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                              'bg-blue-100 text-blue-800 border-blue-300'
+                          }`}>
                           {previewTemplate.riskLevel} RISK
                         </span>
                         <span className="text-sm text-gray-600">{previewTemplate.industry}</span>
@@ -718,7 +701,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                   </div>
                 </div>
               </div>
-              
+
               {/* Template Info */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-2">Template Details</h4>
@@ -728,7 +711,7 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                   <p><strong>Risk Level:</strong> {previewTemplate.riskLevel}</p>
                 </div>
               </div>
-              
+
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
                 <button

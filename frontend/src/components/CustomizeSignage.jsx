@@ -14,7 +14,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const iconInputRef = useRef(null)
 
   const iconOptions = [
-    '💧', '⚡', '🔥', '⚠️', '🚫', '✅', '📢', '🚨', '🔒', '👷', 
+    '💧', '⚡', '🔥', '⚠️', '🚫', '✅', '📢', '🚨', '🔒', '👷',
     '🏗️', '⚙️', '🧪', '🔧', '📋', '📍', '🔴', '🟡', '🟢', '🔵'
   ]
 
@@ -80,7 +80,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
 
   const updateElement = (id, updates) => {
-    setElements(elements.map(el => 
+    setElements(elements.map(el =>
       el.id === id ? { ...el, ...updates } : el
     ))
   }
@@ -107,7 +107,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     if (isResizing && selectedElement) {
       const deltaX = e.clientX - resizeStartData.x
       const deltaY = e.clientY - resizeStartData.y
-      
+
       // Calculate the distance moved for uniform scaling
       // For different corners and edges, we need to adjust the direction
       let delta = 0
@@ -136,10 +136,10 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         // Dragging right increases size, left decreases
         delta = deltaX
       }
-      
+
       const selectedEl = elements.find(el => el.id === selectedElement)
       if (!selectedEl) return
-      
+
       if (selectedEl.type === 'text') {
         const newFontSize = Math.max(12, Math.min(200, resizeStartData.size + delta))
         updateElement(selectedElement, { fontSize: newFontSize })
@@ -149,16 +149,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       }
       return
     }
-    
+
     if (!isDragging || !selectedElement) return
-    
+
     const canvas = e.currentTarget.closest('.canvas-container')
     if (!canvas) return
-    
+
     const rect = canvas.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
-    
+
     updateElement(selectedElement, {
       x: Math.max(0, Math.min(100, x)),
       y: Math.max(0, Math.min(100, y))
@@ -178,7 +178,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setIsResizing(true)
     setSelectedElement(element.id)
     setResizeCorner(corner)
-    
+
     const currentSize = element.type === 'text' ? element.fontSize : element.size
     setResizeStartData({
       size: currentSize,
@@ -201,7 +201,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,7 +241,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       <div className="flex relative max-w-[1920px] mx-auto">
         {/* Shared Sidebar */}
-        <Sidebar 
+        <Sidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           sidebarOpen={sidebarOpen}
@@ -255,7 +255,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             <div className="lg:col-span-1 space-y-4">
               <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Tools</h2>
-                
+
                 {/* Upload Background */}
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Background Image</label>
@@ -344,9 +344,8 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       {elements.map((el) => (
                         <div
                           key={el.id}
-                          className={`p-2 rounded-lg cursor-pointer transition-colors ${
-                            selectedElement === el.id ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-100 hover:bg-gray-200'
-                          }`}
+                          className={`p-2 rounded-lg cursor-pointer transition-colors ${selectedElement === el.id ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-100 hover:bg-gray-200'
+                            }`}
                           onClick={() => setSelectedElement(el.id)}
                         >
                           <div className="flex items-center justify-between">
@@ -374,7 +373,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               {selectedEl && (
                 <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
                   <h2 className="text-lg font-bold text-gray-900 mb-4">Properties</h2>
-                  
+
                   {selectedEl.type === 'text' && (
                     <>
                       <div className="mb-4">
@@ -464,7 +463,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                   )}
-                  
+
                   {elements.map((element) => (
                     <div
                       key={element.id}
@@ -676,7 +675,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       )}
                     </div>
                   ))}
-                  
+
                   {elements.length === 0 && !backgroundImage && (
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                       <div className="text-center">

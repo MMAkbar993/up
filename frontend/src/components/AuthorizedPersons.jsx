@@ -227,7 +227,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
 
       <div className="flex relative max-w-[1920px] mx-auto">
         {/* Shared Sidebar */}
-        <Sidebar 
+        <Sidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           sidebarOpen={sidebarOpen}
@@ -359,8 +359,8 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       className="w-full pl-10 pr-10 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-left bg-white flex items-center gap-3"
                       style={{ borderColor: getCategoryColor(formData.signageCategory) }}
                     >
-                      <div 
-                        className="w-5 h-5 rounded border-2 border-white shadow-sm flex-shrink-0" 
+                      <div
+                        className="w-5 h-5 rounded border-2 border-white shadow-sm flex-shrink-0"
                         style={{ backgroundColor: getCategoryColor(formData.signageCategory) }}
                       ></div>
                       <span className="flex-1">{formData.signageCategory}</span>
@@ -368,11 +368,11 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    
+
                     {categoryDropdownOpen && (
                       <>
-                        <div 
-                          className="fixed inset-0 z-10" 
+                        <div
+                          className="fixed inset-0 z-10"
                           onClick={() => setCategoryDropdownOpen(false)}
                         ></div>
                         <div className="absolute z-20 w-full mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-lg overflow-hidden">
@@ -391,12 +391,11 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                 handleInputChange('signageCategory', category.value)
                                 setCategoryDropdownOpen(false)
                               }}
-                              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left ${
-                                formData.signageCategory === category.value ? 'bg-blue-50' : ''
-                              }`}
+                              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left ${formData.signageCategory === category.value ? 'bg-blue-50' : ''
+                                }`}
                             >
-                              <div 
-                                className="w-5 h-5 rounded border-2 border-white shadow-sm flex-shrink-0" 
+                              <div
+                                className="w-5 h-5 rounded border-2 border-white shadow-sm flex-shrink-0"
                                 style={{ backgroundColor: category.color }}
                               ></div>
                               <span className="flex-1 font-medium">{category.label}</span>
@@ -654,7 +653,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       const buttonClass = getCategoryButtonClass(person.signageCategory)
                       const tagClass = getCategoryTagClass(person.signageCategory)
                       const isSelected = selectedPersons.includes(person.id)
-                      
+
                       return (
                         <div
                           key={person.id}
@@ -668,7 +667,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                               onChange={() => toggleSelection(person.id)}
                               className="mt-2 w-5 h-5 rounded border-gray-300 cursor-pointer"
                             />
-                            
+
                             <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                               <img
                                 src={person.photoUrl}
@@ -676,23 +675,23 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            
+
                             <div className="flex-1 min-w-0">
                               <h3 className="font-bold text-gray-900 text-lg mb-1">{person.name}</h3>
                               <p className="text-sm text-gray-600 mb-2">{person.position}</p>
-                              
+
                               {/* Category Tag */}
                               <div className="mb-2">
                                 <span className={`px-2 py-1 rounded text-xs font-semibold ${tagClass}`}>
                                   {person.signageCategory}
                                 </span>
                               </div>
-                              
+
                               <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
                                 <span>{person.department}</span>
                                 {person.employeeId && <span>• ID: {person.employeeId}</span>}
                               </div>
-                              
+
                               {/* View Signage Button */}
                               <button
                                 onClick={() => handleViewSignage(person)}
@@ -705,7 +704,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                 View Signage
                               </button>
                             </div>
-                            
+
                             <button
                               onClick={() => deletePerson(person.id)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -719,7 +718,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       )
                     })}
                   </div>
-                  
+
                   {/* Multi-Person Signage Generation */}
                   {selectedPersons.length > 0 && (
                     <div className="border-t-2 border-gray-200 pt-6 mt-6">
@@ -784,7 +783,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                     className="w-12 h-10 rounded border-2 border-gray-300 cursor-pointer"
                   />
                 </div>
-                
+
                 <button
                   onClick={handlePrint}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors"
@@ -794,7 +793,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                   </svg>
                   Print
                 </button>
-                
+
                 <button
                   onClick={() => setShowSignage(false)}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -808,9 +807,9 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
 
             {/* Signage Preview */}
             <div className="flex-1 overflow-y-auto p-6 print:p-0 print-visible">
-              <div 
+              <div
                 className="mx-auto print:w-full print-visible"
-                style={{ 
+                style={{
                   backgroundColor: pageBackgroundColor,
                   width: '210mm',
                   minHeight: '297mm',
@@ -821,133 +820,133 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                   /* Multi-Person Signage */
                   <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div 
+                    <div
                       className="w-full py-4 px-6 rounded-t-lg mb-6"
                       style={{ backgroundColor: '#DC2626' }}
                     >
                       <h1 className="text-3xl font-bold text-white text-center uppercase">{headerText || 'AUTHORIZED PERSONNEL'}</h1>
                     </div>
-                    
+
                     {/* Grid of Persons */}
                     <div className={`grid ${getGridLayout(selectedPersonsList.length)} gap-6 flex-1`}>
-                    {selectedPersonsList.map((person, index) => {
-                      const categoryColor = getCategoryColor(person.signageCategory)
-                      const cardBgColor = cardBackgroundColors[person.id] || '#FFFFFF'
-                      const shift = getShiftDisplay(person.authorizationLevel)
-                      
-                      return (
-                        <div
-                          key={person.id}
-                          className="relative border-4 rounded-lg p-4 flex flex-col"
-                          style={{
-                            borderColor: categoryColor,
-                            backgroundColor: cardBgColor,
-                            borderWidth: '4px'
-                          }}
-                        >
-                          {/* Person Number Badge */}
-                          <div 
-                            className="absolute top-2 right-2 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                            style={{ backgroundColor: categoryColor }}
+                      {selectedPersonsList.map((person, index) => {
+                        const categoryColor = getCategoryColor(person.signageCategory)
+                        const cardBgColor = cardBackgroundColors[person.id] || '#FFFFFF'
+                        const shift = getShiftDisplay(person.authorizationLevel)
+
+                        return (
+                          <div
+                            key={person.id}
+                            className="relative border-4 rounded-lg p-4 flex flex-col"
+                            style={{
+                              borderColor: categoryColor,
+                              backgroundColor: cardBgColor,
+                              borderWidth: '4px'
+                            }}
                           >
-                            {index + 1}
-                          </div>
-
-                          {/* Profile Photo */}
-                          <div className="flex justify-center mb-4 mt-2">
-                            <img
-                              src={person.photoUrl}
-                              alt={person.name}
-                              className="w-32 h-32 rounded-full object-cover border-4"
-                              style={{ borderColor: categoryColor }}
-                            />
-                          </div>
-
-                          {/* Name */}
-                          <h3 className={`text-center font-bold text-xl mb-3 ${getTextColor(cardBgColor)}`}>{person.name}</h3>
-
-                          {/* ID */}
-                          <div className="mb-2 flex items-center gap-2">
-                            <span className={`font-semibold ${getSecondaryTextColor(cardBgColor)}`}>#</span>
-                            <span className={getSecondaryTextColor(cardBgColor)}>ID: {person.employeeId || 'N/A'}</span>
-                          </div>
-
-                          {/* Role */}
-                          <div className="mb-2 flex items-center gap-2">
-                            <svg className={`w-5 h-5 ${isDarkColor(cardBgColor) ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            <span className={getSecondaryTextColor(cardBgColor)}>Role: <span style={{ color: categoryColor, fontWeight: 'bold' }}>{person.position}</span></span>
-                          </div>
-
-                          {/* Department */}
-                          <div className="mb-3 flex items-center gap-2">
-                            <svg className={`w-5 h-5 ${isDarkColor(cardBgColor) ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span className={getSecondaryTextColor(cardBgColor)}>Dept: {person.department}</span>
-                          </div>
-
-                          {/* Shift */}
-                          {shift && (
-                            <div 
-                              className="mb-3 py-2 px-3 rounded flex items-center gap-2"
+                            {/* Person Number Badge */}
+                            <div
+                              className="absolute top-2 right-2 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
                               style={{ backgroundColor: categoryColor }}
                             >
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span className="text-white font-semibold">{shift}</span>
+                              {index + 1}
                             </div>
-                          )}
 
-                          {/* Contact Info */}
-                          <div className="space-y-2 mb-3">
-                            <div className="flex items-center gap-2 bg-yellow-50 py-1 px-2 rounded">
-                              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              <span className="text-sm text-gray-700">{person.phone}</span>
-                            </div>
-                            {person.email && (
-                              <div className="flex items-center gap-2 bg-yellow-50 py-1 px-2 rounded">
-                                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span className="text-sm text-gray-700">{person.email}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* QR Code */}
-                          {person.qrCodeText && person.qrCodeText.trim().length > 0 && (
-                            <div className="mt-auto flex justify-center pt-2">
+                            {/* Profile Photo */}
+                            <div className="flex justify-center mb-4 mt-2">
                               <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(person.qrCodeText.trim())}`}
-                                alt="QR Code"
-                                className="w-20 h-20 border-2 border-gray-300 p-1 bg-white rounded"
+                                src={person.photoUrl}
+                                alt={person.name}
+                                className="w-32 h-32 rounded-full object-cover border-4"
+                                style={{ borderColor: categoryColor }}
                               />
                             </div>
-                          )}
 
-                          {/* Card Background Color Picker (for editing) */}
-                          <div className="mt-2 flex items-center gap-2 no-print">
-                            <label className="text-xs text-gray-600">Card BG:</label>
-                            <input
-                              type="color"
-                              value={cardBgColor}
-                              onChange={(e) => setCardBackgroundColors(prev => ({
-                                ...prev,
-                                [person.id]: e.target.value
-                              }))}
-                              className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
-                            />
+                            {/* Name */}
+                            <h3 className={`text-center font-bold text-xl mb-3 ${getTextColor(cardBgColor)}`}>{person.name}</h3>
+
+                            {/* ID */}
+                            <div className="mb-2 flex items-center gap-2">
+                              <span className={`font-semibold ${getSecondaryTextColor(cardBgColor)}`}>#</span>
+                              <span className={getSecondaryTextColor(cardBgColor)}>ID: {person.employeeId || 'N/A'}</span>
+                            </div>
+
+                            {/* Role */}
+                            <div className="mb-2 flex items-center gap-2">
+                              <svg className={`w-5 h-5 ${isDarkColor(cardBgColor) ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <span className={getSecondaryTextColor(cardBgColor)}>Role: <span style={{ color: categoryColor, fontWeight: 'bold' }}>{person.position}</span></span>
+                            </div>
+
+                            {/* Department */}
+                            <div className="mb-3 flex items-center gap-2">
+                              <svg className={`w-5 h-5 ${isDarkColor(cardBgColor) ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              <span className={getSecondaryTextColor(cardBgColor)}>Dept: {person.department}</span>
+                            </div>
+
+                            {/* Shift */}
+                            {shift && (
+                              <div
+                                className="mb-3 py-2 px-3 rounded flex items-center gap-2"
+                                style={{ backgroundColor: categoryColor }}
+                              >
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-white font-semibold">{shift}</span>
+                              </div>
+                            )}
+
+                            {/* Contact Info */}
+                            <div className="space-y-2 mb-3">
+                              <div className="flex items-center gap-2 bg-yellow-50 py-1 px-2 rounded">
+                                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                <span className="text-sm text-gray-700">{person.phone}</span>
+                              </div>
+                              {person.email && (
+                                <div className="flex items-center gap-2 bg-yellow-50 py-1 px-2 rounded">
+                                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                  <span className="text-sm text-gray-700">{person.email}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* QR Code */}
+                            {person.qrCodeText && person.qrCodeText.trim().length > 0 && (
+                              <div className="mt-auto flex justify-center pt-2">
+                                <img
+                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(person.qrCodeText.trim())}`}
+                                  alt="QR Code"
+                                  className="w-20 h-20 border-2 border-gray-300 p-1 bg-white rounded"
+                                />
+                              </div>
+                            )}
+
+                            {/* Card Background Color Picker (for editing) */}
+                            <div className="mt-2 flex items-center gap-2 no-print">
+                              <label className="text-xs text-gray-600">Card BG:</label>
+                              <input
+                                type="color"
+                                value={cardBgColor}
+                                onChange={(e) => setCardBackgroundColors(prev => ({
+                                  ...prev,
+                                  [person.id]: e.target.value
+                                }))}
+                                className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
                     </div>
-                    
+
                     {/* Multi-Person Footer */}
                     <div className="mt-6 py-4 px-6 rounded" style={{ backgroundColor: '#1e3a8a' }}>
                       <div className="flex justify-between items-center text-white text-sm">
@@ -960,11 +959,11 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                   /* Single Person Signage */
                   <div className="relative border-4 rounded-lg p-6 flex flex-col h-full" style={{ borderColor: getCategoryColor(viewingPerson.signageCategory), backgroundColor: cardBackgroundColors[viewingPerson.id] || '#FFFFFF' }}>
                     {/* Header - Editable */}
-                    <div 
+                    <div
                       className={`w-full py-4 px-6 rounded-t-lg mb-6 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`}
                       style={{ backgroundColor: getCategoryColor(viewingPerson.signageCategory) }}
                     >
-                      <h1 
+                      <h1
                         className="text-3xl font-bold text-white text-center uppercase"
                         contentEditable={isEditingMode}
                         suppressContentEditableWarning={true}
@@ -979,8 +978,8 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       >
                         {(() => {
                           const personKey = `person_${viewingPerson.id}`
-                          return editableTexts[`${personKey}_header`] !== undefined 
-                            ? editableTexts[`${personKey}_header`] 
+                          return editableTexts[`${personKey}_header`] !== undefined
+                            ? editableTexts[`${personKey}_header`]
                             : (headerText || 'AUTHORIZED PERSONNEL')
                         })()}
                       </h1>
@@ -1003,10 +1002,10 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                         const personKey = `person_${viewingPerson.id}`
                         const defaultName = viewingPerson.name
                         const customName = editableTexts[`${personKey}_name`] !== undefined ? editableTexts[`${personKey}_name`] : defaultName
-                        
+
                         return (
                           <>
-                            <h2 
+                            <h2
                               className={`text-3xl font-bold mb-6 ${getTextColor(cardBgColor)} ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-2 rounded' : ''}`}
                               contentEditable={isEditingMode}
                               suppressContentEditableWarning={true}
@@ -1016,7 +1015,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                   [`${personKey}_name`]: e.target.textContent || defaultName
                                 }))
                               }}
-                              style={{ 
+                              style={{
                                 minHeight: '48px',
                                 cursor: isEditingMode ? 'text' : 'default'
                               }}
@@ -1028,7 +1027,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                             <div className="w-full space-y-3 mb-6">
                               <div className="flex items-center gap-3 bg-white py-2 px-4 rounded">
                                 <span className="text-xl font-semibold">#</span>
-                                <span 
+                                <span
                                   className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
                                   contentEditable={isEditingMode}
                                   suppressContentEditableWarning={true}
@@ -1049,7 +1048,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span 
+                                <span
                                   className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
                                   contentEditable={isEditingMode}
                                   suppressContentEditableWarning={true}
@@ -1070,7 +1069,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span 
+                                <span
                                   className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
                                   contentEditable={isEditingMode}
                                   suppressContentEditableWarning={true}
@@ -1093,14 +1092,14 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
 
                       {/* Shift - Editable */}
                       {viewingPerson.authorizationLevel && (
-                        <div 
+                        <div
                           className={`w-full py-3 px-4 rounded mb-6 flex items-center justify-center gap-3 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`}
                           style={{ backgroundColor: getCategoryColor(viewingPerson.signageCategory) }}
                         >
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span 
+                          <span
                             className="text-xl text-white font-semibold flex-1 text-center"
                             contentEditable={isEditingMode}
                             suppressContentEditableWarning={true}
@@ -1129,7 +1128,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                           </svg>
-                          <span 
+                          <span
                             className={`text-lg text-gray-700 flex-1 ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
                             contentEditable={isEditingMode}
                             suppressContentEditableWarning={true}
@@ -1174,11 +1173,10 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                         <div className="flex items-center justify-between gap-2">
                           <button
                             onClick={() => setIsEditingMode(!isEditingMode)}
-                            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                              isEditingMode 
-                                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${isEditingMode
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
+                              }`}
                           >
                             {isEditingMode ? '✓ Edit Mode ON' : '✎ Enable Edit Mode'}
                           </button>
@@ -1216,7 +1214,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                     {/* Footer - Editable */}
                     <div className={`mt-6 py-4 px-6 rounded-b-lg ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`} style={{ backgroundColor: '#1e3a8a' }}>
                       <div className="flex justify-between items-center text-white text-sm">
-                        <span 
+                        <span
                           contentEditable={isEditingMode}
                           suppressContentEditableWarning={true}
                           onBlur={(e) => {
@@ -1233,7 +1231,7 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                             return editableTexts[`${personKey}_footer_left`] !== undefined ? editableTexts[`${personKey}_footer_left`] : 'ISO 7010 Compliant • EHS Safety'
                           })()}
                         </span>
-                        <span 
+                        <span
                           contentEditable={isEditingMode}
                           suppressContentEditableWarning={true}
                           onBlur={(e) => {

@@ -12,42 +12,42 @@ import CustomizeSignage from './CustomizeSignage'
 const Dashboard = () => {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  
+
   // If Signage Generator is selected, show that component
   if (activeNav === 'generator') {
     return <SignageGenerator activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If AI Generator is selected, show that component
   if (activeNav === 'ai-generator') {
     return <AIGenerator activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If Authorized Persons is selected, show that component
   if (activeNav === 'authorized') {
     return <AuthorizedPersons activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If Emergency Team is selected, show that component
   if (activeNav === 'emergency') {
     return <EmergencyTeam activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If Organization Chart is selected, show that component
   if (activeNav === 'organization-chart') {
     return <OrganizationChart activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If Blog is selected, show that component
   if (activeNav === 'blog') {
     return <Blog activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If Template Library is selected, show that component
   if (activeNav === 'templates') {
     return <TemplateLibrary activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
   }
-  
+
   // If Customize Signage is selected, show that component
   if (activeNav === 'customize-signage') {
     return <CustomizeSignage activeNav={activeNav} setActiveNav={setActiveNav} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -59,10 +59,10 @@ const Dashboard = () => {
       <header className="bg-white border-b border-gray-200 shadow-sm px-4 md:px-6 lg:px-8 py-3 md:py-4 lg:py-5 sticky top-0 z-50">
         <div className="flex items-center justify-between gap-4 max-w-[1920px] mx-auto">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            {/* Mobile Menu Button */}
+            {/* Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
               <svg
@@ -117,7 +117,7 @@ const Dashboard = () => {
 
       <div className="flex relative w-full">
         {/* Shared Sidebar */}
-        <Sidebar 
+        <Sidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           sidebarOpen={sidebarOpen}
