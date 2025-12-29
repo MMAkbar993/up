@@ -8,7 +8,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [iconLibrary, setIconLibrary] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
-  const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
+  const [resizeStartData, setResizeStartData] = useState({ size: 0, width: 0, height: 0, x: 0, y: 0 })
   const [resizeCorner, setResizeCorner] = useState(null) // 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'right', 'bottom', 'left'
   const fileInputRef = useRef(null)
   const iconInputRef = useRef(null)
@@ -34,14 +34,43 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        addElement({
-          type: 'icon',
-          content: reader.result,
-          x: 50,
-          y: 50,
-          size: 80,
-          id: Date.now()
-        })
+        const img = new Image()
+        img.onload = () => {
+          // Initialize with image dimensions, but cap at 500px max
+          const maxSize = 500
+          let width = img.width
+          let height = img.height
+          
+          if (width > maxSize || height > maxSize) {
+            const scale = Math.min(maxSize / width, maxSize / height)
+            width = width * scale
+            height = height * scale
+          }
+          
+          // Ensure minimum size
+          if (width < 20) {
+            const scale = 20 / width
+            width = 20
+            height = height * scale
+          }
+          if (height < 20) {
+            const scale = 20 / height
+            height = 20
+            width = width * scale
+          }
+          
+          addElement({
+            type: 'icon',
+            content: reader.result,
+            x: 50,
+            y: 50,
+            size: Math.max(Math.round(width), Math.round(height)), // For backward compatibility
+            width: Math.round(width),
+            height: Math.round(height),
+            id: Date.now()
+          })
+        }
+        img.src = reader.result
       }
       reader.readAsDataURL(file)
     }
@@ -61,6 +90,8 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       fontSize: 24,
       color: '#000000',
       fontFamily: 'Arial',
+      width: 200, // Initial width in pixels
+      height: 50, // Initial height in pixels
       id: Date.now()
     }
     addElement(newElement)
@@ -72,7 +103,9 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       content: icon,
       x: 50,
       y: 50,
-      size: 80,
+      size: 80, // For backward compatibility
+      width: 80,
+      height: 80,
       id: Date.now()
     }
     addElement(newElement)
@@ -108,44 +141,123 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       const deltaX = e.clientX - resizeStartData.x
       const deltaY = e.clientY - resizeStartData.y
 
-      // Calculate the distance moved for uniform scaling
-      // For different corners and edges, we need to adjust the direction
-      let delta = 0
-      if (resizeCorner === 'top-left') {
-        // Dragging down-right increases size, up-left decreases
-        delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
-      } else if (resizeCorner === 'top-right') {
-        // Dragging down-left increases size, up-right decreases
-        delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
-      } else if (resizeCorner === 'bottom-left') {
-        // Dragging up-right increases size, down-left decreases
-        delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
-      } else if (resizeCorner === 'bottom-right') {
-        // Dragging down-right increases size, up-left decreases
-        delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
-      } else if (resizeCorner === 'top') {
-        // Dragging down increases size, up decreases
-        delta = -deltaY
-      } else if (resizeCorner === 'bottom') {
-        // Dragging down increases size, up decreases
-        delta = deltaY
-      } else if (resizeCorner === 'left') {
-        // Dragging left increases size, right decreases
-        delta = -deltaX
-      } else if (resizeCorner === 'right') {
-        // Dragging right increases size, left decreases
-        delta = deltaX
-      }
-
       const selectedEl = elements.find(el => el.id === selectedElement)
       if (!selectedEl) return
 
+      const handle = resizeCorner
+      const isCorner = ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(handle)
+      const isEdge = ['top', 'bottom', 'left', 'right'].includes(handle)
+
       if (selectedEl.type === 'text') {
-        const newFontSize = Math.max(12, Math.min(200, resizeStartData.size + delta))
-        updateElement(selectedElement, { fontSize: newFontSize })
+        // Text resizing: use width and height for container, fontSize scales proportionally
+        const handle = resizeCorner
+        const isCorner = ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(handle)
+        const isEdge = ['top', 'bottom', 'left', 'right'].includes(handle)
+        
+        let newWidth = resizeStartData.width || 200
+        let newHeight = resizeStartData.height || 50
+        let newFontSize = selectedEl.fontSize || 24
+
+        if (isCorner) {
+          // Corner resizing: maintain aspect ratio, resize both dimensions
+          const aspectRatio = (resizeStartData.width || 200) / (resizeStartData.height || 50)
+          let delta = 0
+          
+          if (handle === 'top-left') {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
+          } else if (handle === 'top-right') {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
+          } else if (handle === 'bottom-left') {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
+          } else {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+          }
+
+          const currentSize = Math.max(resizeStartData.width || 200, resizeStartData.height || 50)
+          const newSize = Math.max(50, Math.min(1000, currentSize + delta))
+          
+          if (aspectRatio >= 1) {
+            newWidth = newSize
+            newHeight = newSize / aspectRatio
+          } else {
+            newHeight = newSize
+            newWidth = newSize * aspectRatio
+          }
+          
+          // Scale fontSize proportionally based on average size change
+          const sizeRatio = newSize / currentSize
+          newFontSize = Math.max(12, Math.min(200, (selectedEl.fontSize || 24) * sizeRatio))
+        } else if (isEdge) {
+          // Edge resizing: resize only the perpendicular dimension
+          if (handle === 'top' || handle === 'bottom') {
+            const delta = handle === 'top' ? -deltaY : deltaY
+            newHeight = Math.max(30, Math.min(500, (resizeStartData.height || 50) + delta))
+            newWidth = resizeStartData.width || 200
+            // Scale fontSize based on height change
+            const heightRatio = newHeight / (resizeStartData.height || 50)
+            newFontSize = Math.max(12, Math.min(200, (selectedEl.fontSize || 24) * heightRatio))
+          } else if (handle === 'left' || handle === 'right') {
+            const delta = handle === 'left' ? -deltaX : deltaX
+            newWidth = Math.max(50, Math.min(1000, (resizeStartData.width || 200) + delta))
+            newHeight = resizeStartData.height || 50
+            // Keep fontSize the same for width-only changes, or scale slightly
+            // For text, width changes usually don't affect fontSize as much
+          }
+        }
+
+        updateElement(selectedElement, {
+          width: Math.round(newWidth),
+          height: Math.round(newHeight),
+          fontSize: Math.round(newFontSize)
+        })
       } else if (selectedEl.type === 'icon' || selectedEl.type === 'emoji') {
-        const newSize = Math.max(20, Math.min(500, resizeStartData.size + delta))
-        updateElement(selectedElement, { size: newSize })
+        // Icon/Image resizing: use width and height separately
+        let newWidth = resizeStartData.width || resizeStartData.size || 80
+        let newHeight = resizeStartData.height || resizeStartData.size || 80
+
+        if (isCorner) {
+          // Corner resizing: maintain aspect ratio, resize both dimensions
+          const aspectRatio = (resizeStartData.width || resizeStartData.size || 80) / (resizeStartData.height || resizeStartData.size || 80)
+          let delta = 0
+          
+          if (handle === 'top-left') {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
+          } else if (handle === 'top-right') {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
+          } else if (handle === 'bottom-left') {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
+          } else {
+            delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+          }
+
+          const currentSize = Math.max(resizeStartData.width || resizeStartData.size || 80, resizeStartData.height || resizeStartData.size || 80)
+          const newSize = Math.max(20, Math.min(500, currentSize + delta))
+          
+          if (aspectRatio >= 1) {
+            newWidth = newSize
+            newHeight = newSize / aspectRatio
+          } else {
+            newHeight = newSize
+            newWidth = newSize * aspectRatio
+          }
+        } else if (isEdge) {
+          // Edge resizing: resize only the perpendicular dimension
+          if (handle === 'top' || handle === 'bottom') {
+            const delta = handle === 'top' ? -deltaY : deltaY
+            newHeight = Math.max(20, Math.min(500, (resizeStartData.height || resizeStartData.size || 80) + delta))
+            newWidth = resizeStartData.width || resizeStartData.size || 80
+          } else if (handle === 'left' || handle === 'right') {
+            const delta = handle === 'left' ? -deltaX : deltaX
+            newWidth = Math.max(20, Math.min(500, (resizeStartData.width || resizeStartData.size || 80) + delta))
+            newHeight = resizeStartData.height || resizeStartData.size || 80
+          }
+        }
+
+        updateElement(selectedElement, {
+          width: Math.round(newWidth),
+          height: Math.round(newHeight),
+          size: Math.max(Math.round(newWidth), Math.round(newHeight)) // For backward compatibility
+        })
       }
       return
     }
@@ -169,7 +281,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setIsDragging(false)
     setIsResizing(false)
     setResizeCorner(null)
-    setResizeStartData({ size: 0, x: 0, y: 0 })
+    setResizeStartData({ size: 0, width: 0, height: 0, x: 0, y: 0 })
   }
 
   const handleResizeStart = (e, element, corner) => {
@@ -179,12 +291,45 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setSelectedElement(element.id)
     setResizeCorner(corner)
 
-    const currentSize = element.type === 'text' ? element.fontSize : element.size
-    setResizeStartData({
-      size: currentSize,
-      x: e.clientX,
-      y: e.clientY
-    })
+    if (element.type === 'text') {
+      const currentWidth = element.width || 200
+      const currentHeight = element.height || 50
+      
+      // Initialize width/height if not set
+      if (!element.width || !element.height) {
+        updateElement(element.id, {
+          width: currentWidth,
+          height: currentHeight
+        })
+      }
+      
+      setResizeStartData({
+        size: element.fontSize || 24,
+        width: currentWidth,
+        height: currentHeight,
+        x: e.clientX,
+        y: e.clientY
+      })
+    } else if (element.type === 'icon' || element.type === 'emoji') {
+      const currentWidth = element.width || element.size || 80
+      const currentHeight = element.height || element.size || 80
+      
+      // Initialize width/height if not set
+      if (!element.width || !element.height) {
+        updateElement(element.id, {
+          width: currentWidth,
+          height: currentHeight
+        })
+      }
+      
+      setResizeStartData({
+        size: element.size || Math.max(currentWidth, currentHeight),
+        width: currentWidth,
+        height: currentHeight,
+        x: e.clientX,
+        y: e.clientY
+      })
+    }
   }
 
   const handleCanvasClick = () => {
@@ -252,7 +397,8 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Left Sidebar - Tools */}
-            <div className="lg:col-span-1 space-y-4">
+            <div className="lg:col-span-1">
+              <div className="lg:sticky lg:top-[120px] space-y-4 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pb-4">
               <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Tools</h2>
 
@@ -430,19 +576,44 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                   {(selectedEl.type === 'icon' || selectedEl.type === 'emoji') && (
                     <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Size: {selectedEl.size}px</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Size: {selectedEl.size || Math.max(selectedEl.width || 80, selectedEl.height || 80)}px
+                      </label>
                       <input
                         type="range"
                         min="20"
                         max="200"
-                        value={selectedEl.size}
-                        onChange={(e) => updateElement(selectedEl.id, { size: parseInt(e.target.value) })}
+                        value={selectedEl.size || Math.max(selectedEl.width || 80, selectedEl.height || 80)}
+                        onChange={(e) => {
+                          const newSize = parseInt(e.target.value)
+                          const currentWidth = selectedEl.width || selectedEl.size || 80
+                          const currentHeight = selectedEl.height || selectedEl.size || 80
+                          const aspectRatio = currentWidth / currentHeight
+                          let newWidth = currentWidth
+                          let newHeight = currentHeight
+                          
+                          // Maintain aspect ratio when resizing via slider
+                          if (currentWidth >= currentHeight) {
+                            newWidth = newSize
+                            newHeight = newSize / aspectRatio
+                          } else {
+                            newHeight = newSize
+                            newWidth = newSize * aspectRatio
+                          }
+                          
+                          updateElement(selectedEl.id, {
+                            size: newSize,
+                            width: Math.round(newWidth),
+                            height: Math.round(newHeight)
+                          })
+                        }}
                         className="w-full"
                       />
                     </div>
                   )}
                 </div>
               )}
+              </div>
             </div>
 
             {/* Canvas Area */}
@@ -482,27 +653,56 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         left: `${element.x}%`,
                         top: `${element.y}%`,
                         transform: 'translate(-50%, -50%)',
+                        width: (element.type === 'icon' || element.type === 'emoji') 
+                          ? `${element.width || element.size || 80}px` 
+                          : (element.type === 'text' 
+                            ? `${element.width || 200}px` 
+                            : 'auto'),
+                        height: (element.type === 'icon' || element.type === 'emoji') 
+                          ? `${element.height || element.size || 80}px` 
+                          : (element.type === 'text' 
+                            ? `${element.height || 50}px` 
+                            : 'auto'),
                         cursor: isResizing && selectedElement === element.id ? 'nwse-resize' : 'move',
                         border: selectedElement === element.id ? '2px dashed #3B82F6' : 'none',
                         padding: selectedElement === element.id ? '4px' : '0',
-                        zIndex: selectedElement === element.id ? 1000 : 100
+                        zIndex: selectedElement === element.id ? 1000 : 100,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
                       {element.type === 'text' && (
                         <div
                           style={{
-                            fontSize: `${element.fontSize}px`,
-                            color: element.color,
-                            fontFamily: element.fontFamily,
-                            whiteSpace: 'nowrap',
-                            userSelect: 'none'
+                            fontSize: `${element.fontSize || 24}px`,
+                            color: element.color || '#000000',
+                            fontFamily: element.fontFamily || 'Arial',
+                            width: `${element.width || 200}px`,
+                            height: `${element.height || 50}px`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            wordWrap: 'break-word',
+                            overflow: 'hidden',
+                            textAlign: 'center',
+                            userSelect: 'none',
+                            lineHeight: '1.2'
                           }}
                         >
                           {element.content}
                         </div>
                       )}
                       {element.type === 'emoji' && (
-                        <div style={{ fontSize: `${element.size}px`, userSelect: 'none' }}>
+                        <div style={{ 
+                          fontSize: `${element.size || Math.max(element.width || 80, element.height || 80)}px`, 
+                          userSelect: 'none',
+                          width: `${element.width || element.size || 80}px`,
+                          height: `${element.height || element.size || 80}px`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
                           {element.content}
                         </div>
                       )}
@@ -511,11 +711,12 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           src={element.content}
                           alt="Icon"
                           style={{
-                            width: `${element.size}px`,
-                            height: `${element.size}px`,
-                            objectFit: 'contain',
+                            width: `${element.width || element.size || 80}px`,
+                            height: `${element.height || element.size || 80}px`,
+                            objectFit: 'fill',
                             userSelect: 'none',
-                            pointerEvents: 'none'
+                            pointerEvents: 'none',
+                            display: 'block'
                           }}
                           draggable={false}
                         />
@@ -528,16 +729,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              top: '-8px',
-                              left: '-8px',
-                              width: '16px',
-                              height: '16px',
+                              top: '-6px',
+                              left: '-6px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'nwse-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'top-left')}
                           />
@@ -546,17 +747,17 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              top: '-8px',
+                              top: '-6px',
                               left: '50%',
                               transform: 'translateX(-50%)',
-                              width: '16px',
-                              height: '16px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'ns-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'top')}
                           />
@@ -565,16 +766,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              top: '-8px',
-                              right: '-8px',
-                              width: '16px',
-                              height: '16px',
+                              top: '-6px',
+                              right: '-6px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'nesw-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'top-right')}
                           />
@@ -584,16 +785,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             style={{
                               position: 'absolute',
                               top: '50%',
-                              right: '-8px',
+                              right: '-6px',
                               transform: 'translateY(-50%)',
-                              width: '16px',
-                              height: '16px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'ew-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'right')}
                           />
@@ -602,16 +803,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              bottom: '-8px',
-                              right: '-8px',
-                              width: '16px',
-                              height: '16px',
+                              bottom: '-6px',
+                              right: '-6px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'nwse-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'bottom-right')}
                           />
@@ -620,17 +821,17 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              bottom: '-8px',
+                              bottom: '-6px',
                               left: '50%',
                               transform: 'translateX(-50%)',
-                              width: '16px',
-                              height: '16px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'ns-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'bottom')}
                           />
@@ -639,16 +840,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              bottom: '-8px',
-                              left: '-8px',
-                              width: '16px',
-                              height: '16px',
+                              bottom: '-6px',
+                              left: '-6px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'nesw-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'bottom-left')}
                           />
@@ -658,16 +859,16 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             style={{
                               position: 'absolute',
                               top: '50%',
-                              left: '-8px',
+                              left: '-6px',
                               transform: 'translateY(-50%)',
-                              width: '16px',
-                              height: '16px',
+                              width: '12px',
+                              height: '12px',
                               backgroundColor: '#3B82F6',
-                              border: '2px solid white',
+                              border: '1.5px solid white',
                               borderRadius: '50%',
                               cursor: 'ew-resize',
                               zIndex: 1001,
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'left')}
                           />

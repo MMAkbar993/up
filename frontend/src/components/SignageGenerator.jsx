@@ -39,8 +39,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     contractorLogo: null,
     clientLogoPosition: { x: 10, y: 10 }, // percentage
     contractorLogoPosition: { x: 90, y: 10 }, // percentage
-    clientLogoSize: 80, // pixels
-    contractorLogoSize: 80, // pixels
+    clientLogoSize: 80, // pixels (for backward compatibility)
+    contractorLogoSize: 80, // pixels (for backward compatibility)
+    clientLogoWidth: 80, // pixels
+    clientLogoHeight: 80, // pixels
+    contractorLogoWidth: 80, // pixels
+    contractorLogoHeight: 80, // pixels
     clientLogoLocked: false,
     contractorLogoLocked: false,
     brandColors: []
@@ -83,6 +87,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [elementResizeHandle, setElementResizeHandle] = useState(null) // 'top-left', 'top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left'
   const [elementResizeStartData, setElementResizeStartData] = useState({ size: 0, x: 0, y: 0, positionX: 0, positionY: 0 })
   const previewRef = useRef(null) // Ref for the preview container
+  const signageTypeRef = useRef(null) // Ref for the Signage Type section
+  const [scrollDirection, setScrollDirection] = useState('down') // 'down' or 'up'
+  const lastScrollY = useRef(0)
 
   // AI Generation workflow state
   const [aiGenerationStep, setAiGenerationStep] = useState(1) // 1: Describe, 2: Analyze, 3: Design, 4: Export
@@ -591,6 +598,45 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     return () => clearTimeout(autoSaveTimeout)
   }, [formData, identificationData, textElements, imageElements, backgroundSettings, companyBranding, signageType, autoSaveEnabled])
 
+  // Scroll direction detection for sticky Live Preview Panel
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // Check if we've scrolled past the Signage Type section
+      if (signageTypeRef.current) {
+        const signageTypeRect = signageTypeRef.current.getBoundingClientRect()
+        const hasScrolledPastSignageType = signageTypeRect.bottom < 0
+        
+        if (currentScrollY > lastScrollY.current && hasScrolledPastSignageType) {
+          // Scrolling down and past Signage Type - make sticky
+          setScrollDirection('down')
+        } else if (currentScrollY < lastScrollY.current) {
+          // Scrolling up - always scroll with page
+          setScrollDirection('up')
+        } else if (!hasScrolledPastSignageType) {
+          // Haven't scrolled past Signage Type yet - don't be sticky
+          setScrollDirection('up')
+        }
+      } else {
+        // Fallback: just track scroll direction
+        if (currentScrollY > lastScrollY.current) {
+          setScrollDirection('down')
+        } else if (currentScrollY < lastScrollY.current) {
+          setScrollDirection('up')
+        }
+      }
+      
+      lastScrollY.current = currentScrollY
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
   // Load auto-saved work on mount
   useEffect(() => {
     try {
@@ -1035,17 +1081,48 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
 
   // Handle logo resize start
-  const handleLogoResizeStart = (e, logoType, corner) => {
+  const handleLogoResizeStart = (e, logoType, handle) => {
     e.preventDefault()
     e.stopPropagation()
     setResizingLogo(logoType)
     setSelectedLogo(logoType)
-    setLogoResizeCorner(corner)
-    const currentSize = logoType === 'client'
-      ? companyBranding.clientLogoSize
-      : companyBranding.contractorLogoSize
+    setLogoResizeCorner(handle)
+    
+    // Get current dimensions, with fallback to size for backward compatibility
+    let currentWidth = logoType === 'client'
+      ? (companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80)
+      : (companyBranding.contractorLogoWidth || companyBranding.contractorLogoSize || 80)
+    let currentHeight = logoType === 'client'
+      ? (companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80)
+      : (companyBranding.contractorLogoHeight || companyBranding.contractorLogoSize || 80)
+    
+    // If width/height weren't set, initialize them from size
+    if (logoType === 'client' && (!companyBranding.clientLogoWidth || !companyBranding.clientLogoHeight)) {
+      const size = companyBranding.clientLogoSize || 80
+      currentWidth = size
+      currentHeight = size
+      // Update state to have proper width/height
+      setCompanyBranding({
+        ...companyBranding,
+        clientLogoWidth: size,
+        clientLogoHeight: size
+      })
+    } else if (logoType === 'contractor' && (!companyBranding.contractorLogoWidth || !companyBranding.contractorLogoHeight)) {
+      const size = companyBranding.contractorLogoSize || 80
+      currentWidth = size
+      currentHeight = size
+      // Update state to have proper width/height
+      setCompanyBranding({
+        ...companyBranding,
+        contractorLogoWidth: size,
+        contractorLogoHeight: size
+      })
+    }
+    
     setResizeStartData({
-      size: currentSize,
+      size: Math.max(currentWidth, currentHeight), // For backward compatibility
+      width: currentWidth,
+      height: currentHeight,
       x: e.clientX,
       y: e.clientY
     })
@@ -1058,34 +1135,74 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     const deltaX = e.clientX - resizeStartData.x
     const deltaY = e.clientY - resizeStartData.y
 
-    // Calculate the distance moved for uniform scaling
-    // For different corners, we need to adjust the direction
-    let delta = 0
-    if (logoResizeCorner === 'top-left') {
-      // Dragging down-right increases size, up-left decreases
-      delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
-    } else if (logoResizeCorner === 'top-right') {
-      // Dragging down-left increases size, up-right decreases
-      delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
-    } else if (logoResizeCorner === 'bottom-left') {
-      // Dragging up-right increases size, down-left decreases
-      delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
-    } else {
-      // bottom-right: Dragging down-right increases size, up-left decreases
-      delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+    const handle = logoResizeCorner
+    let newWidth = resizeStartData.width
+    let newHeight = resizeStartData.height
+
+    // Determine if it's a corner (proportional resize) or edge (single dimension resize)
+    const isCorner = ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(handle)
+    const isEdge = ['top', 'bottom', 'left', 'right'].includes(handle)
+
+    if (isCorner) {
+      // Corner resizing: maintain aspect ratio, resize both dimensions
+      const aspectRatio = resizeStartData.width / resizeStartData.height
+      let delta = 0
+      
+      if (handle === 'top-left') {
+        // Dragging down-right increases size, up-left decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
+      } else if (handle === 'top-right') {
+        // Dragging down-left increases size, up-right decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
+      } else if (handle === 'bottom-left') {
+        // Dragging up-right increases size, down-left decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
+      } else {
+        // bottom-right: Dragging down-right increases size, up-left decreases
+        delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+      }
+
+      // Calculate new size maintaining aspect ratio
+      const newSize = Math.max(20, Math.min(500, Math.max(resizeStartData.width, resizeStartData.height) + delta))
+      
+      if (aspectRatio >= 1) {
+        // Width is larger or equal
+        newWidth = newSize
+        newHeight = newSize / aspectRatio
+      } else {
+        // Height is larger
+        newHeight = newSize
+        newWidth = newSize * aspectRatio
+      }
+    } else if (isEdge) {
+      // Edge resizing: resize only the perpendicular dimension
+      if (handle === 'top' || handle === 'bottom') {
+        // Resize height only
+        const delta = handle === 'top' ? -deltaY : deltaY
+        newHeight = Math.max(20, Math.min(500, resizeStartData.height + delta))
+        newWidth = resizeStartData.width // Keep width unchanged
+      } else if (handle === 'left' || handle === 'right') {
+        // Resize width only
+        const delta = handle === 'left' ? -deltaX : deltaX
+        newWidth = Math.max(20, Math.min(500, resizeStartData.width + delta))
+        newHeight = resizeStartData.height // Keep height unchanged
+      }
     }
 
-    const newSize = Math.max(20, Math.min(500, resizeStartData.size + delta))
-
+    // Update the logo dimensions
     if (resizingLogo === 'client') {
       setCompanyBranding({
         ...companyBranding,
-        clientLogoSize: newSize
+        clientLogoWidth: newWidth,
+        clientLogoHeight: newHeight,
+        clientLogoSize: Math.max(newWidth, newHeight) // For backward compatibility
       })
     } else {
       setCompanyBranding({
         ...companyBranding,
-        contractorLogoSize: newSize
+        contractorLogoWidth: newWidth,
+        contractorLogoHeight: newHeight,
+        contractorLogoSize: Math.max(newWidth, newHeight) // For backward compatibility
       })
     }
   }
@@ -4339,7 +4456,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               {/* Form Section */}
               <div className="flex-1 lg:max-w-2xl xl:max-w-3xl pr-1 sm:pr-2 pb-4">
                 {/* Signage Type - Scrolls with page */}
-                <div className="mb-4 sm:mb-6 lg:mb-8">
+                <div ref={signageTypeRef} className="mb-4 sm:mb-6 lg:mb-8">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
                     <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Signage Type</h2>
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -5670,7 +5787,40 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                       if (file) {
                                         const reader = new FileReader()
                                         reader.onload = (event) => {
-                                          setCompanyBranding({ ...companyBranding, clientLogo: event.target.result })
+                                          const img = new Image()
+                                          img.onload = () => {
+                                            // Initialize with image dimensions, but cap at 500px max
+                                            const maxSize = 500
+                                            let width = img.width
+                                            let height = img.height
+                                            
+                                            if (width > maxSize || height > maxSize) {
+                                              const scale = Math.min(maxSize / width, maxSize / height)
+                                              width = width * scale
+                                              height = height * scale
+                                            }
+                                            
+                                            // Ensure minimum size
+                                            if (width < 20) {
+                                              const scale = 20 / width
+                                              width = 20
+                                              height = height * scale
+                                            }
+                                            if (height < 20) {
+                                              const scale = 20 / height
+                                              height = 20
+                                              width = width * scale
+                                            }
+                                            
+                                            setCompanyBranding({ 
+                                              ...companyBranding, 
+                                              clientLogo: event.target.result,
+                                              clientLogoWidth: Math.round(width),
+                                              clientLogoHeight: Math.round(height),
+                                              clientLogoSize: Math.max(Math.round(width), Math.round(height))
+                                            })
+                                          }
+                                          img.src = event.target.result
                                         }
                                         reader.readAsDataURL(file)
                                       }
@@ -5698,9 +5848,32 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                     type="range"
                                     min="40"
                                     max="200"
-                                    value={companyBranding.clientLogoSize}
-                                    onChange={(e) => setCompanyBranding({ ...companyBranding, clientLogoSize: parseInt(e.target.value) })}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  value={companyBranding.clientLogoSize}
+                                  onChange={(e) => {
+                                    const newSize = parseInt(e.target.value)
+                                    const currentWidth = companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80
+                                    const currentHeight = companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80
+                                    const aspectRatio = currentWidth / currentHeight
+                                    let newWidth = currentWidth
+                                    let newHeight = currentHeight
+                                    
+                                    // Maintain aspect ratio when resizing via slider
+                                    if (currentWidth >= currentHeight) {
+                                      newWidth = newSize
+                                      newHeight = newSize / aspectRatio
+                                    } else {
+                                      newHeight = newSize
+                                      newWidth = newSize * aspectRatio
+                                    }
+                                    
+                                    setCompanyBranding({ 
+                                      ...companyBranding, 
+                                      clientLogoSize: newSize,
+                                      clientLogoWidth: Math.round(newWidth),
+                                      clientLogoHeight: Math.round(newHeight)
+                                    })
+                                  }}
+                                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                   />
                                 </div>
                                 <label className="flex items-center gap-2 cursor-pointer">
@@ -5761,7 +5934,40 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                       if (file) {
                                         const reader = new FileReader()
                                         reader.onload = (event) => {
-                                          setCompanyBranding({ ...companyBranding, contractorLogo: event.target.result })
+                                          const img = new Image()
+                                          img.onload = () => {
+                                            // Initialize with image dimensions, but cap at 500px max
+                                            const maxSize = 500
+                                            let width = img.width
+                                            let height = img.height
+                                            
+                                            if (width > maxSize || height > maxSize) {
+                                              const scale = Math.min(maxSize / width, maxSize / height)
+                                              width = width * scale
+                                              height = height * scale
+                                            }
+                                            
+                                            // Ensure minimum size
+                                            if (width < 20) {
+                                              const scale = 20 / width
+                                              width = 20
+                                              height = height * scale
+                                            }
+                                            if (height < 20) {
+                                              const scale = 20 / height
+                                              height = 20
+                                              width = width * scale
+                                            }
+                                            
+                                            setCompanyBranding({ 
+                                              ...companyBranding, 
+                                              contractorLogo: event.target.result,
+                                              contractorLogoWidth: Math.round(width),
+                                              contractorLogoHeight: Math.round(height),
+                                              contractorLogoSize: Math.max(Math.round(width), Math.round(height))
+                                            })
+                                          }
+                                          img.src = event.target.result
                                         }
                                         reader.readAsDataURL(file)
                                       }
@@ -5789,7 +5995,30 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   min="40"
                                   max="200"
                                   value={companyBranding.contractorLogoSize}
-                                  onChange={(e) => setCompanyBranding({ ...companyBranding, contractorLogoSize: parseInt(e.target.value) })}
+                                  onChange={(e) => {
+                                    const newSize = parseInt(e.target.value)
+                                    const currentWidth = companyBranding.contractorLogoWidth || companyBranding.contractorLogoSize || 80
+                                    const currentHeight = companyBranding.contractorLogoHeight || companyBranding.contractorLogoSize || 80
+                                    const aspectRatio = currentWidth / currentHeight
+                                    let newWidth = currentWidth
+                                    let newHeight = currentHeight
+                                    
+                                    // Maintain aspect ratio when resizing via slider
+                                    if (currentWidth >= currentHeight) {
+                                      newWidth = newSize
+                                      newHeight = newSize / aspectRatio
+                                    } else {
+                                      newHeight = newSize
+                                      newWidth = newSize * aspectRatio
+                                    }
+                                    
+                                    setCompanyBranding({ 
+                                      ...companyBranding, 
+                                      contractorLogoSize: newSize,
+                                      contractorLogoWidth: Math.round(newWidth),
+                                      contractorLogoHeight: Math.round(newHeight)
+                                    })
+                                  }}
                                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                 />
                               </div>
@@ -5822,7 +6051,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         {/* Instructions */}
                         <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                           <p className="text-sm text-gray-700">
-                            <strong>Tip:</strong> After uploading logos, you can drag them to adjust their position in the preview area. Use the blue resize handle in the bottom-right corner of each logo to resize them with your cursor.
+                            <strong>Tip:</strong> After uploading logos, you can drag them to adjust their position in the preview area. Use the blue resize handles on corners to resize proportionally, or use the edge handles (top, bottom, left, right) to resize only width or height.
                           </p>
                         </div>
 
@@ -5843,7 +6072,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
               {/* Live Preview Panel */}
               <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0 order-first lg:order-last">
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md sticky top-[110px] sm:top-[130px] md:top-[150px] lg:top-[170px] z-30">
+                <div className={`bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md z-30 transition-all duration-300 ${
+                  scrollDirection === 'down' 
+                    ? 'sticky top-[110px] sm:top-[130px] md:top-[150px] lg:top-[170px]' 
+                    : ''
+                }`}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
                     <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
                     <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-semibold self-start sm:self-auto">
@@ -5889,9 +6122,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           left: `${companyBranding.clientLogoPosition.x}%`,
                           top: `${companyBranding.clientLogoPosition.y}%`,
                           transform: 'translate(-50%, -50%)',
+                          width: `${companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80}px`,
+                          height: `${companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80}px`,
                           cursor: resizingLogo === 'client' ? 'nwse-resize' : (draggingLogo === 'client' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
                           zIndex: 1000,
-                          userSelect: 'none'
+                          userSelect: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
                         }}
                         onMouseDown={(e) => {
                           // Don't start drag if clicking on resize handle
@@ -5916,9 +6154,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           src={companyBranding.clientLogo}
                           alt="Client Logo"
                           style={{
-                            width: `${companyBranding.clientLogoSize}px`,
-                            height: 'auto',
+                            width: `${companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80}px`,
+                            height: `${companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80}px`,
+                            objectFit: 'fill',
                             pointerEvents: 'none',
+                            display: 'block',
                             filter: (draggingLogo === 'client' || resizingLogo === 'client' || selectedLogo === 'client') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                           }}
                           draggable={false}
@@ -5931,16 +6171,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                top: '-8px',
-                                left: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                top: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nwse-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-left')}
                             />
@@ -5949,16 +6189,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                top: '-8px',
-                                right: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nesw-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top-right')}
                             />
@@ -5967,16 +6207,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                bottom: '-8px',
-                                left: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                bottom: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nesw-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-left')}
                             />
@@ -5985,18 +6225,95 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                bottom: '-8px',
-                                right: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                bottom: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nwse-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom-right')}
+                            />
+                            {/* Edge Handles */}
+                            {/* Top */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ns-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'top')}
+                            />
+                            {/* Bottom */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-6px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ns-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'bottom')}
+                            />
+                            {/* Left */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                left: '-6px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ew-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'left')}
+                            />
+                            {/* Right */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                right: '-6px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ew-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'client', 'right')}
                             />
                           </>
                         )}
@@ -6010,9 +6327,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           left: `${companyBranding.contractorLogoPosition.x}%`,
                           top: `${companyBranding.contractorLogoPosition.y}%`,
                           transform: 'translate(-50%, -50%)',
+                          width: `${companyBranding.contractorLogoWidth || companyBranding.contractorLogoSize || 80}px`,
+                          height: `${companyBranding.contractorLogoHeight || companyBranding.contractorLogoSize || 80}px`,
                           cursor: resizingLogo === 'contractor' ? 'nwse-resize' : (draggingLogo === 'contractor' ? 'grabbing' : (isShiftPressed ? 'nwse-resize' : 'grab')),
                           zIndex: 1000,
-                          userSelect: 'none'
+                          userSelect: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
                         }}
                         onMouseDown={(e) => {
                           // Don't start drag if clicking on resize handle
@@ -6037,9 +6359,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           src={companyBranding.contractorLogo}
                           alt="Contractor Logo"
                           style={{
-                            width: `${companyBranding.contractorLogoSize}px`,
-                            height: 'auto',
+                            width: `${companyBranding.contractorLogoWidth || companyBranding.contractorLogoSize || 80}px`,
+                            height: `${companyBranding.contractorLogoHeight || companyBranding.contractorLogoSize || 80}px`,
+                            objectFit: 'fill',
                             pointerEvents: 'none',
+                            display: 'block',
                             filter: (draggingLogo === 'contractor' || resizingLogo === 'contractor' || selectedLogo === 'contractor') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                           }}
                           draggable={false}
@@ -6052,16 +6376,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                top: '-8px',
-                                left: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                top: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nwse-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-left')}
                             />
@@ -6070,16 +6394,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                top: '-8px',
-                                right: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nesw-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top-right')}
                             />
@@ -6088,16 +6412,16 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                bottom: '-8px',
-                                left: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                bottom: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nesw-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-left')}
                             />
@@ -6106,18 +6430,95 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               className="resize-handle"
                               style={{
                                 position: 'absolute',
-                                bottom: '-8px',
-                                right: '-8px',
-                                width: '16px',
-                                height: '16px',
+                                bottom: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: '#3B82F6',
-                                border: '2px solid white',
+                                border: '1.5px solid white',
                                 borderRadius: '50%',
                                 cursor: 'nwse-resize',
                                 zIndex: 1001,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}
                               onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom-right')}
+                            />
+                            {/* Edge Handles */}
+                            {/* Top */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ns-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'top')}
+                            />
+                            {/* Bottom */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-6px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ns-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'bottom')}
+                            />
+                            {/* Left */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                left: '-6px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ew-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'left')}
+                            />
+                            {/* Right */}
+                            <div
+                              className="resize-handle"
+                              style={{
+                                position: 'absolute',
+                                right: '-6px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '1.5px solid white',
+                                borderRadius: '50%',
+                                cursor: 'ew-resize',
+                                zIndex: 1001,
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                              onMouseDown={(e) => handleLogoResizeStart(e, 'contractor', 'right')}
                             />
                           </>
                         )}
@@ -6164,25 +6565,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             <>
                               {/* Red Header Section */}
                               <div className="bg-red-600 p-3 sm:p-4 flex flex-col">
-                                {/* Warning Icons */}
-                                <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                                  {[0, 1].map((index) => (
-                                    <div key={index} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-full">
-                                      {signageIcons[index] ? (
-                                        <img
-                                          src={signageIcons[index]}
-                                          alt={`Warning icon ${index + 1}`}
-                                          className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
-                                        />
-                                      ) : (
-                                        <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round" />
-                                          <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                                        </svg>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
+                                {/* Warning Icons - Only show if icons are added */}
+                                {(signageIcons[0] || signageIcons[1]) && (
+                                  <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                                    {[0, 1].map((index) => (
+                                      signageIcons[index] && (
+                                        <div key={index} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-full">
+                                          <img
+                                            src={signageIcons[index]}
+                                            alt={`Warning icon ${index + 1}`}
+                                            className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+                                          />
+                                        </div>
+                                      )
+                                    ))}
+                                  </div>
+                                )}
 
                                 {/* Title */}
                                 <div className="text-center mb-2">
@@ -6393,25 +6791,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   backgroundPosition: 'center'
                                 }}
                               >
-                                {/* Warning Icons */}
-                                <div className="flex justify-center gap-4 mb-4">
-                                  {[0, 1].map((index) => (
-                                    <div key={index} className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-white rounded-full border-2 border-black">
-                                      {signageIcons[index] ? (
-                                        <img
-                                          src={signageIcons[index]}
-                                          alt={`Warning icon ${index + 1}`}
-                                          className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                                        />
-                                      ) : (
-                                        <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 2L1 21h22L12 2z" fill="#FCD34D" stroke="#000000" strokeWidth="1.5" strokeLinejoin="round" />
-                                          <path d="M12 8v4M12 16h.01" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                                        </svg>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
+                                {/* Warning Icons - Only show if icons are added */}
+                                {(signageIcons[0] || signageIcons[1]) && (
+                                  <div className="flex justify-center gap-4 mb-4">
+                                    {[0, 1].map((index) => (
+                                      signageIcons[index] && (
+                                        <div key={index} className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-white rounded-full border-2 border-black">
+                                          <img
+                                            src={signageIcons[index]}
+                                            alt={`Warning icon ${index + 1}`}
+                                            className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                                          />
+                                        </div>
+                                      )
+                                    ))}
+                                  </div>
+                                )}
 
                                 {/* Title */}
                                 <div className="text-center">
