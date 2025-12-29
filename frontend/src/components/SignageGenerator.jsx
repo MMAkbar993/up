@@ -21,6 +21,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     useExistingQR: false,
     existingQRCode: '',
     showOnlyTitleAndQR: false,
+    iso7010FooterText: 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY',
     size: 'A4',
     resolution: '300'
   })
@@ -77,6 +78,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     orientation: 'Landscape'
   })
   const [draggingElement, setDraggingElement] = useState(null) // 'icon' or 'text'
+  const [selectedElement, setSelectedElement] = useState(null) // 'icon' or 'text' - tracks which element is selected for resizing
+  const [resizingElement, setResizingElement] = useState(null) // 'icon' or 'text'
+  const [elementResizeHandle, setElementResizeHandle] = useState(null) // 'top-left', 'top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left'
+  const [elementResizeStartData, setElementResizeStartData] = useState({ size: 0, x: 0, y: 0, positionX: 0, positionY: 0 })
   const previewRef = useRef(null) // Ref for the preview container
 
   // AI Generation workflow state
@@ -1093,8 +1098,35 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
 
   // Handle icon/text drag start
-  const handleElementDragStart = (elementType) => {
+  const handleElementDragStart = (elementType, e) => {
+    // Don't start drag if clicking on resize handle
+    if (e && e.target.classList.contains('element-resize-handle')) return
     setDraggingElement(elementType)
+    setSelectedElement(elementType)
+  }
+
+  // Handle element resize start
+  const handleElementResizeStart = (e, elementType, handle) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setResizingElement(elementType)
+    setSelectedElement(elementType)
+    setElementResizeHandle(handle)
+    
+    const currentSize = elementType === 'icon' 
+      ? identificationData.iconSize 
+      : identificationData.fontSize
+    const currentPosition = elementType === 'icon'
+      ? identificationData.iconPosition
+      : identificationData.textPosition
+    
+    setElementResizeStartData({
+      size: currentSize,
+      x: e.clientX,
+      y: e.clientY,
+      positionX: currentPosition.x,
+      positionY: currentPosition.y
+    })
   }
 
   // Handle icon/text drag
@@ -1125,9 +1157,153 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
   }
 
+  // Handle element resize
+  const handleElementResize = (e) => {
+    if (!resizingElement || !elementResizeHandle) return
+    
+    const previewElement = e.currentTarget.closest('.preview-container')
+    if (!previewElement) return
+    
+    const rect = previewElement.getBoundingClientRect()
+    const deltaXPixels = e.clientX - elementResizeStartData.x
+    const deltaYPixels = e.clientY - elementResizeStartData.y
+    
+    // For uniform sizing, we'll use the average of X and Y for corner handles
+    // For edge handles, we use only the relevant axis
+    let deltaSize = 0
+    let deltaPosX = 0
+    let deltaPosY = 0
+    
+    // Calculate resize based on handle type
+    switch (elementResizeHandle) {
+      case 'top-left':
+        // Resize from top-left: size decreases when dragging left/up, increases when dragging right/down
+        deltaSize = -(deltaXPixels + deltaYPixels) / 2
+        deltaPosX = deltaXPixels / 2
+        deltaPosY = deltaYPixels / 2
+        break
+      case 'top':
+        // Resize from top: size decreases when dragging up, increases when dragging down
+        deltaSize = -deltaYPixels
+        deltaPosY = deltaYPixels / 2
+        break
+      case 'top-right':
+        // Resize from top-right: size increases when dragging right/down, decreases when dragging left/up
+        deltaSize = (deltaXPixels - deltaYPixels) / 2
+        deltaPosX = deltaXPixels / 2
+        deltaPosY = deltaYPixels / 2
+        break
+      case 'right':
+        // Resize from right: size increases when dragging right, decreases when dragging left
+        deltaSize = deltaXPixels
+        deltaPosX = deltaXPixels / 2
+        break
+      case 'bottom-right':
+        // Resize from bottom-right: size increases when dragging right/down, decreases when dragging left/up
+        deltaSize = (deltaXPixels + deltaYPixels) / 2
+        deltaPosX = deltaXPixels / 2
+        deltaPosY = deltaYPixels / 2
+        break
+      case 'bottom':
+        // Resize from bottom: size increases when dragging down, decreases when dragging up
+        deltaSize = deltaYPixels
+        deltaPosY = deltaYPixels / 2
+        break
+      case 'bottom-left':
+        // Resize from bottom-left: size increases when dragging left/down, decreases when dragging right/up
+        deltaSize = (-deltaXPixels + deltaYPixels) / 2
+        deltaPosX = deltaXPixels / 2
+        deltaPosY = deltaYPixels / 2
+        break
+      case 'left':
+        // Resize from left: size decreases when dragging left, increases when dragging right
+        deltaSize = -deltaXPixels
+        deltaPosX = deltaXPixels / 2
+        break
+    }
+    
+    // Calculate new size
+    let newSize = elementResizeStartData.size + deltaSize
+    
+    // Calculate new position (adjust to maintain the resize anchor point)
+    const deltaXPercent = (deltaPosX / rect.width) * 100
+    const deltaYPercent = (deltaPosY / rect.height) * 100
+    let newPositionX = elementResizeStartData.positionX + deltaXPercent
+    let newPositionY = elementResizeStartData.positionY + deltaYPercent
+    
+    // Constrain size based on element type
+    const maxSize = resizingElement === 'icon' ? 500 : 200
+    const minSize = resizingElement === 'icon' ? 20 : 12
+    newSize = Math.max(minSize, Math.min(maxSize, newSize))
+    
+    // If size was constrained, adjust position to compensate
+    const actualDeltaSize = newSize - elementResizeStartData.size
+    if (actualDeltaSize !== deltaSize) {
+      // Adjust position to account for size constraint
+      const sizeDiff = actualDeltaSize - deltaSize
+      if (elementResizeHandle.includes('left')) {
+        newPositionX -= (sizeDiff / rect.width) * 50
+      }
+      if (elementResizeHandle.includes('right')) {
+        newPositionX += (sizeDiff / rect.width) * 50
+      }
+      if (elementResizeHandle.includes('top')) {
+        newPositionY -= (sizeDiff / rect.height) * 50
+      }
+      if (elementResizeHandle.includes('bottom')) {
+        newPositionY += (sizeDiff / rect.height) * 50
+      }
+    }
+    
+    // Constrain position
+    newPositionX = Math.max(0, Math.min(100, newPositionX))
+    newPositionY = Math.max(0, Math.min(100, newPositionY))
+    
+    if (resizingElement === 'icon') {
+      setIdentificationData({
+        ...identificationData,
+        iconSize: newSize,
+        iconPosition: { x: newPositionX, y: newPositionY }
+      })
+    } else if (resizingElement === 'text') {
+      setIdentificationData({
+        ...identificationData,
+        fontSize: newSize,
+        textPosition: { x: newPositionX, y: newPositionY }
+      })
+    }
+  }
+
   // Handle icon/text drag end
   const handleElementDragEnd = () => {
     setDraggingElement(null)
+  }
+
+  // Handle element resize end
+  const handleElementResizeEnd = () => {
+    setResizingElement(null)
+    setElementResizeHandle(null)
+    setElementResizeStartData({ size: 0, x: 0, y: 0, positionX: 0, positionY: 0 })
+  }
+
+  // Get cursor style for resize handles
+  const getResizeCursor = (handle) => {
+    switch (handle) {
+      case 'top-left':
+      case 'bottom-right':
+        return 'nwse-resize'
+      case 'top-right':
+      case 'bottom-left':
+        return 'nesw-resize'
+      case 'top':
+      case 'bottom':
+        return 'ns-resize'
+      case 'left':
+      case 'right':
+        return 'ew-resize'
+      default:
+        return 'default'
+    }
   }
 
   // Handle mouse move for dragging
@@ -1153,6 +1329,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       }
     } else if (resizingLogo) {
       handleLogoResize(e)
+    } else if (resizingElement) {
+      handleElementResize(e)
     }
     if (draggingElement) {
       handleElementDrag(e, draggingElement)
@@ -4515,6 +4693,19 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
               <div>
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                  ISO 7010 Footer Text
+                </label>
+                <input
+                  type="text"
+                  value={formData.iso7010FooterText}
+                  onChange={(e) => setFormData({ ...formData, iso7010FooterText: e.target.value })}
+                  placeholder="ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY"
+                  className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
                   Hazards / Warnings
                 </label>
                 <div className="flex gap-2 mb-3">
@@ -5728,16 +5919,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   handleLogoDragEnd()
                   handleLogoResizeEnd()
                   handleElementDragEnd()
+                  handleElementResizeEnd()
                 }}
                 onMouseLeave={() => {
                   handleLogoDragEnd()
                   handleLogoResizeEnd()
                   handleElementDragEnd()
+                  handleElementResizeEnd()
                 }}
                 onClick={(e) => {
                   // Deselect logo if clicking on the preview container background (not on a logo or its handles)
                   if (!e.target.closest('.logo-draggable') && !draggingLogo && !resizingLogo) {
                     setSelectedLogo(null)
+                  }
+                  // Deselect element if clicking on the preview container background (not on an element or its handles)
+                  if (!e.target.closest('.icon-draggable') && !e.target.closest('.text-draggable') && !e.target.classList.contains('element-resize-handle') && !draggingElement && !resizingElement) {
+                    setSelectedElement(null)
                   }
                 }}
               >
@@ -6235,7 +6432,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           {/* Bottom Black Footer */}
                           <div className="bg-black px-3 py-1.5">
                             <p className="text-[9px] sm:text-[10px] text-white text-center uppercase">
-                              ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY
+                              {formData.iso7010FooterText || 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY'}
                             </p>
                           </div>
                         </>
@@ -6402,7 +6599,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           {/* Bottom Black Compliance Section */}
                           <div className="bg-black px-4 py-2 sm:py-3">
                             <p className="text-white text-xs sm:text-sm text-center uppercase">
-                              ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY
+                              {formData.iso7010FooterText || 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY'}
                             </p>
                           </div>
                         </>
@@ -6442,25 +6639,25 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         left: `${identificationData.iconPosition.x}%`,
                         top: `${identificationData.iconPosition.y}%`,
                         transform: 'translate(-50%, -50%)',
-                        cursor: draggingElement === 'icon' ? 'grabbing' : 'grab',
+                        cursor: draggingElement === 'icon' ? 'grabbing' : (resizingElement === 'icon' ? getResizeCursor(elementResizeHandle) : 'grab'),
                         zIndex: 1000,
                         userSelect: 'none'
                       }}
                       onMouseDown={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        handleElementDragStart('icon')
+                        handleElementDragStart('icon', e)
                       }}
                       className="icon-draggable"
                     >
                       <div 
-                        className="rounded-full flex items-center justify-center text-white"
+                        className="rounded-full flex items-center justify-center text-white relative"
                         style={{ 
                           backgroundColor: identificationData.iconBgColor,
                           width: `${identificationData.iconSize}px`,
                           height: `${identificationData.iconSize}px`,
                           fontSize: `${identificationData.iconSize * 0.6}px`,
-                          filter: draggingElement === 'icon' ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                          filter: (draggingElement === 'icon' || resizingElement === 'icon' || selectedElement === 'icon') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                         }}
                       >
                         {identificationData.iconImage ? (
@@ -6478,6 +6675,194 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         ) : (
                           getIconEmoji(identificationData.icon)
                         )}
+                        
+                        {/* Resize Handles - All 8 handles (4 corners + 4 edges) */}
+                        {selectedElement === 'icon' && (
+                          <>
+                            {/* Corner Handles */}
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'top-left')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'top-right')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'bottom-right')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'bottom-left')
+                              }}
+                            />
+                            {/* Edge Handles - Middle of each edge */}
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '40px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ns-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'top')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                right: '-8px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '16px',
+                                height: '40px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ew-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'right')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '40px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ns-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'bottom')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                left: '-8px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '16px',
+                                height: '40px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ew-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'icon', 'left')
+                              }}
+                            />
+                          </>
+                        )}
                       </div>
                     </div>
                     
@@ -6488,26 +6873,214 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         left: `${identificationData.textPosition.x}%`,
                         top: `${identificationData.textPosition.y}%`,
                         transform: 'translate(-50%, -50%)',
-                        cursor: draggingElement === 'text' ? 'grabbing' : 'grab',
+                        cursor: draggingElement === 'text' ? 'grabbing' : (resizingElement === 'text' ? getResizeCursor(elementResizeHandle) : 'grab'),
                         zIndex: 1000,
                         userSelect: 'none'
                       }}
                       onMouseDown={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        handleElementDragStart('text')
+                        handleElementDragStart('text', e)
                       }}
                       className="text-draggable"
                     >
                       <h3 
-                        className="font-bold uppercase whitespace-nowrap"
+                        className="font-bold uppercase whitespace-nowrap relative"
                         style={{ 
                           color: identificationData.textColor,
                           fontSize: `${identificationData.fontSize}px`,
-                          filter: draggingElement === 'text' ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
+                          filter: (draggingElement === 'text' || resizingElement === 'text' || selectedElement === 'text') ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' : 'none'
                         }}
                       >
                         {identificationData.areaName}
+                        
+                        {/* Resize Handles - All 8 handles (4 corners + 4 edges) */}
+                        {selectedElement === 'text' && (
+                          <>
+                            {/* Corner Handles */}
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'top-left')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'top-right')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-6px',
+                                right: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nwse-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'bottom-right')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-6px',
+                                left: '-6px',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                cursor: 'nesw-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'bottom-left')
+                              }}
+                            />
+                            {/* Edge Handles - Middle of each edge */}
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '40px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ns-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'top')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                right: '-8px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '16px',
+                                height: '40px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ew-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'right')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '40px',
+                                height: '16px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ns-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'bottom')
+                              }}
+                            />
+                            <div
+                              className="element-resize-handle"
+                              style={{
+                                position: 'absolute',
+                                left: '-8px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '16px',
+                                height: '40px',
+                                backgroundColor: '#3B82F6',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                cursor: 'ew-resize',
+                                zIndex: 1002,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto'
+                              }}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleElementResizeStart(e, 'text', 'left')
+                              }}
+                            />
+                          </>
+                        )}
                       </h3>
                     </div>
                     

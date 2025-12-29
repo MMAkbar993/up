@@ -9,7 +9,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeStartData, setResizeStartData] = useState({ size: 0, x: 0, y: 0 })
-  const [resizeCorner, setResizeCorner] = useState(null) // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+  const [resizeCorner, setResizeCorner] = useState(null) // 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'right', 'bottom', 'left'
   const fileInputRef = useRef(null)
   const iconInputRef = useRef(null)
 
@@ -109,7 +109,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       const deltaY = e.clientY - resizeStartData.y
       
       // Calculate the distance moved for uniform scaling
-      // For different corners, we need to adjust the direction
+      // For different corners and edges, we need to adjust the direction
       let delta = 0
       if (resizeCorner === 'top-left') {
         // Dragging down-right increases size, up-left decreases
@@ -120,9 +120,21 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       } else if (resizeCorner === 'bottom-left') {
         // Dragging up-right increases size, down-left decreases
         delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
-      } else {
-        // bottom-right: Dragging down-right increases size, up-left decreases
+      } else if (resizeCorner === 'bottom-right') {
+        // Dragging down-right increases size, up-left decreases
         delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+      } else if (resizeCorner === 'top') {
+        // Dragging down increases size, up decreases
+        delta = -deltaY
+      } else if (resizeCorner === 'bottom') {
+        // Dragging down increases size, up decreases
+        delta = deltaY
+      } else if (resizeCorner === 'left') {
+        // Dragging left increases size, right decreases
+        delta = -deltaX
+      } else if (resizeCorner === 'right') {
+        // Dragging right increases size, left decreases
+        delta = deltaX
       }
       
       const selectedEl = elements.find(el => el.id === selectedElement)
@@ -509,10 +521,10 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           draggable={false}
                         />
                       )}
-                      {/* Resize Handles - All Four Corners */}
+                      {/* Resize Handles - All Four Corners and Edges */}
                       {selectedElement === element.id && (
                         <>
-                          {/* Top Left */}
+                          {/* Top Left Corner */}
                           <div
                             className="resize-handle"
                             style={{
@@ -530,7 +542,26 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'top-left')}
                           />
-                          {/* Top Right */}
+                          {/* Top Edge */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              top: '-8px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'ns-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'top')}
+                          />
+                          {/* Top Right Corner */}
                           <div
                             className="resize-handle"
                             style={{
@@ -548,7 +579,63 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'top-right')}
                           />
-                          {/* Bottom Left */}
+                          {/* Right Edge */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              right: '-8px',
+                              transform: 'translateY(-50%)',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'ew-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'right')}
+                          />
+                          {/* Bottom Right Corner */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              bottom: '-8px',
+                              right: '-8px',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'nwse-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'bottom-right')}
+                          />
+                          {/* Bottom Edge */}
+                          <div
+                            className="resize-handle"
+                            style={{
+                              position: 'absolute',
+                              bottom: '-8px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#3B82F6',
+                              border: '2px solid white',
+                              borderRadius: '50%',
+                              cursor: 'ns-resize',
+                              zIndex: 1001,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'bottom')}
+                          />
+                          {/* Bottom Left Corner */}
                           <div
                             className="resize-handle"
                             style={{
@@ -566,23 +653,24 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             }}
                             onMouseDown={(e) => handleResizeStart(e, element, 'bottom-left')}
                           />
-                          {/* Bottom Right */}
+                          {/* Left Edge */}
                           <div
                             className="resize-handle"
                             style={{
                               position: 'absolute',
-                              bottom: '-8px',
-                              right: '-8px',
+                              top: '50%',
+                              left: '-8px',
+                              transform: 'translateY(-50%)',
                               width: '16px',
                               height: '16px',
                               backgroundColor: '#3B82F6',
                               border: '2px solid white',
                               borderRadius: '50%',
-                              cursor: 'nwse-resize',
+                              cursor: 'ew-resize',
                               zIndex: 1001,
                               boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                             }}
-                            onMouseDown={(e) => handleResizeStart(e, element, 'bottom-right')}
+                            onMouseDown={(e) => handleResizeStart(e, element, 'left')}
                           />
                         </>
                       )}

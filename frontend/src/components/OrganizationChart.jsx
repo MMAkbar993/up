@@ -1,8 +1,27 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Sidebar from './Sidebar'
 
 const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   const [orgMembers, setOrgMembers] = useState([])
+  const [draggedMember, setDraggedMember] = useState(null)
+  const [dragOverMember, setDragOverMember] = useState(null)
+  const [memberPositions, setMemberPositions] = useState({})
+  const chartContainerRef = useRef(null)
+
+  // Initialize positions for new members
+  useEffect(() => {
+    orgMembers.forEach(member => {
+      if (!memberPositions[member.id]) {
+        setMemberPositions(prev => ({
+          ...prev,
+          [member.id]: {
+            x: Math.random() * 300 + 100,
+            y: Math.random() * 200 + 100
+          }
+        }))
+      }
+    })
+  }, [orgMembers.length])
 
   const addMember = () => {
     const newMember = {
@@ -15,6 +34,13 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       photo: null
     }
     setOrgMembers([...orgMembers, newMember])
+    setMemberPositions(prev => ({
+      ...prev,
+      [newMember.id]: {
+        x: Math.random() * 300 + 100,
+        y: Math.random() * 200 + 100
+      }
+    }))
   }
 
   const handleMemberPhotoUpload = (memberId, file) => {
@@ -40,148 +66,284 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         member.parentId === id ? { ...member, parentId: null } : member
       )
     })
+    setMemberPositions(prev => {
+      const newPos = { ...prev }
+      delete newPos[id]
+      return newPos
+    })
   }
 
-  const buildOrgChart = () => {
-    const rootMembers = orgMembers.filter(m => !m.parentId)
-    const buildTree = (parentId) => {
-      return orgMembers
-        .filter(m => m.parentId === parentId)
-        .map(member => ({
-          ...member,
-          children: buildTree(member.id)
-        }))
+  // Drag and Drop Handlers
+  const handleDragStart = (e, memberId) => {
+    setDraggedMember(memberId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', memberId)
+  }
+
+  const handleDragOver = (e, memberId) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (memberId !== draggedMember) {
+      setDragOverMember(memberId)
     }
-    return rootMembers.map(root => ({
-      ...root,
-      children: buildTree(root.id)
-    }))
   }
 
-  const orgChartData = buildOrgChart()
+  const handleDragLeave = () => {
+    setDragOverMember(null)
+  }
 
-  // Organization Chart Node Component
-  const OrgChartNode = ({ members, allMembers, onUpdateMember, onRemoveMember, onSetParent, onPhotoUpload, level = 0 }) => {
-    if (!members || members.length === 0) return null
+  const handleDrop = (e, targetMemberId) => {
+    e.preventDefault()
+    if (draggedMember && targetMemberId && draggedMember !== targetMemberId) {
+      // Set the dragged member's parent to the target member
+      updateMember(draggedMember, 'parentId', targetMemberId)
+      
+      // Auto-position: place child below parent
+      const targetPos = memberPositions[targetMemberId]
+      if (targetPos) {
+        setMemberPositions(prev => ({
+          ...prev,
+          [draggedMember]: {
+            x: targetPos.x,
+            y: targetPos.y + 150
+          }
+        }))
+      }
+    }
+    setDraggedMember(null)
+    setDragOverMember(null)
+  }
+
+  const [isDraggingPosition, setIsDraggingPosition] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+
+  const handleMemberMouseDown = (e, memberId) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('label')) {
+      return // Don't drag if clicking on input/button
+    }
+    
+    const position = memberPositions[memberId] || { x: 100, y: 100 }
+    const rect = e.currentTarget.getBoundingClientRect()
+    const offsetX = e.clientX - rect.left
+    const offsetY = e.clientY - rect.top
+    
+    setDraggedMember(memberId)
+    setIsDraggingPosition(true)
+    setDragOffset({ x: offsetX, y: offsetY })
+  }
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDraggingPosition || !draggedMember || !chartContainerRef.current) return
+    
+    const container = chartContainerRef.current
+    const rect = container.getBoundingClientRect()
+    const x = e.clientX - rect.left - dragOffset.x
+    const y = e.clientY - rect.top - dragOffset.y
+
+    setMemberPositions(prev => ({
+      ...prev,
+      [draggedMember]: { 
+        x: Math.max(0, Math.min(x, rect.width - 200)), 
+        y: Math.max(0, Math.min(y, rect.height - 200)) 
+      }
+    }))
+  }, [isDraggingPosition, draggedMember, dragOffset])
+
+  const handleMouseUp = useCallback(() => {
+    setIsDraggingPosition(false)
+    setDraggedMember(null)
+    setDragOverMember(null)
+  }, [])
+
+  useEffect(() => {
+    if (isDraggingPosition) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove)
+        window.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDraggingPosition, handleMouseMove, handleMouseUp])
+
+  // Get children of a member
+  const getChildren = (memberId) => {
+    return orgMembers.filter(m => m.parentId === memberId)
+  }
+
+  // Get parent of a member
+  const getParent = (memberId) => {
+    const member = orgMembers.find(m => m.id === memberId)
+    if (member && member.parentId) {
+      return orgMembers.find(m => m.id === member.parentId)
+    }
+    return null
+  }
+
+  // Draw connection line between parent and child
+  const drawConnection = (parentId, childId) => {
+    const parent = memberPositions[parentId]
+    const child = memberPositions[childId]
+    if (!parent || !child) return null
+
+    const parentX = parent.x + 100 // Center of card (assuming 200px width)
+    const parentY = parent.y + 120 // Bottom of card
+    const childX = child.x + 100 // Center of card
+    const childY = child.y // Top of card
+
+    const startX = parentX
+    const startY = parentY
+    const endX = childX
+    const endY = childY
+    const midY = startY + (endY - startY) / 2
+
+    // Calculate bounding box for SVG
+    const minX = Math.min(startX, endX) - 10
+    const maxX = Math.max(startX, endX) + 10
+    const minY = Math.min(startY, endY) - 10
+    const maxY = Math.max(startY, endY) + 10
 
     return (
-      <div className="flex flex-col items-center w-full">
-        {/* Current Level Members */}
-        <div className="flex gap-6 items-start justify-center flex-wrap">
-          {members.map((member) => (
-            <div key={member.id} className="flex flex-col items-center relative">
-              {/* Connecting Vertical Line from parent */}
-              {level > 0 && (
-                <div className="w-0.5 h-6 bg-blue-400 mb-2"></div>
-              )}
-              
-              {/* Member Card */}
-              <div className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-lg min-w-[200px] max-w-[220px]">
-                <div className="text-center mb-3">
-                  {/* Photo */}
-                  <div className="mb-3 flex justify-center">
-                    {member.photo ? (
-                      <div className="relative">
-                        <img 
-                          src={member.photo} 
-                          alt={member.name || 'Member'} 
-                          className="w-20 h-20 rounded-full object-cover border-2 border-blue-500"
-                        />
-                        <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files[0]) {
-                                onPhotoUpload(member.id, e.target.files[0])
-                              }
-                              e.target.value = ''
-                            }}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    ) : (
-                      <label className="cursor-pointer">
-                        <div className="w-20 h-20 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
-                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                        </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files[0]) {
-                              onPhotoUpload(member.id, e.target.files[0])
-                            }
-                            e.target.value = ''
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                    )}
+      <svg
+        key={`line-${parentId}-${childId}`}
+        className="absolute pointer-events-none z-0"
+        style={{
+          left: `${minX}px`,
+          top: `${minY}px`,
+          width: `${maxX - minX}px`,
+          height: `${maxY - minY}px`
+        }}
+      >
+        <path
+          d={`M ${startX - minX} ${startY - minY} 
+              L ${startX - minX} ${midY - minY}
+              L ${endX - minX} ${midY - minY}
+              L ${endX - minX} ${endY - minY}`}
+          stroke="#3b82f6"
+          strokeWidth="2"
+          fill="none"
+          markerEnd={`url(#arrowhead-${parentId}-${childId})`}
+        />
+        <defs>
+          <marker 
+            id={`arrowhead-${parentId}-${childId}`}
+            markerWidth="10" 
+            markerHeight="10" 
+            refX="5" 
+            refY="3" 
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+          </marker>
+        </defs>
+      </svg>
+    )
+  }
+
+  // Draggable Member Card Component
+  const DraggableMemberCard = ({ member }) => {
+    const position = memberPositions[member.id] || { x: 100, y: 100 }
+    const isDragging = draggedMember === member.id
+    const isDragOver = dragOverMember === member.id
+
+    return (
+        <div
+          draggable
+          onDragStart={(e) => handleDragStart(e, member.id)}
+          onDragOver={(e) => handleDragOver(e, member.id)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, member.id)}
+          onMouseDown={(e) => handleMemberMouseDown(e, member.id)}
+          className={`absolute cursor-move z-10 transition-all ${
+            isDragging ? 'opacity-70 scale-105 z-20' : ''
+          } ${isDragOver ? 'ring-4 ring-blue-400 ring-offset-2 scale-105' : ''}`}
+          style={{
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            transform: isDragging ? 'scale(1.05)' : isDragOver ? 'scale(1.05)' : 'scale(1)',
+            userSelect: 'none'
+          }}
+        >
+          <div className={`bg-white border-2 rounded-xl p-4 shadow-lg w-[200px] ${
+            isDragOver ? 'border-blue-600 bg-blue-50' : 'border-blue-500'
+          }`}>
+            <div className="text-center mb-3">
+              {/* Photo */}
+              <div className="mb-3 flex justify-center">
+                {member.photo ? (
+                  <div className="relative">
+                    <img 
+                      src={member.photo} 
+                      alt={member.name || 'Member'} 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-blue-500"
+                    />
+                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            handleMemberPhotoUpload(member.id, e.target.files[0])
+                          }
+                          e.target.value = ''
+                        }}
+                        className="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </label>
                   </div>
-                  <div className="font-bold text-gray-900 text-base mb-1">
-                    {member.name || 'Unnamed Member'}
-                  </div>
-                  <div className="text-sm text-blue-600 font-medium mb-1">
-                    {member.role || 'No Role'}
-                  </div>
-                  {member.phone && (
-                    <div className="text-xs text-gray-500">{member.phone}</div>
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <select
-                    value={member.parentId || ''}
-                    onChange={(e) => onSetParent(member.id, e.target.value || null)}
-                    className="text-xs px-2 py-1.5 border border-gray-300 rounded-lg bg-gray-50"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <option value="">Change Parent</option>
-                    {allMembers.filter(m => m.id !== member.id).map(parent => (
-                      <option key={parent.id} value={parent.id}>
-                        {parent.name || parent.role || 'Member'}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => onRemoveMember(member.id)}
-                    className="px-2 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition-colors"
-                  >
-                    Remove
-                  </button>
-                </div>
+                ) : (
+                  <label className="cursor-pointer">
+                    <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          handleMemberPhotoUpload(member.id, e.target.files[0])
+                        }
+                        e.target.value = ''
+                      }}
+                      className="hidden"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </label>
+                )}
               </div>
-
-              {/* Connecting Line to Children */}
-              {member.children && member.children.length > 0 && (
-                <div className="w-0.5 h-6 bg-blue-400 mt-2"></div>
+              <div className="font-bold text-gray-900 text-sm mb-1">
+                {member.name || 'Unnamed Member'}
+              </div>
+              <div className="text-xs text-blue-600 font-medium mb-1">
+                {member.role || 'No Role'}
+              </div>
+              {member.phone && (
+                <div className="text-xs text-gray-500">{member.phone}</div>
               )}
-
-              {/* Children Level - Recursive */}
-              {member.children && member.children.length > 0 && (
-                <div className="mt-2 pt-2">
-                  <OrgChartNode
-                    members={member.children}
-                    allMembers={allMembers}
-                    onUpdateMember={onUpdateMember}
-                    onRemoveMember={onRemoveMember}
-                    onSetParent={onSetParent}
-                    onPhotoUpload={onPhotoUpload}
-                    level={level + 1}
-                  />
-                </div>
+              {member.email && (
+                <div className="text-xs text-gray-500 truncate">{member.email}</div>
               )}
             </div>
-          ))}
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  removeMember(member.id)
+                }}
+                className="px-2 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
     )
   }
 
@@ -378,7 +540,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                               ))}
                             </select>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mb-2">
                             <input
                               type="tel"
                               placeholder="Phone"
@@ -393,6 +555,13 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                               ×
                             </button>
                           </div>
+                          <input
+                            type="email"
+                            placeholder="Email"
+                            value={member.email}
+                            onChange={(e) => updateMember(member.id, 'email', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          />
                         </div>
                       ))}
                     </div>
@@ -404,7 +573,13 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
             {/* Right Side - Organization Chart Preview */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md border-2 border-blue-500">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6">Organization Chart</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Organization Chart</h2>
+                  <div className="text-sm text-gray-600">
+                    <p className="mb-1">💡 Drag members to reposition</p>
+                    <p>Drop one member on another to link them</p>
+                  </div>
+                </div>
                 
                 {orgMembers.length === 0 ? (
                   <div className="text-center py-12">
@@ -414,22 +589,33 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                     <p className="text-gray-500 text-lg mb-4">No organization members yet</p>
                     <p className="text-gray-400 text-sm">Add members to start building your organization chart</p>
                   </div>
-                ) : orgChartData.length > 0 ? (
-                  <div className="space-y-6 max-h-[600px] overflow-y-auto p-4 bg-gray-50 rounded-lg">
-                    <OrgChartNode 
-                      members={orgChartData} 
-                      allMembers={orgMembers}
-                      onUpdateMember={updateMember}
-                      onRemoveMember={removeMember}
-                      onSetParent={(childId, parentId) => {
-                        updateMember(childId, 'parentId', parentId)
-                      }}
-                      onPhotoUpload={handleMemberPhotoUpload}
-                    />
-                  </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No organization structure yet. Set parent relationships to build the chart.</p>
+                  <div 
+                    ref={chartContainerRef}
+                    className="relative bg-gray-50 rounded-lg overflow-auto"
+                    style={{ minHeight: '600px', height: '600px' }}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      e.dataTransfer.dropEffect = 'move'
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setDraggedMember(null)
+                      setDragOverMember(null)
+                    }}
+                  >
+                    {/* Render all members as draggable cards */}
+                    {orgMembers.map((member) => (
+                      <DraggableMemberCard key={member.id} member={member} />
+                    ))}
+                    
+                    {/* Connection lines from parents to children */}
+                    {orgMembers.map((member) => {
+                      if (member.parentId) {
+                        return drawConnection(member.parentId, member.id)
+                      }
+                      return null
+                    })}
                   </div>
                 )}
               </div>
