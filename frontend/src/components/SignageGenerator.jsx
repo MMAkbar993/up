@@ -602,12 +602,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
+
       // Check if we've scrolled past the Signage Type section
       if (signageTypeRef.current) {
         const signageTypeRect = signageTypeRef.current.getBoundingClientRect()
         const hasScrolledPastSignageType = signageTypeRect.bottom < 0
-        
+
         if (currentScrollY > lastScrollY.current && hasScrolledPastSignageType) {
           // Scrolling down and past Signage Type - make sticky
           setScrollDirection('down')
@@ -626,12 +626,12 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           setScrollDirection('up')
         }
       }
-      
+
       lastScrollY.current = currentScrollY
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
@@ -1087,7 +1087,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setResizingLogo(logoType)
     setSelectedLogo(logoType)
     setLogoResizeCorner(handle)
-    
+
     // Get current dimensions, with fallback to size for backward compatibility
     let currentWidth = logoType === 'client'
       ? (companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80)
@@ -1095,7 +1095,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     let currentHeight = logoType === 'client'
       ? (companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80)
       : (companyBranding.contractorLogoHeight || companyBranding.contractorLogoSize || 80)
-    
+
     // If width/height weren't set, initialize them from size
     if (logoType === 'client' && (!companyBranding.clientLogoWidth || !companyBranding.clientLogoHeight)) {
       const size = companyBranding.clientLogoSize || 80
@@ -1118,7 +1118,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         contractorLogoHeight: size
       })
     }
-    
+
     setResizeStartData({
       size: Math.max(currentWidth, currentHeight), // For backward compatibility
       width: currentWidth,
@@ -1147,7 +1147,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       // Corner resizing: maintain aspect ratio, resize both dimensions
       const aspectRatio = resizeStartData.width / resizeStartData.height
       let delta = 0
-      
+
       if (handle === 'top-left') {
         // Dragging down-right increases size, up-left decreases
         delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
@@ -1164,7 +1164,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       // Calculate new size maintaining aspect ratio
       const newSize = Math.max(20, Math.min(500, Math.max(resizeStartData.width, resizeStartData.height) + delta))
-      
+
       if (aspectRatio >= 1) {
         // Width is larger or equal
         newWidth = newSize
@@ -5793,13 +5793,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                             const maxSize = 500
                                             let width = img.width
                                             let height = img.height
-                                            
+
                                             if (width > maxSize || height > maxSize) {
                                               const scale = Math.min(maxSize / width, maxSize / height)
                                               width = width * scale
                                               height = height * scale
                                             }
-                                            
+
                                             // Ensure minimum size
                                             if (width < 20) {
                                               const scale = 20 / width
@@ -5811,9 +5811,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                               height = 20
                                               width = width * scale
                                             }
-                                            
-                                            setCompanyBranding({ 
-                                              ...companyBranding, 
+
+                                            setCompanyBranding({
+                                              ...companyBranding,
                                               clientLogo: event.target.result,
                                               clientLogoWidth: Math.round(width),
                                               clientLogoHeight: Math.round(height),
@@ -5848,32 +5848,32 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                     type="range"
                                     min="40"
                                     max="200"
-                                  value={companyBranding.clientLogoSize}
-                                  onChange={(e) => {
-                                    const newSize = parseInt(e.target.value)
-                                    const currentWidth = companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80
-                                    const currentHeight = companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80
-                                    const aspectRatio = currentWidth / currentHeight
-                                    let newWidth = currentWidth
-                                    let newHeight = currentHeight
-                                    
-                                    // Maintain aspect ratio when resizing via slider
-                                    if (currentWidth >= currentHeight) {
-                                      newWidth = newSize
-                                      newHeight = newSize / aspectRatio
-                                    } else {
-                                      newHeight = newSize
-                                      newWidth = newSize * aspectRatio
-                                    }
-                                    
-                                    setCompanyBranding({ 
-                                      ...companyBranding, 
-                                      clientLogoSize: newSize,
-                                      clientLogoWidth: Math.round(newWidth),
-                                      clientLogoHeight: Math.round(newHeight)
-                                    })
-                                  }}
-                                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    value={companyBranding.clientLogoSize}
+                                    onChange={(e) => {
+                                      const newSize = parseInt(e.target.value)
+                                      const currentWidth = companyBranding.clientLogoWidth || companyBranding.clientLogoSize || 80
+                                      const currentHeight = companyBranding.clientLogoHeight || companyBranding.clientLogoSize || 80
+                                      const aspectRatio = currentWidth / currentHeight
+                                      let newWidth = currentWidth
+                                      let newHeight = currentHeight
+
+                                      // Maintain aspect ratio when resizing via slider
+                                      if (currentWidth >= currentHeight) {
+                                        newWidth = newSize
+                                        newHeight = newSize / aspectRatio
+                                      } else {
+                                        newHeight = newSize
+                                        newWidth = newSize * aspectRatio
+                                      }
+
+                                      setCompanyBranding({
+                                        ...companyBranding,
+                                        clientLogoSize: newSize,
+                                        clientLogoWidth: Math.round(newWidth),
+                                        clientLogoHeight: Math.round(newHeight)
+                                      })
+                                    }}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                   />
                                 </div>
                                 <label className="flex items-center gap-2 cursor-pointer">
@@ -5940,13 +5940,13 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                             const maxSize = 500
                                             let width = img.width
                                             let height = img.height
-                                            
+
                                             if (width > maxSize || height > maxSize) {
                                               const scale = Math.min(maxSize / width, maxSize / height)
                                               width = width * scale
                                               height = height * scale
                                             }
-                                            
+
                                             // Ensure minimum size
                                             if (width < 20) {
                                               const scale = 20 / width
@@ -5958,9 +5958,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                               height = 20
                                               width = width * scale
                                             }
-                                            
-                                            setCompanyBranding({ 
-                                              ...companyBranding, 
+
+                                            setCompanyBranding({
+                                              ...companyBranding,
                                               contractorLogo: event.target.result,
                                               contractorLogoWidth: Math.round(width),
                                               contractorLogoHeight: Math.round(height),
@@ -6002,7 +6002,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                     const aspectRatio = currentWidth / currentHeight
                                     let newWidth = currentWidth
                                     let newHeight = currentHeight
-                                    
+
                                     // Maintain aspect ratio when resizing via slider
                                     if (currentWidth >= currentHeight) {
                                       newWidth = newSize
@@ -6011,9 +6011,9 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                       newHeight = newSize
                                       newWidth = newSize * aspectRatio
                                     }
-                                    
-                                    setCompanyBranding({ 
-                                      ...companyBranding, 
+
+                                    setCompanyBranding({
+                                      ...companyBranding,
                                       contractorLogoSize: newSize,
                                       contractorLogoWidth: Math.round(newWidth),
                                       contractorLogoHeight: Math.round(newHeight)
@@ -6071,12 +6071,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
               </div>
 
               {/* Live Preview Panel */}
-              <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0 order-first lg:order-last">
-                <div className={`bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md z-30 transition-all duration-300 ${
-                  scrollDirection === 'down' 
-                    ? 'sticky top-[110px] sm:top-[130px] md:top-[150px] lg:top-[170px]' 
-                    : ''
-                }`}>
+              <div className="w-full lg:w-96 xl:w-[420px] flex-shrink-0 mt-4 lg:mt-0 order-first lg:order-last fixed top-[112px] sm:top-[128px] md:top-[160px] lg:top-[176px] bottom-4 right-4 lg:right-4 xl:right-8 z-30 max-h-[calc(100vh-128px)] sm:max-h-[calc(100vh-144px)] md:max-h-[calc(100vh-176px)] lg:max-h-[calc(100vh-192px)] overflow-y-auto">
+                <div className={`bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md z-30 transition-all duration-300`}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
                     <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Live Preview</h2>
                     <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-semibold self-start sm:self-auto">
