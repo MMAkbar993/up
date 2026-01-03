@@ -18,6 +18,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       { label: 'Safety Officer', phone: '+1 (555) 123-4567' }
     ],
     qrCodeText: '',
+    qrCodeSource: 'custom', // 'custom', 'authorized-person', 'organization-chart', 'safety-committee'
+    qrCodeSelectedId: null, // ID of selected person/chart/committee
     useExistingQR: false,
     existingQRCode: '',
     showOnlyTitleAndQR: false,
@@ -61,6 +63,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     areaName: 'INLET AREA',
     icon: 'Water/Liquid',
     iconImage: null, // For uploaded icon image
+    showIcon: true, // Toggle to show/hide icon
     backgroundColor: '#3B82F6',
     textColor: '#FFFFFF',
     iconBgColor: '#3B82F6',
@@ -1725,51 +1728,275 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setAiGeneratedData(null)
   }
 
+  // Recursively apply computed styles from source element to cloned element
+  const applyComputedStylesRecursive = (cloneEl, sourceEl) => {
+    if (!cloneEl || !sourceEl || cloneEl.nodeType !== 1 || sourceEl.nodeType !== 1) return
+    
+    const computedStyle = window.getComputedStyle(sourceEl)
+    
+    // List of important style properties to preserve
+    const styleMap = {
+      'background-color': computedStyle.backgroundColor,
+      'color': computedStyle.color,
+      'font-size': computedStyle.fontSize,
+      'font-weight': computedStyle.fontWeight,
+      'font-family': computedStyle.fontFamily,
+      'padding': computedStyle.padding,
+      'padding-top': computedStyle.paddingTop,
+      'padding-right': computedStyle.paddingRight,
+      'padding-bottom': computedStyle.paddingBottom,
+      'padding-left': computedStyle.paddingLeft,
+      'margin': computedStyle.margin,
+      'margin-top': computedStyle.marginTop,
+      'margin-right': computedStyle.marginRight,
+      'margin-bottom': computedStyle.marginBottom,
+      'margin-left': computedStyle.marginLeft,
+      'border': computedStyle.border,
+      'border-width': computedStyle.borderWidth,
+      'border-style': computedStyle.borderStyle,
+      'border-color': computedStyle.borderColor,
+      'border-radius': computedStyle.borderRadius,
+      'width': computedStyle.width,
+      'height': computedStyle.height,
+      'min-width': computedStyle.minWidth,
+      'min-height': computedStyle.minHeight,
+      'max-width': computedStyle.maxWidth,
+      'max-height': computedStyle.maxHeight,
+      'position': computedStyle.position,
+      'top': computedStyle.top,
+      'right': computedStyle.right,
+      'bottom': computedStyle.bottom,
+      'left': computedStyle.left,
+      'transform': computedStyle.transform,
+      'transform-origin': computedStyle.transformOrigin,
+      'display': computedStyle.display,
+      'flex-direction': computedStyle.flexDirection,
+      'justify-content': computedStyle.justifyContent,
+      'align-items': computedStyle.alignItems,
+      'gap': computedStyle.gap,
+      'background-image': computedStyle.backgroundImage,
+      'background-size': computedStyle.backgroundSize,
+      'background-position': computedStyle.backgroundPosition,
+      'background-repeat': computedStyle.backgroundRepeat,
+      'opacity': computedStyle.opacity,
+      'z-index': computedStyle.zIndex,
+      'overflow': computedStyle.overflow,
+      'box-shadow': computedStyle.boxShadow,
+      'text-align': computedStyle.textAlign,
+      'line-height': computedStyle.lineHeight,
+      'text-transform': computedStyle.textTransform,
+      'white-space': computedStyle.whiteSpace,
+      'object-fit': computedStyle.objectFit
+    }
+
+    // Apply styles that have meaningful values
+    Object.entries(styleMap).forEach(([prop, value]) => {
+      if (value && 
+          value !== 'none' && 
+          value !== 'auto' && 
+          value !== 'normal' && 
+          value !== '0px' && 
+          value !== 'rgba(0, 0, 0, 0)' &&
+          value !== 'transparent' &&
+          !value.includes('calc(')) {
+        cloneEl.style.setProperty(prop, value, 'important')
+      }
+    })
+
+    // Recursively process children by matching them
+    const cloneChildren = Array.from(cloneEl.children)
+    const sourceChildren = Array.from(sourceEl.children)
+    
+    cloneChildren.forEach((cloneChild, index) => {
+      if (sourceChildren[index]) {
+        applyComputedStylesRecursive(cloneChild, sourceChildren[index])
+      }
+    })
+  }
+
+  // Clean HTML content for print/download by removing UI elements
+  const cleanContentForPrint = (htmlContent, sourceElement) => {
+    // Create a temporary div to parse and clean the HTML
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = htmlContent
+
+    // Only remove resize handles, NOT the content elements (logos, icons, text)
+    const resizeHandles = tempDiv.querySelectorAll('.resize-handle, .element-resize-handle')
+    resizeHandles.forEach(el => el.remove())
+
+    // Convert all computed styles to inline styles for print compatibility
+    if (sourceElement) {
+      // Apply computed styles from source to cloned structure
+      applyComputedStylesRecursive(tempDiv, sourceElement)
+    }
+
+    // Remove filters (drop-shadow) from all elements but preserve other styles
+    const allElements = tempDiv.querySelectorAll('*')
+    allElements.forEach(el => {
+      if (el.style.filter && el.style.filter.includes('drop-shadow')) {
+        el.style.filter = el.style.filter.replace(/drop-shadow\([^)]*\)/g, '').trim() || 'none'
+      }
+      // Remove cursor and user-select styles but keep everything else
+      if (el.style.cursor) {
+        el.style.cursor = 'default'
+      }
+      if (el.style.userSelect) {
+        el.style.userSelect = 'none'
+      }
+    })
+
+    // Preserve all inline styles on draggable elements - they contain the actual content
+    const draggableElements = tempDiv.querySelectorAll('.logo-draggable, .icon-draggable, .text-draggable')
+    draggableElements.forEach(el => {
+      // Keep all inline styles, just remove the class for cleaner output
+      el.className = el.className.replace(/logo-draggable|icon-draggable|text-draggable/g, '').trim()
+    })
+
+    return tempDiv.innerHTML
+  }
+
   const handlePrint = () => {
     if (!previewRef.current) return
 
+    // Get actual dimensions of the preview container
+    const containerWidth = previewRef.current.offsetWidth
+    const containerHeight = previewRef.current.offsetHeight
+
     // Create a new window for printing
     const printWindow = window.open('', '_blank')
-    const printContent = previewRef.current.innerHTML
+    const rawContent = previewRef.current.innerHTML
+    
+    // Clean content and convert all computed styles to inline styles
+    const printContent = cleanContentForPrint(rawContent, previewRef.current)
 
     // Get computed styles for the preview container
     const styles = window.getComputedStyle(previewRef.current)
+    
+    // For identification signage, get background color from the inner content div
+    let backgroundColor = styles.backgroundColor || styles.background || 'white'
+    if (signageType === 'identification') {
+      const innerDiv = previewRef.current.querySelector('div[style*="backgroundColor"]')
+      if (innerDiv) {
+        const innerStyles = window.getComputedStyle(innerDiv)
+        backgroundColor = innerStyles.backgroundColor || backgroundColor
+      }
+    }
+    
     const containerStyles = `
       <style>
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
         @media print {
           @page {
             size: ${formData.size};
             margin: 0;
           }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
           body {
             margin: 0;
             padding: 0;
+            background: white;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .print-container {
+            width: ${containerWidth}px !important;
+            height: ${containerHeight}px !important;
+            transform: scale(1) !important;
+            transform-origin: center center !important;
           }
         }
         body {
           margin: 0;
-          padding: 20px;
+          padding: 0;
           display: flex;
           justify-content: center;
           align-items: center;
           min-height: 100vh;
+          background: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          color-adjust: exact;
         }
         .print-container {
-          ${styles.cssText}
-          border: ${styles.border};
-          border-radius: ${styles.borderRadius};
-          overflow: ${styles.overflow};
-          background: ${styles.background};
-          max-width: 100%;
-          height: auto;
+          width: ${containerWidth}px;
+          height: ${containerHeight}px;
+          position: relative;
+          background: ${backgroundColor};
+          border: ${styles.border || 'none'};
+          border-radius: ${styles.borderRadius || '0'};
+          overflow: hidden;
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          color-adjust: exact;
+          transform-origin: center center;
         }
         .print-container * {
-          max-width: 100%;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          box-sizing: border-box;
         }
         img {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
           max-width: 100%;
           height: auto;
         }
+        /* Hide only resize handles in print */
+        .resize-handle,
+        .element-resize-handle {
+          display: none !important;
+        }
+        /* Preserve all inline styles, only remove drop-shadow filters */
+        * {
+          cursor: default !important;
+          user-select: none !important;
+        }
+        /* Ensure draggable content elements are visible (logos, icons, text) */
+        .logo-draggable,
+        .icon-draggable,
+        .text-draggable {
+          display: block !important;
+        }
+        /* Ensure all background colors and borders are preserved */
+        div[style*="background"],
+        div[style*="Background"] {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        /* Common utility classes that might be used */
+        .flex { display: flex !important; }
+        .flex-col { flex-direction: column !important; }
+        .items-center { align-items: center !important; }
+        .justify-center { justify-content: center !important; }
+        .text-center { text-align: center !important; }
+        .font-bold { font-weight: bold !important; }
+        .uppercase { text-transform: uppercase !important; }
+        .rounded { border-radius: 0.25rem !important; }
+        .rounded-lg { border-radius: 0.5rem !important; }
+        .rounded-full { border-radius: 9999px !important; }
+        .relative { position: relative !important; }
+        .absolute { position: absolute !important; }
+        .w-full { width: 100% !important; }
+        .h-full { height: 100% !important; }
+        .p-6 { padding: 1.5rem !important; }
+        .mb-4 { margin-bottom: 1rem !important; }
+        .text-white { color: white !important; }
+        .bg-white { background-color: white !important; }
       </style>
     `
 
@@ -1792,12 +2019,57 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
     // Wait for images to load, then print
     printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print()
-        printWindow.onafterprint = () => {
-          printWindow.close()
+      // Ensure all images are loaded before printing
+      const images = printWindow.document.querySelectorAll('img')
+      let imagesLoaded = 0
+      const totalImages = images.length
+      
+      if (totalImages === 0) {
+        setTimeout(() => {
+          printWindow.print()
+          printWindow.onafterprint = () => {
+            printWindow.close()
+          }
+        }, 500)
+      } else {
+        images.forEach(img => {
+          if (img.complete) {
+            imagesLoaded++
+          } else {
+            img.onload = () => {
+              imagesLoaded++
+              if (imagesLoaded === totalImages) {
+                setTimeout(() => {
+                  printWindow.print()
+                  printWindow.onafterprint = () => {
+                    printWindow.close()
+                  }
+                }, 500)
+              }
+            }
+            img.onerror = () => {
+              imagesLoaded++
+              if (imagesLoaded === totalImages) {
+                setTimeout(() => {
+                  printWindow.print()
+                  printWindow.onafterprint = () => {
+                    printWindow.close()
+                  }
+                }, 500)
+              }
+            }
+          }
+        })
+        
+        if (imagesLoaded === totalImages) {
+          setTimeout(() => {
+            printWindow.print()
+            printWindow.onafterprint = () => {
+              printWindow.close()
+            }
+          }, 500)
         }
-      }, 250)
+      }
     }
   }
 
@@ -1805,6 +2077,42 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     if (!previewRef.current) return
 
     try {
+      // Clean the content before capturing
+      const rawContent = previewRef.current.innerHTML
+      const cleanedContent = cleanContentForPrint(rawContent)
+      
+      // Create a temporary container with cleaned content
+      const tempContainer = document.createElement('div')
+      tempContainer.style.position = 'absolute'
+      tempContainer.style.left = '-9999px'
+      tempContainer.style.width = previewRef.current.offsetWidth + 'px'
+      tempContainer.style.height = previewRef.current.offsetHeight + 'px'
+      tempContainer.innerHTML = cleanedContent
+      
+      // Copy styles from original container
+      const originalStyles = window.getComputedStyle(previewRef.current)
+      tempContainer.style.cssText = originalStyles.cssText
+      tempContainer.className = previewRef.current.className
+      
+      // Hide UI elements in temp container
+      const style = document.createElement('style')
+      style.textContent = `
+        .resize-handle,
+        .element-resize-handle,
+        .logo-draggable,
+        .icon-draggable,
+        .text-draggable {
+          display: none !important;
+        }
+        * {
+          filter: none !important;
+          cursor: default !important;
+          user-select: none !important;
+        }
+      `
+      tempContainer.appendChild(style)
+      document.body.appendChild(tempContainer)
+
       // Try to dynamically import html2canvas
       let html2canvas
       try {
@@ -1816,15 +2124,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       }
 
       if (html2canvas) {
-        const canvas = await html2canvas(previewRef.current, {
+        const canvas = await html2canvas(tempContainer, {
           scale: 2,
           useCORS: true,
           logging: false,
           backgroundColor: '#ffffff',
           allowTaint: true,
-          width: previewRef.current.offsetWidth,
-          height: previewRef.current.offsetHeight
+          width: tempContainer.offsetWidth,
+          height: tempContainer.offsetHeight
         })
+        
+        // Clean up temporary container
+        document.body.removeChild(tempContainer)
 
         canvas.toBlob((blob) => {
           if (blob) {
@@ -1842,6 +2153,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           }
         }, 'image/png', 0.95)
       } else {
+        // Clean up temporary container if it exists
+        if (tempContainer && tempContainer.parentNode) {
+          document.body.removeChild(tempContainer)
+        }
+        
         // Fallback: Use print to PDF method
         // Create a hidden iframe and trigger print
         const iframe = document.createElement('iframe')
@@ -1855,6 +2171,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         document.body.appendChild(iframe)
 
         const printDoc = iframe.contentWindow.document
+        const cleanedContent = cleanContentForPrint(previewRef.current.innerHTML)
         printDoc.open()
         printDoc.write(`
           <!DOCTYPE html>
@@ -1876,10 +2193,23 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                 .preview-container {
                   ${window.getComputedStyle(previewRef.current).cssText}
                 }
+                /* Hide all UI elements */
+                .resize-handle,
+                .element-resize-handle,
+                .logo-draggable,
+                .icon-draggable,
+                .text-draggable {
+                  display: none !important;
+                }
+                * {
+                  filter: none !important;
+                  cursor: default !important;
+                  user-select: none !important;
+                }
               </style>
             </head>
             <body>
-              ${previewRef.current.innerHTML}
+              ${cleanedContent}
             </body>
           </html>
         `)
@@ -1977,261 +2307,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         </div>
       </header>
 
-      {/* Comprehensive Editor Toolbar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-[56px] sm:top-[64px] md:top-[80px] lg:top-[88px] z-40">
-        <div className="max-w-[1920px] mx-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-2.5 md:py-3">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3">
-            {/* Design Mode Toggle */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-0.5 sm:p-1">
-              <button
-                onClick={() => {
-                  setDesignMode('template')
-                  setTextElements([])
-                  setImageElements([])
-                  setCanvasElements([])
-                }}
-                className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${designMode === 'template' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                <span className="hidden sm:inline">Template Mode</span>
-                <span className="sm:hidden">Template</span>
-              </button>
-              <button
-                onClick={() => {
-                  setDesignMode('free')
-                  // Show template selection for free design
-                }}
-                className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${designMode === 'free' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                <span className="hidden sm:inline">Free Design</span>
-                <span className="sm:hidden">Free</span>
-              </button>
-            </div>
 
-            {/* Template Selector for Free Design */}
-            {designMode === 'free' && (
-              <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-lg p-4 z-50 min-w-[300px]">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Start from Template</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {templates.map(template => (
-                    <button
-                      key={template.id}
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, title: template.name }))
-                        setIdentificationData(prev => ({ ...prev, areaName: template.name }))
-                        setBackgroundSettings(prev => ({ ...prev, color: '#FFFFFF' }))
-                        addAuditLog('load-template', { templateId: template.id, templateName: template.name })
-                      }}
-                      className="p-3 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
-                    >
-                      <div className="text-2xl mb-1">{template.icon}</div>
-                      <div className="text-xs font-semibold text-gray-900">{template.name}</div>
-                      <div className="text-xs text-gray-600">{template.subtitle}</div>
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => {
-                    setTextElements([])
-                    setImageElements([])
-                    setCanvasElements([])
-                    setFormData(prev => ({ ...prev, title: '' }))
-                    setBackgroundSettings(prev => ({ ...prev, color: '#FFFFFF' }))
-                  }}
-                  className="w-full mt-3 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                >
-                  Start from Blank
-                </button>
-              </div>
-            )}
-
-            {/* Text Editor Button */}
-            <button
-              onClick={() => setTextEditorOpen(!textEditorOpen)}
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${textEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span className="hidden sm:inline">Text</span>
-            </button>
-
-            {/* Image Editor Button */}
-            <button
-              onClick={() => setImageEditorOpen(!imageEditorOpen)}
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${imageEditorOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="hidden sm:inline">Image</span>
-            </button>
-
-            {/* ISO 7010 Icon Library */}
-            <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${isoIconModalOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              onClick={() => setIsoIconModalOpen(!isoIconModalOpen)}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span className="hidden md:inline">ISO Icons</span>
-            </button>
-
-            {/* Authorized Persons */}
-            <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${authorizedPersonsPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              onClick={() => setAuthorizedPersonsPanelOpen(!authorizedPersonsPanelOpen)}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="hidden sm:inline">Persons</span>
-            </button>
-
-            {/* Color & Background */}
-            <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${backgroundPanelOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              onClick={() => setBackgroundPanelOpen(!backgroundPanelOpen)}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-              <span className="hidden sm:inline">Colors</span>
-            </button>
-
-            {/* Undo/Redo */}
-            <div className="hidden sm:flex items-center gap-1 border-l border-gray-300 pl-1.5 sm:pl-2 ml-1.5 sm:ml-2">
-              <button
-                onClick={undo}
-                disabled={historyIndex <= 0}
-                className="p-1 sm:p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Undo"
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                </svg>
-              </button>
-              <button
-                onClick={redo}
-                disabled={historyIndex >= history.length - 1}
-                className="p-1 sm:p-1.5 rounded text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Redo"
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Grid Toggle */}
-            <button
-              onClick={() => setShowGrid(!showGrid)}
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${showGrid ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              title="Toggle Grid"
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-              <span className="hidden md:inline">Grid</span>
-            </button>
-
-            {/* Zoom Controls */}
-            <div className="hidden md:flex items-center gap-1.5 sm:gap-2 border-l border-gray-300 pl-1.5 sm:pl-2 ml-1.5 sm:ml-2">
-              <button
-                onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))}
-                className="p-1 sm:p-1.5 rounded text-gray-700 hover:bg-gray-200 transition-colors"
-                title="Zoom Out"
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-                </svg>
-              </button>
-              <span className="text-xs sm:text-sm text-gray-700 min-w-[45px] sm:min-w-[50px] text-center">{previewZoom}%</span>
-              <button
-                onClick={() => setPreviewZoom(Math.min(200, previewZoom + 25))}
-                className="p-1 sm:p-1.5 rounded text-gray-700 hover:bg-gray-200 transition-colors"
-                title="Zoom In"
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setPreviewZoom(100)}
-                className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs text-gray-700 hover:bg-gray-200 transition-colors"
-                title="Reset Zoom"
-              >
-                Reset
-              </button>
-              <button
-                onClick={() => setShowFullScreenPreview(true)}
-                className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1"
-                title="Full Screen Preview"
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-                <span className="hidden lg:inline">Fullscreen</span>
-              </button>
-            </div>
-
-            {/* Export Button */}
-            <button
-              className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center gap-1 sm:gap-2 ml-auto"
-              onClick={() => setExportModalOpen(true)}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="hidden sm:inline">Export</span>
-            </button>
-
-            {/* Signage Library */}
-            <button
-              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 ${signageLibraryOpen ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              onClick={() => setSignageLibraryOpen(!signageLibraryOpen)}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <span className="hidden sm:inline">Library</span>
-            </button>
-
-            {/* Save Button */}
-            <div className="flex items-center gap-2">
-              {lastAutoSave && (
-                <span className="text-xs text-gray-500" title={`Last auto-saved: ${lastAutoSave.toLocaleTimeString()}`}>
-                  <svg className="w-4 h-4 inline mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Auto-saved
-                </span>
-              )}
-              <button
-                className="px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-1 sm:gap-2"
-                onClick={() => {
-                  setSaveModalName(formData.title || 'Untitled Signage')
-                  setSaveModalOpen(true)
-                }}
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                <span className="hidden sm:inline">Save</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Text Editor Panel */}
       {textEditorOpen && (
@@ -4552,60 +4628,56 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           <label className="block text-sm font-semibold text-gray-700 mb-3">
                             Warning Icons (Optional)
                           </label>
-                          <div className="grid grid-cols-2 gap-3">
-                            {[0, 1].map((index) => (
-                              <div key={index} className="space-y-2">
-                                <label className="block text-xs text-gray-600 mb-1">
-                                  Icon #{index + 1}
-                                </label>
-                                <div className="flex items-center gap-2">
-                                  {signageIcons[index] ? (
-                                    <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 rounded-lg bg-gray-50">
-                                      <img
-                                        src={signageIcons[index]}
-                                        alt={`Icon ${index + 1}`}
-                                        className="w-10 h-10 object-contain"
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const newIcons = [...signageIcons]
-                                          newIcons[index] = null
-                                          setSignageIcons(newIcons)
-                                        }}
-                                        className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
-                                      >
-                                        Remove
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <label className="flex-1 cursor-pointer">
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                          const file = e.target.files[0]
-                                          if (file) {
-                                            const reader = new FileReader()
-                                            reader.onload = (event) => {
-                                              const newIcons = [...signageIcons]
-                                              newIcons[index] = event.target.result
-                                              setSignageIcons(newIcons)
-                                            }
-                                            reader.readAsDataURL(file)
-                                          }
-                                          e.target.value = ''
-                                        }}
-                                        className="hidden"
-                                      />
-                                      <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
-                                        Upload Icon
-                                      </div>
-                                    </label>
-                                  )}
+                          <div className="space-y-2">
+                            <label className="block text-xs text-gray-600 mb-1">
+                              Icon
+                            </label>
+                            <div className="flex items-center gap-2">
+                              {signageIcons[0] ? (
+                                <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 rounded-lg bg-gray-50">
+                                  <img
+                                    src={signageIcons[0]}
+                                    alt="Icon"
+                                    className="w-10 h-10 object-contain"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newIcons = [...signageIcons]
+                                      newIcons[0] = null
+                                      setSignageIcons(newIcons)
+                                    }}
+                                    className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+                                  >
+                                    Remove
+                                  </button>
                                 </div>
-                              </div>
-                            ))}
+                              ) : (
+                                <label className="flex-1 cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files[0]
+                                      if (file) {
+                                        const reader = new FileReader()
+                                        reader.onload = (event) => {
+                                          const newIcons = [...signageIcons]
+                                          newIcons[0] = event.target.result
+                                          setSignageIcons(newIcons)
+                                        }
+                                        reader.readAsDataURL(file)
+                                      }
+                                      e.target.value = ''
+                                    }}
+                                    className="hidden"
+                                  />
+                                  <div className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center text-sm text-gray-600">
+                                    Upload Icon
+                                  </div>
+                                </label>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -4829,40 +4901,57 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                       {/* Icon */}
                       <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Icon</label>
-                        <select
-                          value={identificationData.icon}
-                          onChange={(e) => setIdentificationData({ ...identificationData, icon: e.target.value, iconImage: null })}
-                          className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base mb-2"
-                        >
-                          {iconOptions.map((icon) => (
-                            <option key={icon} value={icon}>{icon}</option>
-                          ))}
-                        </select>
-                        <div className="mb-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Or Upload Icon Image</label>
+                        <label className="flex items-center gap-3 mb-2 cursor-pointer">
                           <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleIconImageUpload}
-                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            type="checkbox"
+                            id="show-icon-checkbox"
+                            checked={identificationData.showIcon}
+                            onChange={(e) => setIdentificationData({ ...identificationData, showIcon: e.target.checked })}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           />
-                          {identificationData.iconImage && (
-                            <div className="mt-2 flex items-center gap-2">
-                              <img
-                                src={identificationData.iconImage}
-                                alt="Icon preview"
-                                className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                          <span className="text-sm font-semibold text-gray-700 cursor-pointer" onClick={(e) => {
+                            e.preventDefault()
+                            setIdentificationData({ ...identificationData, showIcon: !identificationData.showIcon })
+                          }}>Show Icon</span>
+                        </label>
+                        {identificationData.showIcon && (
+                          <>
+                            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Icon</label>
+                            <select
+                              value={identificationData.icon}
+                              onChange={(e) => setIdentificationData({ ...identificationData, icon: e.target.value, iconImage: null })}
+                              className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base mb-2"
+                            >
+                              {iconOptions.map((icon) => (
+                                <option key={icon} value={icon}>{icon}</option>
+                              ))}
+                            </select>
+                            <div className="mb-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Or Upload Icon Image</label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleIconImageUpload}
+                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                               />
-                              <button
-                                onClick={() => setIdentificationData({ ...identificationData, iconImage: null })}
-                                className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                              >
-                                Remove
-                              </button>
+                              {identificationData.iconImage && (
+                                <div className="mt-2 flex items-center gap-2">
+                                  <img
+                                    src={identificationData.iconImage}
+                                    alt="Icon preview"
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                                  />
+                                  <button
+                                    onClick={() => setIdentificationData({ ...identificationData, iconImage: null })}
+                                    className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          </>
+                        )}
                       </div>
 
                       {/* Color Pickers */}
@@ -4878,8 +4967,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               <input
                                 id="bg-color-picker"
                                 type="color"
-                                value={identificationData.backgroundColor}
-                                onChange={(e) => setIdentificationData({ ...identificationData, backgroundColor: e.target.value })}
+                                value={identificationData.backgroundColor || '#3B82F6'}
+                                onChange={(e) => {
+                                  const newColor = e.target.value
+                                  setIdentificationData(prev => ({ ...prev, backgroundColor: newColor }))
+                                }}
                                 className="absolute opacity-0 w-full h-full cursor-pointer"
                               />
                               <div className="absolute inset-0 flex items-center justify-center">
@@ -4970,20 +5062,25 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                       {/* Show Header */}
                       <div>
-                        <label className="flex items-center gap-3 mb-2">
+                        <label className="flex items-center gap-3 mb-2 cursor-pointer">
                           <input
                             type="checkbox"
+                            id="show-header-checkbox"
                             checked={identificationData.showHeader}
                             onChange={(e) => setIdentificationData({ ...identificationData, showHeader: e.target.checked })}
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           />
-                          <span className="text-sm font-semibold text-gray-700">Show Header</span>
+                          <span className="text-sm font-semibold text-gray-700 cursor-pointer" onClick={(e) => {
+                            e.preventDefault()
+                            setIdentificationData({ ...identificationData, showHeader: !identificationData.showHeader })
+                          }}>Show Header</span>
                         </label>
                         {identificationData.showHeader && (
                           <input
                             type="text"
                             value={identificationData.headerText}
                             onChange={(e) => setIdentificationData({ ...identificationData, headerText: e.target.value })}
+                            placeholder="Enter header text"
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mt-2"
                           />
                         )}
@@ -4991,20 +5088,25 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                       {/* Show Footer */}
                       <div>
-                        <label className="flex items-center gap-3 mb-2">
+                        <label className="flex items-center gap-3 mb-2 cursor-pointer">
                           <input
                             type="checkbox"
+                            id="show-footer-checkbox"
                             checked={identificationData.showFooter}
                             onChange={(e) => setIdentificationData({ ...identificationData, showFooter: e.target.checked })}
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           />
-                          <span className="text-sm font-semibold text-gray-700">Show Footer</span>
+                          <span className="text-sm font-semibold text-gray-700 cursor-pointer" onClick={(e) => {
+                            e.preventDefault()
+                            setIdentificationData({ ...identificationData, showFooter: !identificationData.showFooter })
+                          }}>Show Footer</span>
                         </label>
                         {identificationData.showFooter && (
                           <input
                             type="text"
                             value={identificationData.footerText}
                             onChange={(e) => setIdentificationData({ ...identificationData, footerText: e.target.value })}
+                            placeholder="Enter footer text"
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base mt-2"
                           />
                         )}
@@ -5619,20 +5721,226 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                       {/* New QR Code Input */}
                       {!formData.useExistingQR && (
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            QR Code Text / URL
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.qrCodeText}
-                            onChange={(e) => setFormData({ ...formData, qrCodeText: e.target.value })}
-                            placeholder="Enter URL or text to generate QR code"
-                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                          />
-                          <p className="text-xs text-gray-600 mt-2">
-                            Enter a URL or text that will be encoded in the QR code.
-                          </p>
+                        <div className="space-y-4">
+                          {/* QR Code Source Selection */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              QR Code Source
+                            </label>
+                            <select
+                              value={formData.qrCodeSource || 'custom'}
+                              onChange={(e) => {
+                                const source = e.target.value
+                                setFormData({ 
+                                  ...formData, 
+                                  qrCodeSource: source,
+                                  qrCodeSelectedId: null,
+                                  qrCodeText: source === 'custom' ? formData.qrCodeText : ''
+                                })
+                              }}
+                              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                            >
+                              <option value="custom">Custom Link / URL</option>
+                              <option value="authorized-person">Authorized Person</option>
+                              <option value="organization-chart">Organization Chart</option>
+                              <option value="safety-committee">Safety Committee Team</option>
+                            </select>
+                          </div>
+
+                          {/* Authorized Person Selection */}
+                          {formData.qrCodeSource === 'authorized-person' && (
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Select Authorized Person
+                              </label>
+                              <select
+                                value={formData.qrCodeSelectedId || ''}
+                                onChange={(e) => {
+                                  const personId = e.target.value
+                                  if (personId) {
+                                    try {
+                                      const savedPersons = JSON.parse(localStorage.getItem('authorizedPersons') || '[]')
+                                      const person = savedPersons.find(p => p.id === parseInt(personId))
+                                      if (person) {
+                                        const qrUrl = `${window.location.origin}/authorized-person/${personId}`
+                                        setFormData({ 
+                                          ...formData, 
+                                          qrCodeSelectedId: personId,
+                                          qrCodeText: qrUrl
+                                        })
+                                      }
+                                    } catch (error) {
+                                      console.error('Error loading authorized persons:', error)
+                                    }
+                                  } else {
+                                    setFormData({ 
+                                      ...formData, 
+                                      qrCodeSelectedId: null,
+                                      qrCodeText: ''
+                                    })
+                                  }
+                                }}
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                              >
+                                <option value="">-- Select Authorized Person --</option>
+                                {(() => {
+                                  try {
+                                    const savedPersons = JSON.parse(localStorage.getItem('authorizedPersons') || '[]')
+                                    return savedPersons.map(person => (
+                                      <option key={person.id} value={person.id}>
+                                        {person.name} {person.employeeId ? `(${person.employeeId})` : ''}
+                                      </option>
+                                    ))
+                                  } catch (error) {
+                                    return <option value="">No authorized persons found</option>
+                                  }
+                                })()}
+                              </select>
+                              <p className="text-xs text-gray-600 mt-2">
+                                Select an authorized person to generate a QR code linking to their details.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Organization Chart Selection */}
+                          {formData.qrCodeSource === 'organization-chart' && (
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Select Organization Chart
+                              </label>
+                              <select
+                                value={formData.qrCodeSelectedId || ''}
+                                onChange={(e) => {
+                                  const chartId = e.target.value
+                                  if (chartId) {
+                                    const qrUrl = `${window.location.origin}/organization-chart/${chartId}`
+                                    setFormData({ 
+                                      ...formData, 
+                                      qrCodeSelectedId: chartId,
+                                      qrCodeText: qrUrl
+                                    })
+                                  } else {
+                                    setFormData({ 
+                                      ...formData, 
+                                      qrCodeSelectedId: null,
+                                      qrCodeText: ''
+                                    })
+                                  }
+                                }}
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                              >
+                                <option value="">-- Select Organization Chart --</option>
+                                {(() => {
+                                  try {
+                                    const savedCharts = JSON.parse(localStorage.getItem('organizationCharts') || '[]')
+                                    if (savedCharts.length === 0) {
+                                      return <option value="default">Default Organization Chart</option>
+                                    }
+                                    return savedCharts.map((chart, index) => (
+                                      <option key={chart.id || index} value={chart.id || `chart-${index}`}>
+                                        {chart.name || `Organization Chart ${index + 1}`}
+                                      </option>
+                                    ))
+                                  } catch (error) {
+                                    return <option value="default">Default Organization Chart</option>
+                                  }
+                                })()}
+                              </select>
+                              <p className="text-xs text-gray-600 mt-2">
+                                Select an organization chart to generate a QR code linking to the chart.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Safety Committee Selection */}
+                          {formData.qrCodeSource === 'safety-committee' && (
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Select Safety Committee Team
+                              </label>
+                              <select
+                                value={formData.qrCodeSelectedId || ''}
+                                onChange={(e) => {
+                                  const teamId = e.target.value
+                                  if (teamId) {
+                                    const qrUrl = `${window.location.origin}/safety-committee/${teamId}`
+                                    setFormData({ 
+                                      ...formData, 
+                                      qrCodeSelectedId: teamId,
+                                      qrCodeText: qrUrl
+                                    })
+                                  } else {
+                                    setFormData({ 
+                                      ...formData, 
+                                      qrCodeSelectedId: null,
+                                      qrCodeText: ''
+                                    })
+                                  }
+                                }}
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                              >
+                                <option value="">-- Select Safety Committee Team --</option>
+                                {(() => {
+                                  try {
+                                    const savedTeams = JSON.parse(localStorage.getItem('safetyCommittees') || '[]')
+                                    if (savedTeams.length === 0) {
+                                      return <option value="default">Default Safety Committee</option>
+                                    }
+                                    return savedTeams.map((team, index) => (
+                                      <option key={team.id || index} value={team.id || `team-${index}`}>
+                                        {team.name || `Safety Committee ${index + 1}`}
+                                      </option>
+                                    ))
+                                  } catch (error) {
+                                    return <option value="default">Default Safety Committee</option>
+                                  }
+                                })()}
+                              </select>
+                              <p className="text-xs text-gray-600 mt-2">
+                                Select a safety committee team to generate a QR code linking to the team details.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Custom Link Input */}
+                          {formData.qrCodeSource === 'custom' && (
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                QR Code Text / URL
+                              </label>
+                              <input
+                                type="text"
+                                value={formData.qrCodeText}
+                                onChange={(e) => setFormData({ ...formData, qrCodeText: e.target.value })}
+                                placeholder="Enter URL or text to generate QR code"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                              />
+                              <p className="text-xs text-gray-600 mt-2">
+                                Enter a URL or text that will be encoded in the QR code.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* QR Code Preview */}
+                          {formData.qrCodeText && formData.qrCodeText.trim().length > 0 && (
+                            <div className="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
+                              <p className="text-xs font-semibold text-gray-700 mb-2">QR Code Preview:</p>
+                              <div className="flex items-center gap-4">
+                                <div className="w-32 h-32 border-2 border-gray-300 bg-white flex items-center justify-center p-2 rounded">
+                                  <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(formData.qrCodeText.trim())}`}
+                                    alt="QR Code Preview"
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-xs text-gray-600 break-all">
+                                    <span className="font-semibold">Link:</span> {formData.qrCodeText}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -6944,14 +7252,22 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                       <div
                         className="p-6 min-h-[400px] flex flex-col relative"
                         style={{
-                          backgroundColor: identificationData.backgroundColor,
-                          backgroundImage: identificationData.showImage && identificationData.imagePosition === 'Background'
-                            ? (identificationData.backgroundImage
-                              ? `linear-gradient(rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100}), rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100})), url('${identificationData.backgroundImage}')`
-                              : `linear-gradient(rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100}), rgba(0,0,0,${(100 - identificationData.imageOpacity) / 100})), url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzM0ODVjYSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE1MCIgcj0iODAiIGZpbGw9IiM2M2I1ZjYiLz48Y2lyY2xlIGN4PSIzMDAiIGN5PSIxNTAiIHI9IjgwIiBmaWxsPSIjNjNiNWY2Ii8+PC9zdmc+')`)
-                            : 'none',
+                          backgroundColor: identificationData.backgroundColor || '#3B82F6',
+                          backgroundImage: (() => {
+                            if (identificationData.showImage && identificationData.imagePosition === 'Background' && identificationData.backgroundImage) {
+                              const bgColor = identificationData.backgroundColor || '#3B82F6'
+                              const rgb = hexToRgb(bgColor)
+                              if (rgb) {
+                                const opacity = (100 - identificationData.imageOpacity) / 100
+                                return `linear-gradient(rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity}), rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})), url('${identificationData.backgroundImage}')`
+                              }
+                              return `url('${identificationData.backgroundImage}')`
+                            }
+                            return 'none'
+                          })(),
                           backgroundSize: 'cover',
-                          backgroundPosition: 'center'
+                          backgroundPosition: 'center',
+                          transition: 'background-color 0.2s ease'
                         }}
                       >
                         {/* Header */}
@@ -6967,23 +7283,24 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         )}
 
                         {/* Draggable Icon */}
-                        <div
-                          style={{
-                            position: 'absolute',
-                            left: `${identificationData.iconPosition.x}%`,
-                            top: `${identificationData.iconPosition.y}%`,
-                            transform: 'translate(-50%, -50%)',
-                            cursor: draggingElement === 'icon' ? 'grabbing' : (resizingElement === 'icon' ? getResizeCursor(elementResizeHandle) : 'grab'),
-                            zIndex: 1000,
-                            userSelect: 'none'
-                          }}
-                          onMouseDown={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            handleElementDragStart('icon', e)
-                          }}
-                          className="icon-draggable"
-                        >
+                        {identificationData.showIcon && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              left: `${identificationData.iconPosition.x}%`,
+                              top: `${identificationData.iconPosition.y}%`,
+                              transform: 'translate(-50%, -50%)',
+                              cursor: draggingElement === 'icon' ? 'grabbing' : (resizingElement === 'icon' ? getResizeCursor(elementResizeHandle) : 'grab'),
+                              zIndex: 1000,
+                              userSelect: 'none'
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleElementDragStart('icon', e)
+                            }}
+                            className="icon-draggable"
+                          >
                           <div
                             className="rounded-full flex items-center justify-center text-white relative"
                             style={{
@@ -7199,6 +7516,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             )}
                           </div>
                         </div>
+                        )}
 
                         {/* Draggable Area Name */}
                         <div

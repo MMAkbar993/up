@@ -6,7 +6,12 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
   const [draggedMember, setDraggedMember] = useState(null)
   const [dragOverMember, setDragOverMember] = useState(null)
   const [memberPositions, setMemberPositions] = useState({})
+  const [chartImage, setChartImage] = useState(null)
+  const [chartStyle, setChartStyle] = useState('modern') // modern, classic, minimal, colorful, professional
+  const [paperSize, setPaperSize] = useState('A4') // A4, A3, A5, Legal
+  const [orientation, setOrientation] = useState('landscape') // portrait, landscape
   const chartContainerRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   // Initialize positions for new members
   useEffect(() => {
@@ -51,6 +56,87 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const handleChartImageUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setChartImage(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeChartImage = () => {
+    setChartImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  // Paper size dimensions in pixels (at 96 DPI)
+  const getPaperDimensions = () => {
+    const dimensions = {
+      A4: { width: 794, height: 1123 }, // Portrait
+      A3: { width: 1123, height: 1587 },
+      A5: { width: 559, height: 794 },
+      Legal: { width: 816, height: 1344 }
+    }
+    
+    const base = dimensions[paperSize]
+    if (orientation === 'landscape') {
+      return { width: base.height, height: base.width }
+    }
+    return base
+  }
+
+  // Get style classes based on selected style
+  const getStyleClasses = (type) => {
+    const styles = {
+      modern: {
+        card: 'bg-white border-2 rounded-xl shadow-lg',
+        border: 'border-blue-500',
+        text: 'text-gray-900',
+        role: 'text-blue-600',
+        avatar: 'bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-500',
+        lineColor: '#3b82f6'
+      },
+      classic: {
+        card: 'bg-gray-50 border-2 rounded-lg shadow-md',
+        border: 'border-gray-400',
+        text: 'text-gray-800',
+        role: 'text-gray-700',
+        avatar: 'bg-gradient-to-br from-gray-400 to-gray-600 border-2 border-gray-500',
+        lineColor: '#6b7280'
+      },
+      minimal: {
+        card: 'bg-white border rounded shadow-sm',
+        border: 'border-gray-300',
+        text: 'text-gray-900',
+        role: 'text-gray-600',
+        avatar: 'bg-gray-200 border border-gray-400',
+        lineColor: '#9ca3af'
+      },
+      colorful: {
+        card: 'bg-gradient-to-br from-purple-50 to-pink-50 border-2 rounded-2xl shadow-xl',
+        border: 'border-purple-500',
+        text: 'text-gray-900',
+        role: 'text-purple-600',
+        avatar: 'bg-gradient-to-br from-purple-400 to-pink-500 border-2 border-purple-500',
+        lineColor: '#a855f7'
+      },
+      professional: {
+        card: 'bg-white border-2 rounded-lg shadow-md',
+        border: 'border-indigo-500',
+        text: 'text-gray-900',
+        role: 'text-indigo-700',
+        avatar: 'bg-gradient-to-br from-indigo-500 to-indigo-700 border-2 border-indigo-600',
+        lineColor: '#6366f1'
+      }
+    }
+    return styles[chartStyle] || styles.modern
   }
 
   const updateMember = (id, field, value) => {
@@ -186,6 +272,9 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
     const child = memberPositions[childId]
     if (!parent || !child) return null
 
+    const styleClasses = getStyleClasses()
+    const lineColor = styleClasses.lineColor
+
     const parentX = parent.x + 100 // Center of card (assuming 200px width)
     const parentY = parent.y + 120 // Bottom of card
     const childX = child.x + 100 // Center of card
@@ -219,7 +308,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
               L ${startX - minX} ${midY - minY}
               L ${endX - minX} ${midY - minY}
               L ${endX - minX} ${endY - minY}`}
-          stroke="#3b82f6"
+          stroke={lineColor}
           strokeWidth="2"
           fill="none"
           markerEnd={`url(#arrowhead-${parentId}-${childId})`}
@@ -233,7 +322,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
             refY="3"
             orient="auto"
           >
-            <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+            <polygon points="0 0, 10 3, 0 6" fill={lineColor} />
           </marker>
         </defs>
       </svg>
@@ -266,7 +355,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         <div className={`bg-white border-2 rounded-xl p-4 shadow-lg w-[200px] ${isDragOver ? 'border-blue-600 bg-blue-50' : 'border-blue-500'
           }`}>
           <div className="text-center mb-3">
-            {/* Photo */}
+            {/* Photo or Generic Avatar */}
             <div className="mb-3 flex justify-center">
               {member.photo ? (
                 <div className="relative">
@@ -293,40 +382,56 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       onClick={(e) => e.stopPropagation()}
                     />
                   </label>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      updateMember(member.id, 'photo', null)
+                    }}
+                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                    title="Remove photo"
+                  >
+                    ×
+                  </button>
                 </div>
               ) : (
-                <label className="cursor-pointer">
-                  <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <div className="relative">
+                  {/* Generic Avatar Icon */}
+                  <div className={`w-16 h-16 rounded-full ${styleClasses.avatar} flex items-center justify-center`}>
+                    <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                   </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files[0]) {
-                        handleMemberPhotoUpload(member.id, e.target.files[0])
-                      }
-                      e.target.value = ''
-                    }}
-                    className="hidden"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </label>
+                  <label className="absolute bottom-0 right-0 bg-gray-600 text-white rounded-full p-1 cursor-pointer hover:bg-gray-700" title="Add photo (optional)">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files[0]) {
+                          handleMemberPhotoUpload(member.id, e.target.files[0])
+                        }
+                        e.target.value = ''
+                      }}
+                      className="hidden"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </label>
+                </div>
               )}
             </div>
-            <div className="font-bold text-gray-900 text-sm mb-1">
-              {member.name || 'Unnamed Member'}
+            <div className={`font-bold ${styleClasses.text} text-sm mb-1`}>
+              {member.name || '[Name]'}
             </div>
-            <div className="text-xs text-blue-600 font-medium mb-1">
-              {member.role || 'No Role'}
+            <div className={`text-xs ${styleClasses.role} font-medium mb-1`}>
+              {member.role || '[Designation]'}
             </div>
             {member.phone && (
               <div className="text-xs text-gray-500">{member.phone}</div>
             )}
-            {member.email && (
-              <div className="text-xs text-gray-500 truncate">{member.email}</div>
+            {!member.phone && (
+              <div className="text-xs text-gray-400 italic">[Contact Number]</div>
             )}
           </div>
           <div className="flex flex-col gap-1">
@@ -413,7 +518,31 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                   Create and manage your organizational hierarchy structure.
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
+                <label className="px-4 lg:px-6 py-2 lg:py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base cursor-pointer">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Upload Chart Image
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleChartImageUpload}
+                    className="hidden"
+                  />
+                </label>
+                {chartImage && (
+                  <button
+                    onClick={removeChartImage}
+                    className="px-4 lg:px-6 py-2 lg:py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Remove Image
+                  </button>
+                )}
                 <button className="px-4 lg:px-6 py-2 lg:py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -435,7 +564,10 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
             <div className="lg:col-span-1 space-y-6">
               {/* Settings Panel */}
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md border-2 border-gray-200">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6">Member Management</h2>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4">Member Management</h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  Add members with <span className="font-semibold">name, designation, and contact number</span>. Photo is optional.
+                </p>
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -445,6 +577,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       <button
                         onClick={addMember}
                         className="w-8 h-8 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                        title="Add new member"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -456,8 +589,8 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                     <div className="space-y-2 max-h-96 overflow-y-auto">
                       {orgMembers.map((member) => (
                         <div key={member.id} className="p-3 border-2 border-gray-200 rounded-lg">
-                          {/* Photo Upload */}
-                          <div className="mb-3 flex justify-center">
+                          {/* Photo Upload - Optional */}
+                          <div className="mb-3 flex flex-col items-center">
                             {member.photo ? (
                               <div className="relative">
                                 <img
@@ -485,81 +618,103 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                                 <button
                                   onClick={() => updateMember(member.id, 'photo', null)}
                                   className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                                  title="Remove photo"
                                 >
                                   ×
                                 </button>
                               </div>
                             ) : (
-                              <label className="cursor-pointer">
-                                <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center hover:border-blue-500 hover:bg-gray-100 transition-colors">
-                                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              <div className="relative">
+                                <div className={`w-16 h-16 rounded-full ${getStyleClasses().avatar} flex items-center justify-center`}>
+                                  <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                                   </svg>
                                 </div>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    if (e.target.files[0]) {
-                                      handleMemberPhotoUpload(member.id, e.target.files[0])
-                                    }
-                                    e.target.value = ''
-                                  }}
-                                  className="hidden"
-                                />
-                              </label>
+                                <label className="absolute bottom-0 right-0 bg-gray-600 text-white rounded-full p-1 cursor-pointer hover:bg-gray-700" title="Add photo (optional)">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      if (e.target.files[0]) {
+                                        handleMemberPhotoUpload(member.id, e.target.files[0])
+                                      }
+                                      e.target.value = ''
+                                    }}
+                                    className="hidden"
+                                  />
+                                </label>
+                              </div>
                             )}
+                            <p className="text-xs text-gray-500 mt-1">Photo (Optional)</p>
                           </div>
-                          <input
-                            type="text"
-                            placeholder="Name"
-                            value={member.name}
-                            onChange={(e) => updateMember(member.id, 'name', e.target.value)}
-                            className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Role"
-                            value={member.role}
-                            onChange={(e) => updateMember(member.id, 'role', e.target.value)}
-                            className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <div className="mb-2">
-                            <select
-                              value={member.parentId || ''}
-                              onChange={(e) => updateMember(member.id, 'parentId', e.target.value || null)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            >
-                              <option value="">No Parent (Top Level)</option>
-                              {orgMembers.filter(m => m.id !== member.id).map(parent => (
-                                <option key={parent.id} value={parent.id}>
-                                  {parent.name || parent.role || `Member ${parent.id}`}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="flex gap-2 mb-2">
-                            <input
-                              type="tel"
-                              placeholder="Phone"
-                              value={member.phone}
-                              onChange={(e) => updateMember(member.id, 'phone', e.target.value)}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            />
+                          
+                          {/* Required Fields */}
+                          <div className="space-y-2">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">Name *</label>
+                              <input
+                                type="text"
+                                placeholder="Enter name"
+                                value={member.name}
+                                onChange={(e) => updateMember(member.id, 'name', e.target.value)}
+                                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">Designation *</label>
+                              <input
+                                type="text"
+                                placeholder="Enter designation/role"
+                                value={member.role}
+                                onChange={(e) => updateMember(member.id, 'role', e.target.value)}
+                                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">Contact Number *</label>
+                              <input
+                                type="tel"
+                                placeholder="Enter contact number"
+                                value={member.phone}
+                                onChange={(e) => updateMember(member.id, 'phone', e.target.value)}
+                                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">Email (Optional)</label>
+                              <input
+                                type="email"
+                                placeholder="Enter email"
+                                value={member.email}
+                                onChange={(e) => updateMember(member.id, 'email', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">Reports To</label>
+                              <select
+                                value={member.parentId || ''}
+                                onChange={(e) => updateMember(member.id, 'parentId', e.target.value || null)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                              >
+                                <option value="">No Parent (Top Level)</option>
+                                {orgMembers.filter(m => m.id !== member.id).map(parent => (
+                                  <option key={parent.id} value={parent.id}>
+                                    {parent.name || parent.role || `Member ${parent.id}`}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                             <button
                               onClick={() => removeMember(member.id)}
-                              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                              className="w-full px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-colors"
                             >
-                              ×
+                              Remove Member
                             </button>
                           </div>
-                          <input
-                            type="email"
-                            placeholder="Email"
-                            value={member.email}
-                            onChange={(e) => updateMember(member.id, 'email', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
                         </div>
                       ))}
                     </div>
@@ -570,6 +725,59 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
 
             {/* Right Side - Organization Chart Preview */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Chart Settings Panel */}
+              <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-md border-2 border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Chart Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Style Selection */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Chart Style</label>
+                    <select
+                      value={chartStyle}
+                      onChange={(e) => setChartStyle(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="modern">Modern</option>
+                      <option value="classic">Classic</option>
+                      <option value="minimal">Minimal</option>
+                      <option value="colorful">Colorful</option>
+                      <option value="professional">Professional</option>
+                    </select>
+                  </div>
+
+                  {/* Paper Size Selection */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Paper Size</label>
+                    <select
+                      value={paperSize}
+                      onChange={(e) => setPaperSize(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="A4">A4</option>
+                      <option value="A3">A3</option>
+                      <option value="A5">A5</option>
+                      <option value="Legal">Legal</option>
+                    </select>
+                  </div>
+
+                  {/* Orientation Selection */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Orientation</label>
+                    <select
+                      value={orientation}
+                      onChange={(e) => setOrientation(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="portrait">Portrait</option>
+                      <option value="landscape">Landscape</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-4 text-xs text-gray-500">
+                  <p>Current size: {getPaperDimensions().width} × {getPaperDimensions().height} px ({paperSize} - {orientation})</p>
+                </div>
+              </div>
+
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-md border-2 border-blue-500">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Organization Chart</h2>
@@ -580,18 +788,46 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                 </div>
 
                 {orgMembers.length === 0 ? (
-                  <div className="text-center py-12">
-                    <svg className="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <p className="text-gray-500 text-lg mb-4">No organization members yet</p>
-                    <p className="text-gray-400 text-sm">Add members to start building your organization chart</p>
+                  <div
+                    ref={chartContainerRef}
+                    className="relative bg-gray-50 rounded-lg overflow-auto mx-auto border-2 border-gray-300"
+                    style={{
+                      width: `${Math.min(getPaperDimensions().width, 1200)}px`,
+                      height: `${Math.min(getPaperDimensions().height, 800)}px`,
+                      maxWidth: '100%',
+                      aspectRatio: `${getPaperDimensions().width} / ${getPaperDimensions().height}`
+                    }}
+                  >
+                    {/* Background Organization Chart Image */}
+                    {chartImage ? (
+                      <div className="absolute inset-0 z-0">
+                        <img
+                          src={chartImage}
+                          alt="Organization Chart Background"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 absolute inset-0 flex flex-col items-center justify-center">
+                        <svg className="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <p className="text-gray-500 text-lg mb-4">No organization members yet</p>
+                        <p className="text-gray-400 text-sm">Add members to start building your organization chart</p>
+                        <p className="text-gray-400 text-sm mt-2">Or upload an organization chart image above</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div
                     ref={chartContainerRef}
-                    className="relative bg-gray-50 rounded-lg overflow-auto"
-                    style={{ minHeight: '600px', height: '600px' }}
+                    className="relative bg-gray-50 rounded-lg overflow-auto mx-auto border-2 border-gray-300"
+                    style={{
+                      width: `${Math.min(getPaperDimensions().width, 1200)}px`,
+                      height: `${Math.min(getPaperDimensions().height, 800)}px`,
+                      maxWidth: '100%',
+                      aspectRatio: `${getPaperDimensions().width} / ${getPaperDimensions().height}`
+                    }}
                     onDragOver={(e) => {
                       e.preventDefault()
                       e.dataTransfer.dropEffect = 'move'
@@ -602,6 +838,18 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       setDragOverMember(null)
                     }}
                   >
+                    {/* Background Organization Chart Image */}
+                    {chartImage && (
+                      <div className="absolute inset-0 z-0">
+                        <img
+                          src={chartImage}
+                          alt="Organization Chart Background"
+                          className="w-full h-full object-contain"
+                          style={{ opacity: 0.3 }}
+                        />
+                      </div>
+                    )}
+
                     {/* Render all members as draggable cards */}
                     {orgMembers.map((member) => (
                       <DraggableMemberCard key={member.id} member={member} />

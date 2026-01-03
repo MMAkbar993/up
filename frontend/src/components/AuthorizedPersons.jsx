@@ -2,7 +2,16 @@ import { useState } from 'react'
 import Sidebar from './Sidebar'
 
 const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
-  const [persons, setPersons] = useState([])
+  const [persons, setPersons] = useState(() => {
+    // Load from localStorage on mount
+    try {
+      const saved = localStorage.getItem('authorizedPersons')
+      return saved ? JSON.parse(saved) : []
+    } catch (error) {
+      console.error('Error loading authorized persons:', error)
+      return []
+    }
+  })
   const [selectedPersons, setSelectedPersons] = useState([])
   const [showSignage, setShowSignage] = useState(false)
   const [viewingPerson, setViewingPerson] = useState(null)
@@ -144,7 +153,14 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         photoUrl: URL.createObjectURL(formData.photo),
         qrCodeText: formData.qrCodeText && formData.qrCodeText.trim().length > 0 ? formData.qrCodeText.trim() : ''
       }
-      setPersons(prev => [...prev, newPerson])
+      const updatedPersons = [...persons, newPerson]
+      setPersons(updatedPersons)
+      // Save to localStorage for access from other components
+      try {
+        localStorage.setItem('authorizedPersons', JSON.stringify(updatedPersons))
+      } catch (error) {
+        console.error('Error saving authorized persons to localStorage:', error)
+      }
       // Reset form
       setFormData({
         paperSize: 'A4',
@@ -918,6 +934,20 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                               )}
                             </div>
 
+                            {/* Notes */}
+                            {person.notes && person.notes.trim().length > 0 && (
+                              <div className="mb-3">
+                                <div className="bg-gray-100 py-2 px-3 rounded">
+                                  <div className="flex items-start gap-2">
+                                    <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    <p className="text-xs text-gray-700 whitespace-pre-wrap break-words">{person.notes}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {/* QR Code */}
                             {person.qrCodeText && person.qrCodeText.trim().length > 0 && (
                               <div className="mt-auto flex justify-center pt-2">
@@ -1156,6 +1186,40 @@ const AuthorizedPersons = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                           </div>
                         )}
                       </div>
+
+                      {/* Notes - Editable */}
+                      {viewingPerson.notes && viewingPerson.notes.trim().length > 0 && (
+                        <div className="w-full mb-6">
+                          <div className={`bg-gray-100 py-3 px-4 rounded ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400' : ''}`}>
+                            <div className="flex items-start gap-3">
+                              <svg className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              <div className="flex-1">
+                                <div className="text-xs font-semibold text-gray-600 mb-1">Notes:</div>
+                                <p
+                                  className={`text-sm text-gray-700 whitespace-pre-wrap break-words ${isEditingMode ? 'outline-2 outline-dashed outline-blue-400 p-1 rounded' : ''}`}
+                                  contentEditable={isEditingMode}
+                                  suppressContentEditableWarning={true}
+                                  onBlur={(e) => {
+                                    const personKey = `person_${viewingPerson.id}`
+                                    setEditableTexts(prev => ({
+                                      ...prev,
+                                      [`${personKey}_notes`]: e.target.textContent || viewingPerson.notes
+                                    }))
+                                  }}
+                                  style={{ cursor: isEditingMode ? 'text' : 'default', minHeight: '40px' }}
+                                >
+                                  {(() => {
+                                    const personKey = `person_${viewingPerson.id}`
+                                    return editableTexts[`${personKey}_notes`] !== undefined ? editableTexts[`${personKey}_notes`] : viewingPerson.notes
+                                  })()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* QR Code */}
                       {viewingPerson.qrCodeText && viewingPerson.qrCodeText.trim().length > 0 && (

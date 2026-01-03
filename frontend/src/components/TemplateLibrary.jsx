@@ -138,17 +138,17 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
       </header>
 
       <div className="flex relative max-w-[1920px] mx-auto">
-        {/* Mobile Overlay */}
+        {/* Overlay */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Sidebar - Same as Dashboard */}
         <aside
-          className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 lg:w-72 xl:w-80 bg-white md:bg-gray-50 min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          className={`fixed inset-y-0 left-0 z-50 w-64 lg:w-72 xl:w-80 bg-white min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-88px)] p-4 lg:p-6 border-r border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
         >
           <nav className="space-y-2 lg:space-y-3">
@@ -159,8 +159,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                   : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
                 }`}
               onClick={() => {
-                setActiveNav('dashboard')
                 setSidebarOpen(false)
+                setActiveNav('dashboard')
               }}
             >
               <div className="flex items-center gap-3 lg:gap-4">
@@ -205,8 +205,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
                   }`}
                 onClick={() => {
-                  setActiveNav('templates')
                   setSidebarOpen(false)
+                  setActiveNav('templates')
                 }}
               >
                 <div className="flex items-center gap-3 lg:gap-4">
@@ -225,8 +225,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
                   }`}
                 onClick={() => {
-                  setActiveNav('ai-generator')
                   setSidebarOpen(false)
+                  setActiveNav('ai-generator')
                 }}
               >
                 <div className="flex items-center gap-3 lg:gap-4">
@@ -248,8 +248,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
                   }`}
                 onClick={() => {
-                  setActiveNav('customize-signage')
                   setSidebarOpen(false)
+                  setActiveNav('customize-signage')
                 }}
               >
                 <div className="flex items-center gap-3 lg:gap-4">
@@ -295,8 +295,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
                     : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'
                   }`}
                 onClick={() => {
-                  setActiveNav('emergency')
                   setSidebarOpen(false)
+                  setActiveNav('emergency')
                 }}
               >
                 <div className="flex items-center gap-3 lg:gap-4">
@@ -323,8 +323,8 @@ const TemplateLibrary = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen 
               {/* Blog & Tutorials */}
               <button
                 onClick={() => {
-                  setActiveNav('blog')
                   setSidebarOpen(false)
+                  setActiveNav('blog')
                 }}
                 className={`w-full p-3 lg:p-4 rounded-xl transition-colors shadow-md hover:shadow-lg mb-3 ${activeNav === 'blog'
                     ? 'bg-blue-600 text-white'
