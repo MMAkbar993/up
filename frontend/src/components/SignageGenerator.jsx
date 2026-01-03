@@ -1295,6 +1295,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     let deltaPosY = 0
 
     // Calculate resize based on handle type
+    // Apply scaling factor for top/bottom edges when resizing text to make size increase more gradual
+    const isText = resizingElement === 'text'
+    const topBottomScale = isText ? 0.4 : 1.0 // Scale down text resizing from top/bottom edges
+    
     switch (elementResizeHandle) {
       case 'top-left':
         // Resize from top-left: size decreases when dragging left/up, increases when dragging right/down
@@ -1304,7 +1308,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         break
       case 'top':
         // Resize from top: size decreases when dragging up, increases when dragging down
-        deltaSize = -deltaYPixels
+        // Apply scaling for text to make size increase more gradual
+        deltaSize = -deltaYPixels * topBottomScale
         deltaPosY = deltaYPixels / 2
         break
       case 'top-right':
@@ -1326,7 +1331,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         break
       case 'bottom':
         // Resize from bottom: size increases when dragging down, decreases when dragging up
-        deltaSize = deltaYPixels
+        // Apply scaling for text to make size increase more gradual
+        deltaSize = deltaYPixels * topBottomScale
         deltaPosY = deltaYPixels / 2
         break
       case 'bottom-left':

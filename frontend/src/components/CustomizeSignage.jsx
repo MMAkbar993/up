@@ -456,14 +456,18 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           }
           
           const sizeRatio = newSize / currentSize
-          newFontSize = Math.max(12, Math.min(200, (selectedEl.fontSize || 24) * sizeRatio))
+          newFontSize = Math.max(12, Math.min(200, (resizeStartData.size || 24) * sizeRatio))
         } else if (isEdge) {
           if (handle === 'top' || handle === 'bottom') {
             const delta = handle === 'top' ? -deltaY : deltaY
-            newHeight = Math.max(30, Math.min(500, (resizeStartData.height || 50) + delta))
+            // Apply a scaling factor to make height changes more gradual (0.5 = half the mouse movement)
+            const scaledDelta = delta * 0.5
+            newHeight = Math.max(30, Math.min(500, (resizeStartData.height || 50) + scaledDelta))
             newWidth = resizeStartData.width || 200
+            // Use a more gradual font size scaling (0.4 = 40% of height ratio for more normal scaling)
             const heightRatio = newHeight / (resizeStartData.height || 50)
-            newFontSize = Math.max(12, Math.min(200, (selectedEl.fontSize || 24) * heightRatio))
+            const fontSizeRatio = 1 + (heightRatio - 1) * 0.4
+            newFontSize = Math.max(12, Math.min(200, (resizeStartData.size || 24) * fontSizeRatio))
           } else if (handle === 'left' || handle === 'right') {
             const delta = handle === 'left' ? -deltaX : deltaX
             newWidth = Math.max(50, Math.min(1000, (resizeStartData.width || 200) + delta))
