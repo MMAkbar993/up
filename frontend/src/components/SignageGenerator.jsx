@@ -22,6 +22,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     qrCodeSelectedId: null, // ID of selected person/chart/committee
     useExistingQR: false,
     existingQRCode: '',
+    qrCodeBoxes: [], // Array of boxes with title and url
     showOnlyTitleAndQR: false,
     iso7010FooterText: 'ISO 7010 COMPLIANT • LAST UPDATED: DECEMBER 2025 • REVIEW ANNUALLY',
     size: 'A4',
@@ -1888,6 +1889,53 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       }
     }
     
+    // Calculate page size based on selected size and orientation
+    let pageSize = 'A4' // default
+    let pageWidthMm = 210 // default A4 width in mm
+    let pageHeightMm = 297 // default A4 height in mm
+    
+    // Get orientation from identificationData (for identification signage) or default to Landscape
+    const orientation = identificationData?.orientation || 'Landscape'
+    const isPortrait = orientation === 'Portrait'
+    
+    if (formData.size === 'Custom') {
+      // For custom size, use dimensions in mm
+      // Get the correct dimensions based on orientation
+      const customDimensions = isPortrait 
+        ? signSizes.Custom.portrait 
+        : signSizes.Custom.landscape
+      pageWidthMm = customDimensions.width
+      pageHeightMm = customDimensions.height
+      pageSize = `${pageWidthMm}mm ${pageHeightMm}mm`
+    } else {
+      // For standard sizes (A3, A4, A5), use named size with orientation
+      // CSS @page supports: size: A4 portrait; or size: A4 landscape;
+      const sizeData = signSizes[formData.size]
+      const dimensions = isPortrait ? sizeData.portrait : sizeData.landscape
+      pageWidthMm = dimensions.width
+      pageHeightMm = dimensions.height
+      pageSize = `${formData.size} ${isPortrait ? 'portrait' : 'landscape'}`
+    }
+    
+    // Calculate scale to fill the entire page while fitting on single page
+    // Convert mm to pixels for scaling calculation (1mm ≈ 3.779527559 pixels at 96 DPI)
+    const pageWidthPx = (pageWidthMm / 25.4) * 96
+    const pageHeightPx = (pageHeightMm / 25.4) * 96
+    
+    // Calculate scale factors to fill the page completely
+    // Use Math.min to ensure content fits within page bounds and stays on single page
+    const scaleX = pageWidthPx / containerWidth
+    const scaleY = pageHeightPx / containerHeight
+    const scale = Math.min(scaleX, scaleY) // Use smaller scale to ensure it fits on one page
+    
+    // Calculate the scaled dimensions that will fit on the page
+    const scaledWidth = containerWidth * scale
+    const scaledHeight = containerHeight * scale
+    
+    // Calculate center position for identification signage
+    const centerX = (pageWidthPx - scaledWidth) / 2
+    const centerY = (pageHeightPx - scaledHeight) / 2
+    
     const containerStyles = `
       <style>
         * {
@@ -1897,34 +1945,84 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         }
         @media print {
           @page {
-            size: ${formData.size};
+            size: ${pageSize};
             margin: 0;
           }
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            page-break-inside: avoid !important;
           }
           body {
-            margin: 0;
-            padding: 0;
             background: white;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            position: relative !important;
           }
           .print-container {
             width: ${containerWidth}px !important;
             height: ${containerHeight}px !important;
-            transform: scale(1) !important;
-            transform-origin: center center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            position: absolute !important;
+            top: ${centerY}px !important;
+            left: ${centerX}px !important;
+            transform: scale(${scale}) !important;
+            transform-origin: top left !important;
+            box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+          /* Ensure identification signage background div fills its container */
+          .print-container > div[style*="backgroundColor"] {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100% !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          /* Ensure border is positioned at the edges, not centered - for identification signage */
+          ${signageType === 'identification' ? `
+            .print-container > div[style*="backgroundColor"] > div[style*="border"] {
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              bottom: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              box-sizing: border-box !important;
+              width: 100% !important;
+              height: 100% !important;
+            }
+          ` : ''}
+          .print-container > * {
+            page-break-inside: avoid !important;
           }
         }
-        body {
+        html, body {
           margin: 0;
           padding: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+        }
+        body {
           display: flex;
           justify-content: center;
           align-items: center;
@@ -1946,7 +2044,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
           color-adjust: exact;
-          transform-origin: center center;
+          transform-origin: top left;
+          margin: 0;
+          padding: 0;
+          page-break-inside: avoid;
         }
         .print-container * {
           -webkit-print-color-adjust: exact !important;
@@ -1984,6 +2085,21 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           print-color-adjust: exact !important;
           color-adjust: exact !important;
         }
+        /* Ensure border div is at the edges for identification signage */
+        ${signageType === 'identification' ? `
+          div[style*="border"][style*="solid"] {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
+        ` : ''}
         /* Common utility classes that might be used */
         .flex { display: flex !important; }
         .flex-col { flex-direction: column !important; }
@@ -2271,38 +2387,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-wrap flex-shrink-0">
-            {/* Upload Custom Image Component */}
-            <div className="relative">
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={(e) => {
-                    const file = e.target.files[0]
-                    if (file) {
-                      if (file.size > 10 * 1024 * 1024) {
-                        showNotification('File size must be less than 10MB', 'error')
-                        return
-                      }
-                      const reader = new FileReader()
-                      reader.onload = (event) => {
-                        setUploadedCustomImage(event.target.result)
-                      }
-                      reader.readAsDataURL(file)
-                    }
-                    e.target.value = ''
-                  }}
-                  className="hidden"
-                />
-                <div className="px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-1.5 lg:py-2 bg-white border-2 border-gray-300 rounded-full text-xs sm:text-sm md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-all hover:border-blue-400 hover:bg-blue-50 flex items-center gap-1.5 sm:gap-2">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span className="text-gray-700 hidden md:inline">Upload Custom Image</span>
-                  <span className="text-gray-700 md:hidden">Upload</span>
-                </div>
-              </label>
-            </div>
+         
             <span className="px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-1.5 lg:py-2 bg-purple-100 text-purple-700 rounded-full text-xs sm:text-sm md:text-sm lg:text-base font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-shadow">
               AI Powered
             </span>
@@ -5741,7 +5826,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   ...formData, 
                                   qrCodeSource: source,
                                   qrCodeSelectedId: null,
-                                  qrCodeText: source === 'custom' ? formData.qrCodeText : ''
+                                  qrCodeText: source === 'custom' ? formData.qrCodeText : '',
+                                  qrCodeBoxes: source === 'custom' ? formData.qrCodeBoxes : []
                                 })
                               }}
                               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
@@ -5908,41 +5994,189 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             </div>
                           )}
 
-                          {/* Custom Link Input */}
+                          {/* Custom Link Input with Boxes */}
                           {formData.qrCodeSource === 'custom' && (
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                QR Code Text / URL
-                              </label>
-                              <input
-                                type="text"
-                                value={formData.qrCodeText}
-                                onChange={(e) => setFormData({ ...formData, qrCodeText: e.target.value })}
-                                placeholder="Enter URL or text to generate QR code"
-                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                              />
-                              <p className="text-xs text-gray-600 mt-2">
-                                Enter a URL or text that will be encoded in the QR code.
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-sm font-semibold text-gray-700">
+                                  Content Boxes
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newBox = {
+                                      id: Date.now(),
+                                      title: '',
+                                      url: ''
+                                    }
+                                    setFormData({
+                                      ...formData,
+                                      qrCodeBoxes: [...(formData.qrCodeBoxes || []), newBox]
+                                    })
+                                  }}
+                                  className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  Add Box
+                                </button>
+                              </div>
+                              
+                              <p className="text-xs text-gray-600">
+                                Add multiple content boxes with custom URLs or websites. Each box will have its own space in the QR code.
                               </p>
+
+                              {/* Boxes List */}
+                              {formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 ? (
+                                <div className="space-y-3">
+                                  {formData.qrCodeBoxes.map((box, index) => (
+                                    <div
+                                      key={box.id}
+                                      className="p-4 border-2 border-gray-300 rounded-lg bg-gray-50 space-y-3"
+                                    >
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-semibold text-gray-700">
+                                          Box {index + 1}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updatedBoxes = formData.qrCodeBoxes.filter(b => b.id !== box.id)
+                                            const boxesWithUrls = updatedBoxes.filter(b => b.url && b.url.trim())
+                                            setFormData({
+                                              ...formData,
+                                              qrCodeBoxes: updatedBoxes,
+                                              qrCodeText: boxesWithUrls.length > 0 
+                                                ? JSON.stringify(boxesWithUrls.map(b => ({ title: b.title, url: b.url })))
+                                                : ''
+                                            })
+                                          }}
+                                          className="text-red-600 hover:text-red-700 transition-colors"
+                                        >
+                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                      
+                                      <div>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                          Box Title / Label
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={box.title || ''}
+                                          onChange={(e) => {
+                                            const updatedBoxes = formData.qrCodeBoxes.map(b =>
+                                              b.id === box.id ? { ...b, title: e.target.value } : b
+                                            )
+                                            const boxesWithUrls = updatedBoxes.filter(b => b.url && b.url.trim())
+                                            const qrData = boxesWithUrls.length > 0 
+                                              ? JSON.stringify(boxesWithUrls.map(b => ({ title: b.title, url: b.url })))
+                                              : ''
+                                            setFormData({
+                                              ...formData,
+                                              qrCodeBoxes: updatedBoxes,
+                                              qrCodeText: qrData
+                                            })
+                                          }}
+                                          placeholder="e.g., Safety Information, Company Website"
+                                          className="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        />
+                                      </div>
+                                      
+                                      <div>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                          URL / Website
+                                        </label>
+                                        <input
+                                          type="url"
+                                          value={box.url || ''}
+                                          onChange={(e) => {
+                                            const updatedBoxes = formData.qrCodeBoxes.map(b =>
+                                              b.id === box.id ? { ...b, url: e.target.value } : b
+                                            )
+                                            const boxesWithUrls = updatedBoxes.filter(b => b.url && b.url.trim())
+                                            const qrData = boxesWithUrls.length > 0 
+                                              ? JSON.stringify(boxesWithUrls.map(b => ({ title: b.title, url: b.url })))
+                                              : ''
+                                            setFormData({
+                                              ...formData,
+                                              qrCodeBoxes: updatedBoxes,
+                                              qrCodeText: qrData
+                                            })
+                                          }}
+                                          placeholder="https://example.com or http://example.com"
+                                          className="w-full px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                                  <p className="text-sm text-gray-500 mb-2">No boxes added yet</p>
+                                  <p className="text-xs text-gray-400">Click "Add Box" to create your first content box</p>
+                                </div>
+                              )}
+
+                              {/* Legacy Single URL Input (for backward compatibility) */}
+                              <div className="pt-4 border-t border-gray-200">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                  Or Enter Single URL (Legacy)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={formData.qrCodeBoxes && formData.qrCodeBoxes.length === 0 ? formData.qrCodeText : ''}
+                                  onChange={(e) => {
+                                    setFormData({ 
+                                      ...formData, 
+                                      qrCodeText: e.target.value,
+                                      qrCodeBoxes: []
+                                    })
+                                  }}
+                                  placeholder="Enter URL or text to generate QR code"
+                                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                />
+                                <p className="text-xs text-gray-600 mt-2">
+                                  Enter a single URL or text that will be encoded in the QR code. (This will replace boxes if used)
+                                </p>
+                              </div>
                             </div>
                           )}
 
                           {/* QR Code Preview */}
-                          {formData.qrCodeText && formData.qrCodeText.trim().length > 0 && (
+                          {((formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim())) || (formData.qrCodeText && formData.qrCodeText.trim().length > 0)) && (
                             <div className="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
                               <p className="text-xs font-semibold text-gray-700 mb-2">QR Code Preview:</p>
                               <div className="flex items-center gap-4">
                                 <div className="w-32 h-32 border-2 border-gray-300 bg-white flex items-center justify-center p-2 rounded">
                                   <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(formData.qrCodeText.trim())}`}
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+                                      (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()))
+                                        ? (formData.qrCodeText || '')
+                                        : (formData.qrCodeText || '').trim()
+                                    )}`}
                                     alt="QR Code Preview"
                                     className="w-full h-full object-contain"
                                   />
                                 </div>
                                 <div className="flex-1">
-                                  <p className="text-xs text-gray-600 break-all">
-                                    <span className="font-semibold">Link:</span> {formData.qrCodeText}
-                                  </p>
+                                  {formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()) ? (
+                                    <div className="space-y-1">
+                                      <p className="text-xs font-semibold text-gray-700">Content Boxes:</p>
+                                      {formData.qrCodeBoxes.filter(b => b.url && b.url.trim()).map((box, idx) => (
+                                        <p key={idx} className="text-xs text-gray-600 break-all">
+                                          <span className="font-semibold">{box.title || `Box ${idx + 1}`}:</span> {box.url}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-gray-600 break-all">
+                                      <span className="font-semibold">Link:</span> {formData.qrCodeText}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -6848,7 +7082,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                             </div>
 
                             {/* QR Code */}
-                            {(formData.qrCodeText || formData.existingQRCode) && (
+                            {((formData.qrCodeText && formData.qrCodeText.trim()) || (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim())) || formData.existingQRCode) && (
                               <div className="flex items-center justify-center">
                                 {formData.useExistingQR && formData.existingQRCode ? (
                                   <img
@@ -6856,10 +7090,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                     alt="QR Code"
                                     className="w-48 h-48 sm:w-64 sm:h-64 object-contain border-2 border-gray-300 p-2 bg-white"
                                   />
-                                ) : formData.qrCodeText ? (
+                                ) : (formData.qrCodeText && formData.qrCodeText.trim()) || (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim())) ? (
                                   <div className="w-48 h-48 sm:w-64 sm:h-64 border-2 border-gray-300 bg-white flex items-center justify-center p-4">
                                     <img
-                                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                        (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()))
+                                          ? (formData.qrCodeText || '')
+                                          : (formData.qrCodeText || '')
+                                      )}`}
                                       alt="QR Code"
                                       className="w-full h-full object-contain"
                                     />
@@ -7056,7 +7294,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                         </>
                                       )}
                                     </div>
-                                    {(formData.qrCodeText || formData.existingQRCode) && (
+                                    {((formData.qrCodeText && formData.qrCodeText.trim()) || (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim())) || formData.existingQRCode) && (
                                       <div className="flex flex-col items-center justify-center flex-shrink-0">
                                         {formData.useExistingQR && formData.existingQRCode ? (
                                           <img
@@ -7064,10 +7302,14 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                             alt="QR Code"
                                             className="w-16 h-16 sm:w-20 sm:h-20 object-contain bg-white p-1"
                                           />
-                                        ) : formData.qrCodeText ? (
+                                        ) : ((formData.qrCodeText && formData.qrCodeText.trim()) || (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()))) ? (
                                           <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-white border border-gray-300 p-1">
                                             <img
-                                              src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(formData.qrCodeText)}`}
+                                              src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(
+                                                (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()))
+                                                  ? (formData.qrCodeText || '')
+                                                  : (formData.qrCodeText || '')
+                                              )}`}
                                               alt="QR Code"
                                               className="w-full h-full object-contain"
                                             />

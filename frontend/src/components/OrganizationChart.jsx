@@ -331,6 +331,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
 
   // Draggable Member Card Component
   const DraggableMemberCard = ({ member }) => {
+    const styleClasses = getStyleClasses()
     const position = memberPositions[member.id] || { x: 100, y: 100 }
     const isDragging = draggedMember === member.id
     const isDragOver = dragOverMember === member.id
@@ -432,6 +433,9 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
             )}
             {!member.phone && (
               <div className="text-xs text-gray-400 italic">[Contact Number]</div>
+            )}
+            {member.email && (
+              <div className="text-xs text-gray-500 mt-1">{member.email}</div>
             )}
           </div>
           <div className="flex flex-col gap-1">

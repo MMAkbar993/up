@@ -483,6 +483,13 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       } else if (selectedEl.type === 'image' || selectedEl.type === 'iso-icon' || selectedEl.type === 'emoji') {
         let newWidth = resizeStartData.width || resizeStartData.size || 80
         let newHeight = resizeStartData.height || resizeStartData.size || 80
+        let newX = resizeStartData.elementX || selectedEl.x || 50
+        let newY = resizeStartData.elementY || selectedEl.y || 50
+        
+        const canvas = e.currentTarget.closest('.canvas-container')
+        const rect = canvas ? canvas.getBoundingClientRect() : null
+        const canvasWidth = rect ? rect.width : (resizeStartData.canvasWidth || 800)
+        const canvasHeight = rect ? rect.height : (resizeStartData.canvasHeight || 600)
         
         if (isCorner) {
           const aspectRatio = (resizeStartData.width || resizeStartData.size || 80) / (resizeStartData.height || resizeStartData.size || 80)
@@ -490,12 +497,22 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           
           if (handle === 'top-left') {
             delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY
+            // Adjust position for top-left corner
+            const widthDelta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : (-deltaY * aspectRatio)
+            const heightDelta = Math.abs(deltaX) > Math.abs(deltaY) ? (-deltaX / aspectRatio) : -deltaY
+            newX = resizeStartData.elementX + (widthDelta / canvasWidth) * 100
+            newY = resizeStartData.elementY + (heightDelta / canvasHeight) * 100
           } else if (handle === 'top-right') {
             delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY
+            const heightDelta = Math.abs(deltaX) > Math.abs(deltaY) ? (deltaX / aspectRatio) : -deltaY
+            newY = resizeStartData.elementY + (heightDelta / canvasHeight) * 100
           } else if (handle === 'bottom-left') {
             delta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY
+            const widthDelta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : (deltaY * aspectRatio)
+            newX = resizeStartData.elementX + (widthDelta / canvasWidth) * 100
           } else {
             delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY
+            // bottom-right: no position adjustment needed
           }
           
           const currentSize = Math.max(resizeStartData.width || resizeStartData.size || 80, resizeStartData.height || resizeStartData.size || 80)
@@ -511,19 +528,39 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         } else if (isEdge) {
           if (handle === 'top' || handle === 'bottom') {
             const delta = handle === 'top' ? -deltaY : deltaY
-            newHeight = Math.max(20, Math.min(500, (resizeStartData.height || resizeStartData.size || 80) + delta))
+            const oldHeight = resizeStartData.height || resizeStartData.size || 80
+            newHeight = Math.max(20, Math.min(500, oldHeight + delta))
             newWidth = resizeStartData.width || resizeStartData.size || 80
+            // Adjust Y position when resizing from top (element is centered, so move by half the height change)
+            if (handle === 'top' && canvasHeight > 0) {
+              const heightChange = newHeight - oldHeight
+              // When resizing from top: taller = center moves up (negative), shorter = center moves down (positive)
+              newY = resizeStartData.elementY - (heightChange / 2 / canvasHeight) * 100
+            }
           } else if (handle === 'left' || handle === 'right') {
+            // Calculate delta based on handle direction
             const delta = handle === 'left' ? -deltaX : deltaX
-            newWidth = Math.max(20, Math.min(500, (resizeStartData.width || resizeStartData.size || 80) + delta))
+            const oldWidth = resizeStartData.width || resizeStartData.size || 80
+            // Update width directly with delta (deltaX is in screen pixels, width is in pixels)
+            newWidth = Math.max(20, Math.min(500, oldWidth + delta))
             newHeight = resizeStartData.height || resizeStartData.size || 80
+            // Adjust X position when resizing from left (element is centered, so move by half the width change)
+            if (handle === 'left' && canvasWidth > 0) {
+              const widthChange = newWidth - oldWidth
+              // When resizing from left: wider = center moves left (negative), narrower = center moves right (positive)
+              newX = resizeStartData.elementX - (widthChange / 2 / canvasWidth) * 100
+            }
+            // When resizing from right, center stays fixed (no X adjustment needed for center-anchored elements)
+            // The width change is handled correctly by adding deltaX directly to oldWidth
           }
         }
         
         updateElement(selectedElement, {
           width: snapToGridValue(Math.round(newWidth)),
           height: snapToGridValue(Math.round(newHeight)),
-          size: Math.max(Math.round(newWidth), Math.round(newHeight))
+          size: Math.max(Math.round(newWidth), Math.round(newHeight)),
+          x: Math.max(0, Math.min(100, newX)),
+          y: Math.max(0, Math.min(100, newY))
         })
       }
       return
@@ -567,6 +604,9 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     setSelectedElement(element.id)
     setResizeCorner(corner)
     
+    const canvas = e.currentTarget.closest('.canvas-container')
+    const rect = canvas ? canvas.getBoundingClientRect() : null
+    
     if (element.type === 'text') {
       const currentWidth = element.width || 200
       const currentHeight = element.height || 50
@@ -576,7 +616,10 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         width: currentWidth,
         height: currentHeight,
         x: e.clientX,
-        y: e.clientY
+        y: e.clientY,
+        elementX: element.x || 50,
+        elementY: element.y || 50,
+        canvasWidth: rect ? rect.width : 0
       })
     } else if (element.type === 'image' || element.type === 'iso-icon' || element.type === 'emoji') {
       const currentWidth = element.width || element.size || 80
@@ -587,7 +630,11 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         width: currentWidth,
         height: currentHeight,
         x: e.clientX,
-        y: e.clientY
+        y: e.clientY,
+        elementX: element.x || 50,
+        elementY: element.y || 50,
+        canvasWidth: rect ? rect.width : 0,
+        canvasHeight: rect ? rect.height : 0
       })
     }
   }
