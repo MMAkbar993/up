@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Sidebar from './Sidebar'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   const [orgMembers, setOrgMembers] = useState([])
@@ -90,6 +92,264 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
       return { width: base.height, height: base.width }
     }
     return base
+  }
+
+  // Paper size dimensions in mm for PDF
+  const getPaperDimensionsMm = () => {
+    const dimensions = {
+      A4: { width: 210, height: 297 }, // Portrait in mm
+      A3: { width: 297, height: 420 },
+      A5: { width: 148, height: 210 },
+      Legal: { width: 216, height: 356 }
+    }
+    
+    const base = dimensions[paperSize]
+    if (orientation === 'landscape') {
+      return { width: base.height, height: base.width }
+    }
+    return base
+  }
+
+  // Render chart to canvas with high quality
+  const renderChartToCanvas = async (dpi = 300, forPrint = false) => {
+    try {
+      if (!chartContainerRef.current) {
+        throw new Error('Chart container not found')
+      }
+
+      // html2canvas uses 96 DPI as base resolution
+      const baseDpi = 96
+      const scale = dpi / baseDpi
+      
+      // For print/PDF, use higher scale (minimum 2x, up to 4x for 300+ DPI)
+      const finalScale = forPrint ? Math.max(2, Math.min(scale, 4)) : Math.min(scale, 2)
+      
+      const options = {
+        scale: finalScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#f9fafb', // gray-50 background
+        width: chartContainerRef.current.scrollWidth,
+        height: chartContainerRef.current.scrollHeight,
+        logging: false,
+        windowWidth: chartContainerRef.current.scrollWidth,
+        windowHeight: chartContainerRef.current.scrollHeight,
+        removeContainer: false,
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          // Hide any UI elements that shouldn't be in export
+          const clonedElement = clonedDoc.querySelector('[ref]') || clonedDoc.body
+          if (clonedElement) {
+            // Remove any hover effects or temporary elements
+            const hoverElements = clonedElement.querySelectorAll('.opacity-0, .group-hover\\:opacity-100')
+            hoverElements.forEach(el => {
+              if (el.classList.contains('opacity-0')) {
+                el.style.display = 'none'
+              }
+            })
+          }
+        }
+      }
+      
+      const canvas = await html2canvas(chartContainerRef.current, options)
+      return canvas
+    } catch (error) {
+      console.error('Canvas rendering error:', error)
+      throw error
+    }
+  }
+
+  // Download as PNG
+  const handleDownloadPNG = async () => {
+    try {
+      if (!chartContainerRef.current) {
+        alert('Chart not found. Please add some members first.')
+        return
+      }
+
+      // Show loading indicator
+      const loadingMsg = document.createElement('div')
+      loadingMsg.id = 'png-loading-msg'
+      loadingMsg.textContent = 'Generating high-quality PNG...'
+      loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px;border-radius:8px;z-index:10000;font-family:Arial,sans-serif;'
+      document.body.appendChild(loadingMsg)
+
+      try {
+        const canvas = await renderChartToCanvas(300, true)
+        
+        const msg = document.getElementById('png-loading-msg')
+        if (msg) document.body.removeChild(msg)
+        
+        // Convert to blob with high quality
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            alert('Failed to create image. Please try again.')
+            return
+          }
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `organization-chart-${paperSize}-${orientation}.png`
+          a.click()
+          URL.revokeObjectURL(url)
+        }, 'image/png', 1.0)
+      } catch (renderError) {
+        const msg = document.getElementById('png-loading-msg')
+        if (msg) document.body.removeChild(msg)
+        throw renderError
+      }
+    } catch (error) {
+      console.error('Download PNG error:', error)
+      const msg = document.getElementById('png-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      alert('Failed to download PNG. Please try again.')
+    }
+  }
+
+  // Print chart
+  const handlePrint = async () => {
+    try {
+      if (!chartContainerRef.current) {
+        alert('Chart not found. Please add some members first.')
+        return
+      }
+
+      // Show loading indicator
+      const loadingMsg = document.createElement('div')
+      loadingMsg.id = 'print-loading-msg'
+      loadingMsg.textContent = 'Preparing high-quality print...'
+      loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px;border-radius:8px;z-index:10000;font-family:Arial,sans-serif;'
+      document.body.appendChild(loadingMsg)
+
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) {
+        const msg = document.getElementById('print-loading-msg')
+        if (msg) document.body.removeChild(msg)
+        alert('Please allow popups to print.')
+        return
+      }
+
+      const dimensions = getPaperDimensionsMm()
+      const dpi = 300 // High resolution for print
+      
+      // Render chart to image at high resolution
+      const canvas = await renderChartToCanvas(dpi, true)
+      
+      // Get high-quality image data
+      const imgData = canvas.toDataURL('image/png', 1.0)
+      
+      const msg = document.getElementById('print-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      
+      // Create print HTML with high-resolution image
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print Organization Chart</title>
+            <style>
+              @page {
+                size: ${dimensions.width}mm ${dimensions.height}mm;
+                margin: 0;
+              }
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                width: ${dimensions.width}mm;
+                height: ${dimensions.height}mm;
+                overflow: hidden;
+              }
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${imgData}" alt="Organization Chart" style="width: ${dimensions.width}mm; height: ${dimensions.height}mm;" />
+            <script>
+              window.onload = function() {
+                // Small delay to ensure image is loaded
+                setTimeout(function() {
+                  window.print();
+                  window.onafterprint = function() {
+                    window.close();
+                  };
+                }, 250);
+              };
+            </script>
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
+    } catch (error) {
+      console.error('Print error:', error)
+      const msg = document.getElementById('print-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      alert('Print failed. Please try again.')
+    }
+  }
+
+  // Download as PDF
+  const handleDownloadPDF = async () => {
+    try {
+      if (!chartContainerRef.current) {
+        alert('Chart not found. Please add some members first.')
+        return
+      }
+
+      // Show loading indicator
+      const loadingMsg = document.createElement('div')
+      loadingMsg.id = 'pdf-loading-msg'
+      loadingMsg.textContent = 'Generating high-quality PDF...'
+      loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px;border-radius:8px;z-index:10000;font-family:Arial,sans-serif;'
+      document.body.appendChild(loadingMsg)
+
+      const dimensions = getPaperDimensionsMm()
+      const dpi = 300
+      
+      // Render chart to image at high resolution
+      const canvas = await renderChartToCanvas(dpi, true)
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: orientation === 'landscape' ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: paperSize === 'Legal' ? [dimensions.width, dimensions.height] : paperSize.toLowerCase(),
+        compress: true
+      })
+      
+      // Convert canvas to image data with high quality
+      const imgData = canvas.toDataURL('image/png', 1.0)
+      
+      // Calculate dimensions to fit PDF page
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      
+      // Add image to PDF with proper dimensions
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW')
+      
+      const msg = document.getElementById('pdf-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      
+      // Download PDF
+      pdf.save(`organization-chart-${paperSize}-${orientation}.pdf`)
+    } catch (error) {
+      console.error('PDF export error:', error)
+      const msg = document.getElementById('pdf-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      alert('PDF export failed. Please try again.')
+    }
   }
 
   // Get style classes based on selected style
@@ -1046,13 +1306,28 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                     Remove Image
                   </button>
                 )}
-                <button className="px-4 lg:px-6 py-2 lg:py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base">
+                <button 
+                  onClick={handleDownloadPNG}
+                  className="px-4 lg:px-6 py-2 lg:py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base"
+                >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   Download PNG
                 </button>
-                <button className="px-4 lg:px-6 py-2 lg:py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base">
+                <button 
+                  onClick={handleDownloadPDF}
+                  className="px-4 lg:px-6 py-2 lg:py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Download PDF
+                </button>
+                <button 
+                  onClick={handlePrint}
+                  className="px-4 lg:px-6 py-2 lg:py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 text-sm lg:text-base"
+                >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>

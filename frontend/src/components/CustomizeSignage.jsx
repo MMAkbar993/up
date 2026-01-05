@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Sidebar from './Sidebar'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen }) => {
   // ========== CORE STATE ==========
@@ -668,98 +670,262 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
   
   // ========== EXPORT FUNCTIONS ==========
+  const renderCanvasToImage = async (targetElement, dpi = 300, forPrint = false) => {
+    try {
+      // html2canvas uses 96 DPI as base resolution
+      // For high-quality print/PDF, we need to scale up significantly
+      // Scale = target DPI / 96 (base DPI of html2canvas)
+      const baseDpi = 96
+      const scale = dpi / baseDpi
+      
+      // For print/PDF, use higher scale (minimum 2x, up to 4x for 300+ DPI)
+      const finalScale = forPrint ? Math.max(2, Math.min(scale, 4)) : Math.min(scale, 2)
+      
+      const options = {
+        scale: finalScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: backgroundSettings.type === 'solid' ? backgroundSettings.color : '#FFFFFF',
+        width: targetElement.offsetWidth,
+        height: targetElement.offsetHeight,
+        logging: false,
+        windowWidth: targetElement.scrollWidth,
+        windowHeight: targetElement.scrollHeight,
+        // Improve quality settings
+        removeContainer: false,
+        imageTimeout: 15000,
+        onclone: (clonedDoc) => {
+          // Hide resize handles and selection borders in the cloned document
+          const clonedElement = clonedDoc.querySelector('.canvas-container')
+          if (clonedElement) {
+            // Remove any selection indicators
+            const selectedElements = clonedElement.querySelectorAll('[style*="border"]')
+            selectedElements.forEach(el => {
+              if (el.style.border && el.style.border.includes('dashed')) {
+                el.style.border = 'none'
+              }
+            })
+            // Hide resize handles
+            const handles = clonedElement.querySelectorAll('.resize-handle, .rotate-handle')
+            handles.forEach(handle => {
+              handle.style.display = 'none'
+            })
+          }
+        }
+      }
+      
+      const canvas = await html2canvas(targetElement, options)
+      return canvas
+    } catch (error) {
+      console.error('Canvas rendering error:', error)
+      throw error
+    }
+  }
+  
   const exportToImage = async (format = 'PNG') => {
     try {
-      const canvas = exportCanvasRef.current || document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      
-      const size = signSizes[signSize][orientation.toLowerCase()]
-      const dpi = exportSettings.dpi
-      const scale = dpi / 72
-      
-      canvas.width = (size.width / 25.4) * dpi
-      canvas.height = (size.height / 25.4) * dpi
-      
-      // Draw background
-      if (backgroundSettings.type === 'solid') {
-        ctx.fillStyle = backgroundSettings.color
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-      } else if (backgroundSettings.type === 'gradient') {
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-        backgroundSettings.gradient.colors.forEach((color, idx) => {
-          gradient.addColorStop(backgroundSettings.gradient.stops[idx] / 100, color)
-        })
-        ctx.fillStyle = gradient
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+      if (!canvasRef.current) {
+        alert('Canvas not found. Please try again.')
+        return
       }
       
-      if (backgroundImage) {
-        const img = new Image()
-        img.src = backgroundImage
-        await new Promise((resolve) => {
-          img.onload = () => {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-            resolve()
-          }
-        })
-      }
+      // Show loading indicator
+      const loadingMsg = document.createElement('div')
+      loadingMsg.id = 'export-loading-msg'
+      loadingMsg.textContent = 'Rendering high-quality image...'
+      loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px;border-radius:8px;z-index:10000;font-family:Arial,sans-serif;'
+      document.body.appendChild(loadingMsg)
       
-      // Draw elements
-      const sortedElements = [...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
-      for (const element of sortedElements) {
-        const x = (element.x / 100) * canvas.width
-        const y = (element.y / 100) * canvas.height
+      try {
+        const canvas = await renderCanvasToImage(canvasRef.current, exportSettings.dpi, true)
         
-        ctx.save()
-        ctx.translate(x, y)
-        ctx.rotate((element.rotation || 0) * Math.PI / 180)
-        ctx.globalAlpha = (element.opacity || 100) / 100
+        const msg = document.getElementById('export-loading-msg')
+        if (msg) document.body.removeChild(msg)
         
-        if (element.type === 'text') {
-          ctx.fillStyle = element.color || '#000000'
-          ctx.font = `${element.fontWeight || 'normal'} ${(element.fontSize || 24) * scale}px ${element.fontFamily || 'Arial'}`
-          ctx.textAlign = element.textAlign || 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(element.content, 0, 0)
-        } else if (element.type === 'image') {
-          const img = new Image()
-          img.src = element.content
-          await new Promise((resolve) => {
-            img.onload = () => {
-              const width = (element.width || 80) * scale
-              const height = (element.height || 80) * scale
-              ctx.drawImage(img, -width / 2, -height / 2, width, height)
-              resolve()
-            }
-          })
-        }
-        
-        ctx.restore()
-      }
-      
-      // Convert to blob and download
+        // Convert to blob with high quality
+        const quality = format === 'JPG' ? 0.95 : 1.0
       canvas.toBlob((blob) => {
+          if (!blob) {
+            alert('Failed to create image. Please try again.')
+            return
+          }
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
         a.download = `signage.${format.toLowerCase()}`
         a.click()
         URL.revokeObjectURL(url)
-      }, `image/${format.toLowerCase()}`, 1.0)
+        }, `image/${format.toLowerCase()}`, quality)
+      } catch (renderError) {
+        const msg = document.getElementById('export-loading-msg')
+        if (msg) document.body.removeChild(msg)
+        throw renderError
+      }
     } catch (error) {
       console.error('Export error:', error)
+      const msg = document.getElementById('export-loading-msg')
+      if (msg) document.body.removeChild(msg)
       alert('Export failed. Please try again.')
     }
   }
   
   const exportToPDF = async () => {
     try {
-      // For PDF export, we'll use the browser's print functionality
-      // or a library like jsPDF if available
-      window.print()
+      if (!canvasRef.current) {
+        alert('Canvas not found. Please try again.')
+        return
+      }
+      
+      // Show loading indicator
+      const loadingMsg = document.createElement('div')
+      loadingMsg.id = 'pdf-loading-msg'
+      loadingMsg.textContent = 'Generating high-quality PDF...'
+      loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px;border-radius:8px;z-index:10000;font-family:Arial,sans-serif;'
+      document.body.appendChild(loadingMsg)
+      
+      const size = signSizes[signSize][orientation.toLowerCase()]
+      const dpi = exportSettings.dpi || 300
+      
+      // Render canvas to image at high resolution for PDF
+      const canvas = await renderCanvasToImage(canvasRef.current, dpi, true)
+      
+      // Calculate PDF dimensions in mm (A4, A3, A5 or custom)
+      const widthInMm = size.width
+      const heightInMm = size.height
+      
+      // Create PDF (landscape if needed)
+      const pdf = new jsPDF({
+        orientation: orientation === 'Landscape' ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: signSize === 'Custom' ? [widthInMm, heightInMm] : signSize.toLowerCase(),
+        compress: true
+      })
+      
+      // Convert canvas to image data with high quality
+      // Use PNG for best quality, or JPEG with high quality
+      const imgData = canvas.toDataURL('image/png', 1.0)
+      
+      // Calculate dimensions to fit PDF page
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      
+      // Calculate the actual pixel dimensions needed
+      const pixelsPerMm = dpi / 25.4
+      const imgWidthPx = widthInMm * pixelsPerMm
+      const imgHeightPx = heightInMm * pixelsPerMm
+      
+      // Add image to PDF with proper dimensions
+      // Use 'SLOW' compression for better quality
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW')
+      
+      const msg = document.getElementById('pdf-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      
+      // Download PDF
+      pdf.save('signage.pdf')
     } catch (error) {
       console.error('PDF export error:', error)
-      alert('PDF export failed. Please use the Print button (Ctrl+P) and save as PDF.')
+      const msg = document.getElementById('pdf-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      alert('PDF export failed. Please try again.')
+    }
+  }
+  
+  const handlePrint = async () => {
+    try {
+      if (!canvasRef.current) {
+        alert('Canvas not found. Please try again.')
+        return
+      }
+      
+      // Show loading indicator
+      const loadingMsg = document.createElement('div')
+      loadingMsg.id = 'print-loading-msg'
+      loadingMsg.textContent = 'Preparing high-quality print...'
+      loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;color:#fff;padding:20px;border-radius:8px;z-index:10000;font-family:Arial,sans-serif;'
+      document.body.appendChild(loadingMsg)
+      
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) {
+        const msg = document.getElementById('print-loading-msg')
+        if (msg) document.body.removeChild(msg)
+        alert('Please allow popups to print.')
+        return
+      }
+      
+      const size = signSizes[signSize][orientation.toLowerCase()]
+      const dpi = 300 // High resolution for print
+      
+      // Render canvas to image at high resolution
+      const canvas = await renderCanvasToImage(canvasRef.current, dpi, true)
+      
+      // Get high-quality image data
+      const imgData = canvas.toDataURL('image/png', 1.0)
+      
+      // Calculate print dimensions
+      const pixelsPerMm = dpi / 25.4
+      const imgWidthPx = size.width * pixelsPerMm
+      const imgHeightPx = size.height * pixelsPerMm
+      
+      const msg = document.getElementById('print-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      
+      // Create print HTML with high-resolution image
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print Signage</title>
+            <style>
+              @page {
+                size: ${size.width}mm ${size.height}mm;
+                margin: 0;
+              }
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                width: ${size.width}mm;
+                height: ${size.height}mm;
+                overflow: hidden;
+              }
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${imgData}" alt="Signage" style="width: ${size.width}mm; height: ${size.height}mm;" />
+            <script>
+              window.onload = function() {
+                // Small delay to ensure image is loaded
+                setTimeout(function() {
+                  window.print();
+                  window.onafterprint = function() {
+                    window.close();
+                  };
+                }, 250);
+              };
+            </script>
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
+    } catch (error) {
+      console.error('Print error:', error)
+      const msg = document.getElementById('print-loading-msg')
+      if (msg) document.body.removeChild(msg)
+      alert('Print failed. Please try again.')
     }
   }
   
@@ -2063,8 +2229,14 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                     Clear All
                   </button>
                   <button
-                    onClick={() => setShowPrintPreview(true)}
+                    onClick={handlePrint}
                     className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Print
+                  </button>
+                  <button
+                    onClick={() => setShowPrintPreview(true)}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
                   >
                     Print Preview
                   </button>
@@ -2101,26 +2273,211 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
       {/* Print Preview Modal */}
       {showPrintPreview && (
-        <div className="fixed inset-0 bg-white z-50 p-8 overflow-auto">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Print Preview</h2>
+        <div className="fixed inset-0 bg-gray-100 z-50 p-8 overflow-auto">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-4 flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
+              <h2 className="text-2xl font-bold text-gray-900">Print Preview</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePrint}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Print
+                </button>
               <button
                 onClick={() => setShowPrintPreview(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
               >
                 Close
               </button>
             </div>
+            </div>
+            <div className="bg-white p-8 rounded-lg shadow-lg flex justify-center">
             <div
-              className="bg-white border-2 border-gray-300 mx-auto"
+                className="canvas-container relative bg-white border-2 border-gray-300 rounded-lg overflow-hidden"
               style={{
-                width: `${currentSize.width}mm`,
-                height: `${currentSize.height}mm`,
-                aspectRatio: canvasAspectRatio
-              }}
-            >
-              {/* Print preview content */}
+                  aspectRatio: canvasAspectRatio,
+                  width: `${Math.min(currentSize.width * 2, 800)}px`,
+                  minHeight: '400px'
+                }}
+              >
+                {/* Background */}
+                {backgroundSettings.type === 'solid' && (
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundColor: backgroundSettings.color,
+                      opacity: backgroundSettings.opacity / 100
+                    }}
+                  />
+                )}
+                
+                {backgroundSettings.type === 'gradient' && (
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(${backgroundSettings.gradient.angle}deg, ${backgroundSettings.gradient.colors[0]}, ${backgroundSettings.gradient.colors[1]})`,
+                      opacity: backgroundSettings.opacity / 100
+                    }}
+                  />
+                )}
+                
+                {backgroundImage && (
+                  <img
+                    src={backgroundImage}
+                    alt="Background"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ opacity: backgroundSettings.opacity / 100 }}
+                  />
+                )}
+
+                {/* Authorized Persons Grid */}
+                {authorizedPersonsMode && authorizedPersons.length > 0 && (
+                  <div className="absolute inset-0 p-8">
+                    <div className={`grid gap-4 h-full ${
+                      authorizedPersonsLayout.personsPerPage === 1 ? 'grid-cols-1' :
+                      authorizedPersonsLayout.personsPerPage === 2 ? 'grid-cols-2' :
+                      authorizedPersonsLayout.personsPerPage === 3 ? 'grid-cols-3' :
+                      authorizedPersonsLayout.personsPerPage === 4 ? 'grid-cols-2 grid-rows-2' :
+                      authorizedPersonsLayout.personsPerPage === 6 ? 'grid-cols-3 grid-rows-2' :
+                      'grid-cols-3 grid-rows-2'
+                    }`}>
+                      {authorizedPersons.slice(0, authorizedPersonsLayout.personsPerPage).map((person) => (
+                        <div
+                          key={person.id}
+                          className={`border-2 rounded-lg p-4 flex flex-col items-center justify-center ${
+                            authorizedPersonsLayout.style === 'badge' ? 'bg-white' : 'bg-gray-50'
+                          }`}
+                          style={{
+                            borderColor: iso7010Colors[person.signageCategory || 'Mandatory']?.bg || '#0052CC'
+                          }}
+                        >
+                          {person.photoUrl && (
+                            <img
+                              src={person.photoUrl}
+                              alt={person.name}
+                              className={`mb-2 object-cover ${
+                                authorizedPersonsLayout.style === 'badge' ? 'w-24 h-24 rounded-full' : 'w-32 h-32 rounded-lg'
+                              }`}
+                            />
+                          )}
+                          <h3 className="font-bold text-lg text-center mb-1">{person.name}</h3>
+                          {person.position && (
+                            <p className="text-sm text-gray-600 text-center mb-1">{person.position}</p>
+                          )}
+                          {person.employeeId && (
+                            <p className="text-xs text-gray-500 text-center">ID: {person.employeeId}</p>
+                          )}
+                          {authorizedPersonsLayout.showQR && person.qrCodeText && (
+                            <div className="mt-2 p-2 bg-white rounded border">
+                              <div className="text-xs text-center text-gray-600">QR Code</div>
+                              <div className="w-16 h-16 bg-gray-200 mx-auto mt-1 flex items-center justify-center text-xs text-gray-500">
+                                QR
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Elements */}
+                {[...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)).map((element) => (
+                  <div
+                    key={element.id}
+                    style={{
+                      position: 'absolute',
+                      left: `${element.x}%`,
+                      top: `${element.y}%`,
+                      transform: `translate(-50%, -50%) rotate(${element.rotation || 0}deg)`,
+                      width: (element.type === 'image' || element.type === 'iso-icon' || element.type === 'emoji') 
+                        ? `${element.width || element.size || 80}px` 
+                        : (element.type === 'text' 
+                          ? `${element.width || 200}px` 
+                          : 'auto'),
+                      height: (element.type === 'image' || element.type === 'iso-icon' || element.type === 'emoji') 
+                        ? `${element.height || element.size || 80}px` 
+                        : (element.type === 'text' 
+                          ? `${element.height || 50}px` 
+                          : 'auto'),
+                      zIndex: element.zIndex || 100,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: (element.opacity || 100) / 100,
+                      filter: element.type === 'image' ? `brightness(${(element.brightness || 100) / 100}) contrast(${(element.contrast || 100) / 100}) saturate(${(element.saturation || 100) / 100})` : 'none'
+                    }}
+                  >
+                    {element.type === 'text' && (
+                      <div
+                        style={{
+                          fontSize: `${element.fontSize || 24}px`,
+                          color: element.color || '#000000',
+                          fontFamily: element.fontFamily || 'Arial',
+                          fontWeight: element.fontWeight || 'normal',
+                          width: `${element.width || 200}px`,
+                          height: `${element.height || 50}px`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: element.textAlign || 'center',
+                          wordWrap: 'break-word',
+                          overflow: 'hidden',
+                          textAlign: element.textAlign || 'center',
+                          lineHeight: element.lineHeight || 1.2,
+                          letterSpacing: `${element.letterSpacing || 0}px`,
+                          direction: element.language === 'ar' ? 'rtl' : 'ltr'
+                        }}
+                      >
+                        {element.content}
+                      </div>
+                    )}
+                    
+                    {element.type === 'emoji' && (
+                      <div style={{ 
+                        fontSize: `${element.size || Math.max(element.width || 80, element.height || 80)}px`, 
+                        width: `${element.width || element.size || 80}px`,
+                        height: `${element.height || element.size || 80}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {element.content}
+                      </div>
+                    )}
+                    
+                    {element.type === 'iso-icon' && (
+                      <div style={{
+                        width: `${element.width || element.size || 80}px`,
+                        height: `${element.height || element.size || 80}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: `${Math.min(element.width || 80, element.height || 80) * 0.8}px`,
+                        backgroundColor: iso7010Colors[element.category]?.bg || '#0052CC',
+                        borderRadius: '8px',
+                        color: iso7010Colors[element.category]?.text || '#FFFFFF'
+                      }}>
+                        {element.emoji}
+                      </div>
+                    )}
+                    
+                    {element.type === 'image' && (
+                      <img
+                        src={element.content}
+                        alt="Icon"
+                        style={{
+                          width: `${element.width || element.size || 80}px`,
+                          height: `${element.height || element.size || 80}px`,
+                          objectFit: 'fill',
+                          display: 'block'
+                        }}
+                        draggable={false}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
