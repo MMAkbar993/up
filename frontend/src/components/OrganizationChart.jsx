@@ -96,20 +96,21 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
   const getStyleClasses = (type) => {
     const styles = {
       modern: {
-        card: 'bg-white border-2 rounded-xl shadow-lg',
-        border: 'border-blue-500',
+        card: 'bg-transparent border border-gray-300 rounded-lg shadow-md',
+        border: 'border-gray-300',
         text: 'text-gray-900',
-        role: 'text-blue-600',
-        avatar: 'bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-500',
-        lineColor: '#3b82f6'
+        role: 'text-white',
+        avatar: 'bg-white border-2 border-white',
+        avatarIcon: 'text-gray-600',
+        headerBg: '#1e40af' // Dark blue for top section
       },
       classic: {
-        card: 'bg-gray-50 border-2 rounded-lg shadow-md',
-        border: 'border-gray-400',
-        text: 'text-gray-800',
-        role: 'text-gray-700',
-        avatar: 'bg-gradient-to-br from-gray-400 to-gray-600 border-2 border-gray-500',
-        lineColor: '#6b7280'
+        card: 'bg-blue-600 border-2 rounded-lg shadow-md',
+        border: 'border-blue-700',
+        text: 'text-white',
+        role: 'text-white',
+        avatar: 'bg-gradient-to-br from-gray-400 to-gray-600 border-2 border-white',
+        lineColor: '#3b82f6' // Blue lines for classic style
       },
       minimal: {
         card: 'bg-white border rounded shadow-sm',
@@ -117,7 +118,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         text: 'text-gray-900',
         role: 'text-gray-600',
         avatar: 'bg-gray-200 border border-gray-400',
-        lineColor: '#9ca3af'
+        lineColor: '#3b82f6' // Blue lines for minimal style
       },
       colorful: {
         card: 'bg-gradient-to-br from-purple-50 to-pink-50 border-2 rounded-2xl shadow-xl',
@@ -125,15 +126,15 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         text: 'text-gray-900',
         role: 'text-purple-600',
         avatar: 'bg-gradient-to-br from-purple-400 to-pink-500 border-2 border-purple-500',
-        lineColor: '#a855f7'
+        lineColor: '#ec4899' // Vibrant pink for colorful style
       },
       professional: {
-        card: 'bg-white border-2 rounded-lg shadow-md',
-        border: 'border-indigo-500',
-        text: 'text-gray-900',
-        role: 'text-indigo-700',
-        avatar: 'bg-gradient-to-br from-indigo-500 to-indigo-700 border-2 border-indigo-600',
-        lineColor: '#6366f1'
+        card: 'bg-gray-800 border border-gray-700 rounded-lg shadow-md',
+        border: 'border-gray-700',
+        text: 'text-white',
+        role: 'text-white',
+        avatar: 'bg-gray-700 border-2 border-white',
+        lineColor: '#9ca3af' // Light gray for professional style
       }
     }
     return styles[chartStyle] || styles.modern
@@ -229,8 +230,8 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
     setMemberPositions(prev => ({
       ...prev,
       [draggedMember]: {
-        x: Math.max(0, Math.min(x, rect.width - 200)),
-        y: Math.max(0, Math.min(y, rect.height - 200))
+        x: Math.max(0, Math.min(x, rect.width - 220)), // Updated for new card width (max 220px)
+        y: Math.max(0, Math.min(y, rect.height - 180)) // Updated for new card height (~180px)
       }
     }))
   }, [isDraggingPosition, draggedMember, dragOffset])
@@ -266,6 +267,19 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
     return null
   }
 
+  // Get hierarchy level of a member (0 = top level, 1 = second level, 2 = third level, etc.)
+  const getHierarchyLevel = (memberId) => {
+    let level = 0
+    let currentMember = orgMembers.find(m => m.id === memberId)
+    
+    while (currentMember && currentMember.parentId) {
+      level++
+      currentMember = orgMembers.find(m => m.id === currentMember.parentId)
+    }
+    
+    return level
+  }
+
   // Draw connection line between parent and child
   const drawConnection = (parentId, childId) => {
     const parent = memberPositions[parentId]
@@ -275,9 +289,13 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
     const styleClasses = getStyleClasses()
     const lineColor = styleClasses.lineColor
 
-    const parentX = parent.x + 100 // Center of card (assuming 200px width)
-    const parentY = parent.y + 120 // Bottom of card
-    const childX = child.x + 100 // Center of card
+    // Card dimensions vary by style
+    const cardWidth = 200 // Average of min 180px and max 220px
+    // Modern style has shorter height due to horizontal layout, others are vertical
+    const cardHeight = chartStyle === 'modern' ? 100 : 160 // Modern: ~100px, Others: ~160px
+    const parentX = parent.x + (cardWidth / 2) // Center of card horizontally
+    const parentY = parent.y + cardHeight // Bottom of card
+    const childX = child.x + (cardWidth / 2) // Center of card horizontally
     const childY = child.y // Top of card
 
     const startX = parentX
@@ -335,6 +353,253 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
     const position = memberPositions[member.id] || { x: 100, y: 100 }
     const isDragging = draggedMember === member.id
     const isDragOver = dragOverMember === member.id
+    const hierarchyLevel = getHierarchyLevel(member.id)
+
+    // Get minimal style colors based on hierarchy level
+    const getMinimalCardStyle = () => {
+      if (hierarchyLevel === 0) {
+        // Top level - Red
+        return {
+          card: 'bg-red-600 border-2 rounded-lg shadow-sm',
+          border: 'border-red-700',
+          text: 'text-white',
+          role: 'text-white',
+          avatar: 'bg-white border-2 border-white',
+          avatarIcon: 'text-white'
+        }
+      } else if (hierarchyLevel === 1) {
+        // Second level - Light Blue
+        return {
+          card: 'bg-blue-500 border-2 rounded-lg shadow-sm',
+          border: 'border-blue-600',
+          text: 'text-white',
+          role: 'text-white',
+          avatar: 'bg-white border-2 border-white',
+          avatarIcon: 'text-white'
+        }
+      } else {
+        // Third level and below - Yellow
+        return {
+          card: 'bg-yellow-400 border-2 rounded-lg shadow-sm',
+          border: 'border-yellow-500',
+          text: 'text-gray-900',
+          role: 'text-gray-900',
+          avatar: 'bg-gray-900 border-2 border-gray-900',
+          avatarIcon: 'text-gray-900'
+        }
+      }
+    }
+
+    // Get classic style colors based on hierarchy level
+    const getClassicCardStyle = () => {
+      if (hierarchyLevel === 0) {
+        // Top level - Dark Blue
+        return {
+          card: 'bg-blue-800 border-2 rounded-lg shadow-md',
+          border: 'border-blue-900',
+          text: 'text-white',
+          role: 'text-white',
+          avatar: 'bg-white border-2 border-white',
+          avatarIcon: 'text-gray-600'
+        }
+      } else if (hierarchyLevel === 1) {
+        // Second level - Orange
+        return {
+          card: 'bg-orange-500 border-2 rounded-lg shadow-md',
+          border: 'border-orange-600',
+          text: 'text-white',
+          role: 'text-white',
+          avatar: 'bg-white border-2 border-white',
+          avatarIcon: 'text-gray-600'
+        }
+      } else if (hierarchyLevel === 2 || hierarchyLevel === 3) {
+        // Third and Fourth level - Blue
+        return {
+          card: 'bg-blue-500 border-2 rounded-lg shadow-md',
+          border: 'border-blue-600',
+          text: 'text-white',
+          role: 'text-white',
+          avatar: 'bg-white border-2 border-white',
+          avatarIcon: 'text-gray-600'
+        }
+      } else {
+        // Fifth level and below - Green
+        return {
+          card: 'bg-green-500 border-2 rounded-lg shadow-md',
+          border: 'border-green-600',
+          text: 'text-white',
+          role: 'text-white',
+          avatar: 'bg-white border-2 border-white',
+          avatarIcon: 'text-gray-600'
+        }
+      }
+    }
+
+    // Get colorful style colors based on hierarchy level
+    const getColorfulCardStyle = () => {
+      if (hierarchyLevel === 0) {
+        // Top level - Vibrant Red Gradient
+        return {
+          card: 'bg-transparent border-2 border-red-500 rounded-2xl shadow-none',
+          border: 'border-red-500',
+          text: 'text-gray-900',
+          role: 'text-gray-900',
+          avatar: 'bg-white',
+          avatarIcon: 'text-gray-600',
+          avatarBorderGradient: 'from-red-500 via-red-600 to-pink-600'
+        }
+      } else if (hierarchyLevel === 1) {
+        // Second level - Vibrant Blue/Purple Gradient
+        return {
+          card: 'bg-transparent border-2 border-purple-500 rounded-2xl shadow-none',
+          border: 'border-purple-500',
+          text: 'text-gray-900',
+          role: 'text-gray-900',
+          avatar: 'bg-white',
+          avatarIcon: 'text-gray-600',
+          avatarBorderGradient: 'from-blue-500 via-purple-500 to-pink-500'
+        }
+      } else {
+        // Third level and below - Vibrant Yellow/Orange Gradient
+        return {
+          card: 'bg-transparent border-2 border-orange-400 rounded-2xl shadow-none',
+          border: 'border-orange-400',
+          text: 'text-gray-900',
+          role: 'text-gray-900',
+          avatar: 'bg-white',
+          avatarIcon: 'text-gray-600',
+          avatarBorderGradient: 'from-yellow-400 via-orange-400 to-pink-400'
+        }
+      }
+    }
+
+    // Get professional style colors - uniform dark gray for all levels
+    const getProfessionalCardStyle = () => {
+      return {
+        card: 'bg-black border border-gray-600 rounded-lg shadow-md',
+        border: 'border-gray-600',
+        text: 'text-white',
+        role: 'text-white',
+        avatar: 'bg-gray-700 border-2 border-white',
+        avatarIcon: 'text-white',
+        headerBg: '#64646F' // Background color for name and role section
+      }
+    }
+
+    // Get the actual style classes to use
+    const getCardStyle = () => {
+      if (chartStyle === 'minimal') {
+        return getMinimalCardStyle()
+      }
+      if (chartStyle === 'classic') {
+        return getClassicCardStyle()
+      }
+      if (chartStyle === 'colorful') {
+        return getColorfulCardStyle()
+      }
+      if (chartStyle === 'professional') {
+        return getProfessionalCardStyle()
+      }
+      // Modern style or default
+      return {
+        card: styleClasses.card,
+        border: styleClasses.border,
+        text: styleClasses.text,
+        role: styleClasses.role,
+        avatar: styleClasses.avatar,
+        avatarIcon: styleClasses.avatarIcon || 'text-white',
+        headerBg: styleClasses.headerBg
+      }
+    }
+
+    const cardStyle = getCardStyle()
+
+    // Get ring color based on style - extract color from border class
+    const getRingColor = () => {
+      if (chartStyle === 'classic') {
+        if (hierarchyLevel === 0) return 'ring-blue-400'
+        if (hierarchyLevel === 1) return 'ring-orange-400'
+        if (hierarchyLevel === 2 || hierarchyLevel === 3) return 'ring-blue-400'
+        return 'ring-green-400'
+      }
+      if (chartStyle === 'minimal') {
+        if (hierarchyLevel === 0) return 'ring-red-400'
+        if (hierarchyLevel === 1) return 'ring-blue-400'
+        return 'ring-yellow-400'
+      }
+      if (chartStyle === 'colorful') {
+        if (hierarchyLevel === 0) return 'ring-red-400'
+        if (hierarchyLevel === 1) return 'ring-purple-400'
+        return 'ring-yellow-400'
+      }
+      if (chartStyle === 'professional') return 'ring-gray-400'
+      return 'ring-blue-400' // modern
+    }
+
+    // Get button color based on style
+    const getButtonColor = () => {
+      if (chartStyle === 'classic') {
+        if (hierarchyLevel === 0) return 'bg-blue-900 hover:bg-blue-950'
+        if (hierarchyLevel === 1) return 'bg-orange-600 hover:bg-orange-700'
+        if (hierarchyLevel === 2 || hierarchyLevel === 3) return 'bg-blue-600 hover:bg-blue-700'
+        return 'bg-green-600 hover:bg-green-700'
+      }
+      if (chartStyle === 'minimal') {
+        if (hierarchyLevel === 0) return 'bg-red-700 hover:bg-red-800'
+        if (hierarchyLevel === 1) return 'bg-blue-600 hover:bg-blue-700'
+        return 'bg-yellow-500 hover:bg-yellow-600'
+      }
+      if (chartStyle === 'colorful') {
+        if (hierarchyLevel === 0) return 'bg-red-700 hover:bg-red-800'
+        if (hierarchyLevel === 1) return 'bg-purple-700 hover:bg-purple-800'
+        return 'bg-orange-500 hover:bg-orange-600'
+      }
+      if (chartStyle === 'professional') return 'bg-gray-600 hover:bg-gray-700'
+      return 'bg-blue-600 hover:bg-blue-700' // modern
+    }
+
+    // Get drag over background color
+    const getDragOverBg = () => {
+      if (chartStyle === 'classic') {
+        if (hierarchyLevel === 0) return 'bg-blue-900'
+        if (hierarchyLevel === 1) return 'bg-orange-600'
+        if (hierarchyLevel === 2 || hierarchyLevel === 3) return 'bg-blue-600'
+        return 'bg-green-600'
+      }
+      if (chartStyle === 'minimal') {
+        if (hierarchyLevel === 0) return 'bg-red-700'
+        if (hierarchyLevel === 1) return 'bg-blue-600'
+        return 'bg-yellow-500'
+      }
+      if (chartStyle === 'colorful') {
+        return 'bg-transparent'
+      }
+      if (chartStyle === 'professional') return 'bg-gray-700'
+      if (chartStyle === 'modern') return 'bg-blue-100'
+      return 'bg-blue-50' // default
+    }
+
+    // Get drag over border color
+    const getDragOverBorder = () => {
+      if (chartStyle === 'classic') {
+        if (hierarchyLevel === 0) return 'border-blue-950'
+        if (hierarchyLevel === 1) return 'border-orange-700'
+        if (hierarchyLevel === 2 || hierarchyLevel === 3) return 'border-blue-700'
+        return 'border-green-700'
+      }
+      if (chartStyle === 'minimal') {
+        if (hierarchyLevel === 0) return 'border-red-800'
+        if (hierarchyLevel === 1) return 'border-blue-700'
+        return 'border-yellow-600'
+      }
+      if (chartStyle === 'colorful') {
+        if (hierarchyLevel === 0) return 'border-red-600'
+        if (hierarchyLevel === 1) return 'border-purple-600'
+        return 'border-orange-500'
+      }
+      if (chartStyle === 'professional') return 'border-gray-600'
+      return 'border-blue-600' // modern
+    }
 
     return (
       <div
@@ -345,7 +610,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
         onDrop={(e) => handleDrop(e, member.id)}
         onMouseDown={(e) => handleMemberMouseDown(e, member.id)}
         className={`absolute cursor-move z-10 transition-all ${isDragging ? 'opacity-70 scale-105 z-20' : ''
-          } ${isDragOver ? 'ring-4 ring-blue-400 ring-offset-2 scale-105' : ''}`}
+          } ${isDragOver ? `ring-4 ${getRingColor()} ring-offset-2 scale-105` : ''}`}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
@@ -353,19 +618,233 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
           userSelect: 'none'
         }}
       >
-        <div className={`bg-white border-2 rounded-xl p-4 shadow-lg w-[200px] ${isDragOver ? 'border-blue-600 bg-blue-50' : 'border-blue-500'
-          }`}>
-          <div className="text-center mb-3">
-            {/* Photo or Generic Avatar */}
-            <div className="mb-3 flex justify-center">
+        <div className={`${cardStyle.card} flex flex-col items-center text-center min-w-[180px] max-w-[220px] ${isDragOver ? `${getDragOverBorder()} ${getDragOverBg()}` : cardStyle.border} relative group overflow-hidden rounded-lg shadow-md`}>
+          {/* Modern Style - Two-tone Design */}
+          {chartStyle === 'modern' && cardStyle.headerBg ? (
+            <>
+              {/* Top Section - Dark Blue with Role */}
+              <div 
+                className="w-full px-4 py-2.5 text-center"
+                style={{ backgroundColor: cardStyle.headerBg }}
+              >
+                <div className={`font-bold ${cardStyle.role} text-sm uppercase leading-tight truncate`}>
+                  {member.role || '[Designation]'}
+                </div>
+              </div>
+              
+              {/* Bottom Section - White with Avatar and Name (Horizontal Layout) */}
+              <div className="w-full bg-white px-4 py-3 flex items-center gap-3">
+                {/* Avatar - Left Side, Overlapping Top Section */}
+                <div className="flex-shrink-0 relative -mt-6">
+                  {member.photo ? (
+                    <div className="relative">
+                      <img
+                        src={member.photo}
+                        alt={member.name || 'Member'}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-white"
+                      />
+                      <label className={`absolute -bottom-1 -right-1 ${getButtonColor()} text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity`}>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files[0]) {
+                              handleMemberPhotoUpload(member.id, e.target.files[0])
+                            }
+                            e.target.value = ''
+                          }}
+                          className="hidden"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </label>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          updateMember(member.id, 'photo', null)
+                        }}
+                        className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove photo"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <div className={`w-14 h-14 rounded-full ${cardStyle.avatar} flex items-center justify-center border-2 border-white`}>
+                        <svg className={`w-8 h-8 ${cardStyle.avatarIcon}`} fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                      <label className={`absolute -bottom-1 -right-1 ${getButtonColor()} text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity`} title="Add photo (optional)">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files[0]) {
+                              handleMemberPhotoUpload(member.id, e.target.files[0])
+                            }
+                            e.target.value = ''
+                          }}
+                          className="hidden"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Name - Right Side */}
+                <div className="flex-1 min-w-0 text-left">
+                  <div className={`${cardStyle.text} text-sm font-medium leading-tight truncate`}>
+                    {member.name || '[Name]'}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : chartStyle === 'professional' && cardStyle.headerBg ? (
+            <div 
+              className="w-full px-4 py-3 text-center"
+              style={{ backgroundColor: cardStyle.headerBg }}
+            >
+              <div className={`font-bold ${cardStyle.role} text-sm uppercase leading-tight mb-1 truncate`}>
+                {member.role || '[Designation]'}
+              </div>
+              <div className={`${cardStyle.text} text-xs leading-tight truncate`}>
+                {member.name || '[Name]'}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Photo or Generic Avatar - Top Center (Other Styles) */}
+              <div className="flex-shrink-0 relative mb-3 p-4">
+                {member.photo ? (
+                  <div className="relative">
+                    {/* Gradient Border Wrapper for Colorful Style */}
+                    {chartStyle === 'colorful' && cardStyle.avatarBorderGradient ? (
+                      <div className={`p-1 rounded-full bg-gradient-to-br ${cardStyle.avatarBorderGradient}`}>
+                        <img
+                          src={member.photo}
+                          alt={member.name || 'Member'}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <img
+                        src={member.photo}
+                        alt={member.name || 'Member'}
+                        className={`w-16 h-16 rounded-full object-cover border-2 ${
+                          chartStyle === 'professional' || chartStyle === 'classic'
+                            ? 'border-white' 
+                            : chartStyle === 'minimal'
+                              ? (hierarchyLevel >= 2 ? 'border-gray-900' : 'border-white') 
+                              : cardStyle.border
+                        }`}
+                      />
+                    )}
+                    <label className={`absolute -bottom-1 -right-1 ${getButtonColor()} text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity`}>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            handleMemberPhotoUpload(member.id, e.target.files[0])
+                          }
+                          e.target.value = ''
+                        }}
+                        className="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </label>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        updateMember(member.id, 'photo', null)
+                      }}
+                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove photo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    {/* Generic Avatar Icon */}
+                    {chartStyle === 'colorful' && cardStyle.avatarBorderGradient ? (
+                      <div className={`p-1 rounded-full bg-gradient-to-br ${cardStyle.avatarBorderGradient}`}>
+                        <div className={`w-16 h-16 rounded-full ${cardStyle.avatar} flex items-center justify-center`}>
+                          <svg className={`w-9 h-9 ${cardStyle.avatarIcon}`} fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`w-16 h-16 rounded-full ${cardStyle.avatar} flex items-center justify-center border-2 ${
+                        chartStyle === 'professional' || chartStyle === 'classic'
+                          ? 'border-white' 
+                          : chartStyle === 'minimal'
+                            ? (hierarchyLevel >= 2 ? 'border-gray-900' : 'border-white') 
+                            : cardStyle.border
+                      }`}>
+                        <svg className={`w-9 h-9 ${cardStyle.avatarIcon}`} fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                    )}
+                    <label className={`absolute -bottom-1 -right-1 ${getButtonColor()} text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity`} title="Add photo (optional)">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            handleMemberPhotoUpload(member.id, e.target.files[0])
+                          }
+                          e.target.value = ''
+                        }}
+                        className="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Text Content - Below Photo (Other Styles) */}
+              <div className="flex-1 w-full min-w-0 px-4">
+                <div className={`font-bold ${cardStyle.role} text-sm uppercase leading-tight mb-1 truncate`}>
+                  {member.role || '[Designation]'}
+                </div>
+                <div className={`${cardStyle.text} text-xs leading-tight mb-2 truncate`}>
+                  {member.name || '[Name]'}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Photo or Generic Avatar - Below Name/Role (Professional Style) */}
+          {chartStyle === 'professional' && (
+            <div className="flex-shrink-0 relative mb-3 px-4 pt-4">
               {member.photo ? (
                 <div className="relative">
                   <img
                     src={member.photo}
                     alt={member.name || 'Member'}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-blue-500"
+                    className="w-16 h-16 rounded-full object-cover border-2 border-white"
                   />
-                  <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+                  <label className={`absolute -bottom-1 -right-1 ${getButtonColor()} text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity`}>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -388,7 +867,7 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                       e.stopPropagation()
                       updateMember(member.id, 'photo', null)
                     }}
-                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Remove photo"
                   >
                     ×
@@ -396,13 +875,12 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                 </div>
               ) : (
                 <div className="relative">
-                  {/* Generic Avatar Icon */}
-                  <div className={`w-16 h-16 rounded-full ${styleClasses.avatar} flex items-center justify-center`}>
-                    <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <div className={`w-16 h-16 rounded-full ${cardStyle.avatar} flex items-center justify-center border-2 border-white`}>
+                    <svg className={`w-9 h-9 ${cardStyle.avatarIcon}`} fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                   </div>
-                  <label className="absolute bottom-0 right-0 bg-gray-600 text-white rounded-full p-1 cursor-pointer hover:bg-gray-700" title="Add photo (optional)">
+                  <label className={`absolute -bottom-1 -right-1 ${getButtonColor()} text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity`} title="Add photo (optional)">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
@@ -422,33 +900,54 @@ const OrganizationChart = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpe
                 </div>
               )}
             </div>
-            <div className={`font-bold ${styleClasses.text} text-sm mb-1`}>
-              {member.name || '[Name]'}
-            </div>
-            <div className={`text-xs ${styleClasses.role} font-medium mb-1`}>
-              {member.role || '[Designation]'}
-            </div>
-            {member.phone && (
-              <div className="text-xs text-gray-500">{member.phone}</div>
+          )}
+            {/* Show contact info for minimal, colorful, and professional styles */}
+            {(chartStyle === 'minimal' || chartStyle === 'colorful' || chartStyle === 'professional') && (
+              <div className={`w-full space-y-1.5 ${chartStyle === 'professional' ? 'px-4 pb-4 pt-2 border-t border-gray-600' : 'px-4 mt-2 pt-2 border-t border-opacity-20'}`}>
+                {member.phone && (
+                  <div className={`flex items-center gap-1.5 ${cardStyle.text} text-[10px] leading-tight truncate`}>
+                    {chartStyle === 'professional' && (
+                      <svg className="w-3 h-3 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    )}
+                    <span>{member.phone}</span>
+                  </div>
+                )}
+                {member.email && (
+                  <div className={`flex items-center gap-1.5 ${cardStyle.text} text-[10px] leading-tight truncate`}>
+                    {chartStyle === 'professional' && (
+                      <svg className="w-3 h-3 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                    <span>{member.email}</span>
+                  </div>
+                )}
+                {(!member.phone && !member.email) && (
+                  <>
+                    <div className={`${cardStyle.text} text-[10px] leading-tight truncate`}>
+                      {member.phone || '[Phone]'}
+                    </div>
+                    <div className={`${cardStyle.text} text-[10px] leading-tight truncate`}>
+                      {member.email || '[Email]'}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
-            {!member.phone && (
-              <div className="text-xs text-gray-400 italic">[Contact Number]</div>
-            )}
-            {member.email && (
-              <div className="text-xs text-gray-500 mt-1">{member.email}</div>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                removeMember(member.id)
-              }}
-              className="px-2 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition-colors"
-            >
-              Remove
-            </button>
-          </div>
+
+          {/* Remove Button - Hidden by default, shown on hover */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              removeMember(member.id)
+            }}
+            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 transition-colors opacity-0 group-hover:opacity-100"
+            title="Remove member"
+          >
+            ×
+          </button>
         </div>
       </div>
     )

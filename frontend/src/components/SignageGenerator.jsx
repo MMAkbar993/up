@@ -335,9 +335,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
   // ========== SIGN SIZES (mm) ==========
   const signSizes = {
+    'A2': { width: 420, height: 594, portrait: { width: 420, height: 594 }, landscape: { width: 594, height: 420 } },
     'A3': { width: 297, height: 420, portrait: { width: 297, height: 420 }, landscape: { width: 420, height: 297 } },
     'A4': { width: 210, height: 297, portrait: { width: 210, height: 297 }, landscape: { width: 297, height: 210 } },
     'A5': { width: 148, height: 210, portrait: { width: 148, height: 210 }, landscape: { width: 210, height: 148 } },
+    'Letter': { width: 216, height: 279, portrait: { width: 216, height: 279 }, landscape: { width: 279, height: 216 } }, // 8.5" x 11" in mm
     'Custom': { width: 210, height: 297, portrait: { width: 210, height: 297 }, landscape: { width: 297, height: 210 } }
   }
 
@@ -972,6 +974,34 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     }
     // If not found, format the ID as a readable name
     return ppeId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
+  const getPPEIcon = (ppeId) => {
+    // Search through all PPE categories to find the matching item
+    for (const category of Object.values(ppeCategories)) {
+      const ppeItem = category.find(item => item.id === ppeId)
+      if (ppeItem && ppeItem.icon) {
+        return ppeItem.icon
+      }
+    }
+    // Fallback: use name-based matching for items not in categories
+    const ppeName = getPPEDisplayName(ppeId).toLowerCase()
+    if (ppeName.includes('helmet')) return '🪖'
+    if (ppeName.includes('goggle')) return '🥽'
+    if (ppeName.includes('ear')) return '🎧'
+    if (ppeName.includes('glove') && !ppeName.includes('insulated')) return '🧤'
+    if (ppeName.includes('boot') && !ppeName.includes('insulated')) return '👢'
+    if (ppeName.includes('high-vis') || ppeName.includes('high vis')) return '👔'
+    if (ppeName.includes('respirator')) return '😷'
+    if (ppeName.includes('harness')) return '🦺'
+    if (ppeName.includes('arc flash') || ppeName.includes('arc flash suit')) return '⚡'
+    if (ppeName.includes('insulated glove')) return '🧤'
+    if (ppeName.includes('insulated boot')) return '👢'
+    if (ppeName.includes('voltage') || ppeName.includes('detector')) return '🔌'
+    if (ppeName.includes('face shield')) return '🛡️'
+    if (ppeName.includes('arc clothing')) return '👔'
+    if (ppeName.includes('mat') || ppeName.includes('safety mat')) return '📖'
+    return '🛡️' // Default icon
   }
 
   const getCategoryColor = (category) => {
@@ -1692,21 +1722,51 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       })
 
       const imgData = canvas.toDataURL('image/png')
+      
+      // Get orientation from identificationData (for identification signage) or default to Landscape
+      const orientation = identificationData?.orientation || 'Landscape'
+      const isPortrait = orientation === 'Portrait'
+      
+      // Map size format for jsPDF
+      const selectedSize = formData.size || 'A4'
+      let pdfFormat
+      let pdfWidth, pdfHeight
+      
+      if (selectedSize === 'Custom') {
+        // For custom size, use dimensions array
+        const customDimensions = isPortrait 
+          ? signSizes.Custom.portrait 
+          : signSizes.Custom.landscape
+        pdfWidth = customDimensions.width
+        pdfHeight = customDimensions.height
+        pdfFormat = [pdfWidth, pdfHeight]
+      } else if (signSizes[selectedSize]) {
+        // For standard sizes, use format string (jsPDF supports 'a2', 'a3', 'a4', 'a5', 'letter')
+        pdfFormat = selectedSize.toLowerCase()
+      } else {
+        // Fallback to A4
+        pdfFormat = 'a4'
+      }
+      
       const pdf = new jsPDF({
-        orientation: identificationData.orientation === 'Portrait' ? 'portrait' : 'landscape',
+        orientation: isPortrait ? 'portrait' : 'landscape',
         unit: 'mm',
-        format: formData.size.toLowerCase()
+        format: pdfFormat
       })
 
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = pdf.internal.pageSize.getHeight()
+      pdfWidth = pdf.internal.pageSize.getWidth()
+      pdfHeight = pdf.internal.pageSize.getHeight()
       const imgWidth = canvas.width
       const imgHeight = canvas.height
+      // Scale image to fill the PDF page
       const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-      const imgX = (pdfWidth - imgWidth * ratio) / 2
+      const scaledImgWidth = imgWidth * ratio
+      const scaledImgHeight = imgHeight * ratio
+      // Position at top-left (0,0) to fill entire page
+      const imgX = 0
       const imgY = 0
 
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+      pdf.addImage(imgData, 'PNG', imgX, imgY, scaledImgWidth, scaledImgHeight)
       pdf.save(`${formData.title || 'signage'}.pdf`)
       showNotification('PDF exported successfully!', 'success')
     } catch (error) {
@@ -1863,14 +1923,27 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   }
 
   const handlePrint = () => {
-    if (!previewRef.current) return
+    if (!previewRef.current) {
+      showNotification('Preview not available', 'error')
+      return
+    }
 
     // Get actual dimensions of the preview container
     const containerWidth = previewRef.current.offsetWidth
     const containerHeight = previewRef.current.offsetHeight
+    
+    if (!containerWidth || !containerHeight) {
+      showNotification('Unable to determine signage dimensions', 'error')
+      return
+    }
 
     // Create a new window for printing
     const printWindow = window.open('', '_blank')
+    
+    if (!printWindow) {
+      showNotification('Please allow popups to print', 'error')
+      return
+    }
     const rawContent = previewRef.current.innerHTML
     
     // Clean content and convert all computed styles to inline styles
@@ -1898,7 +1971,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
     const orientation = identificationData?.orientation || 'Landscape'
     const isPortrait = orientation === 'Portrait'
     
-    if (formData.size === 'Custom') {
+    // Ensure formData.size is valid, default to A4 if not
+    const selectedSize = formData.size || 'A4'
+    
+    if (selectedSize === 'Custom') {
       // For custom size, use dimensions in mm
       // Get the correct dimensions based on orientation
       const customDimensions = isPortrait 
@@ -1907,37 +1983,45 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       pageWidthMm = customDimensions.width
       pageHeightMm = customDimensions.height
       pageSize = `${pageWidthMm}mm ${pageHeightMm}mm`
-    } else {
+    } else if (signSizes[selectedSize]) {
       // For standard sizes (A3, A4, A5), use named size with orientation
       // CSS @page supports: size: A4 portrait; or size: A4 landscape;
-      const sizeData = signSizes[formData.size]
+      const sizeData = signSizes[selectedSize]
       const dimensions = isPortrait ? sizeData.portrait : sizeData.landscape
       pageWidthMm = dimensions.width
       pageHeightMm = dimensions.height
-      pageSize = `${formData.size} ${isPortrait ? 'portrait' : 'landscape'}`
+      pageSize = `${selectedSize} ${isPortrait ? 'portrait' : 'landscape'}`
+    } else {
+      // Fallback to A4 if size is not recognized
+      const defaultSize = signSizes['A4']
+      const dimensions = isPortrait ? defaultSize.portrait : defaultSize.landscape
+      pageWidthMm = dimensions.width
+      pageHeightMm = dimensions.height
+      pageSize = `A4 ${isPortrait ? 'portrait' : 'landscape'}`
     }
     
-    // Calculate scale to fill the entire page while fitting on single page
+    // Calculate scale to fill the entire page completely
     // Convert mm to pixels for scaling calculation (1mm ≈ 3.779527559 pixels at 96 DPI)
     const pageWidthPx = (pageWidthMm / 25.4) * 96
     const pageHeightPx = (pageHeightMm / 25.4) * 96
     
-    // Calculate scale factors to fill the page completely
-    // Use Math.min to ensure content fits within page bounds and stays on single page
+    // Calculate scale factors to fill the entire page
+    // Use Math.min to ensure all content fits within the page without cutting off
     const scaleX = pageWidthPx / containerWidth
     const scaleY = pageHeightPx / containerHeight
-    const scale = Math.min(scaleX, scaleY) // Use smaller scale to ensure it fits on one page
+    const scale = Math.min(scaleX, scaleY) // Use smaller scale to fit everything on page
     
-    // Calculate the scaled dimensions that will fit on the page
-    const scaledWidth = containerWidth * scale
-    const scaledHeight = containerHeight * scale
+    // Use original container dimensions - will be scaled to fit page
+    const baseWidth = containerWidth
+    const baseHeight = containerHeight
     
-    // Calculate center position for identification signage
-    const centerX = (pageWidthPx - scaledWidth) / 2
-    const centerY = (pageHeightPx - scaledHeight) / 2
+    // No offsets - start at top-left corner to fill entire page
+    const offsetX = 0
+    const offsetY = 0
     
     const containerStyles = `
       <style>
+        /* Force background graphics and colors to print */
         * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -1959,32 +2043,63 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           html, body {
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
+            width: ${pageWidthPx}px !important;
+            height: ${pageHeightPx}px !important;
             overflow: hidden !important;
             page-break-inside: avoid !important;
           }
           body {
-            background: white;
+            background: ${backgroundColor} !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
+            width: ${pageWidthPx}px !important;
+            height: ${pageHeightPx}px !important;
             position: relative !important;
+            display: block !important;
+            overflow: hidden !important;
           }
           .print-container {
-            width: ${containerWidth}px !important;
-            height: ${containerHeight}px !important;
+            width: ${baseWidth}px !important;
+            height: ${baseHeight}px !important;
             margin: 0 !important;
             padding: 0 !important;
             position: absolute !important;
-            top: ${centerY}px !important;
-            left: ${centerX}px !important;
+            top: ${offsetY}px !important;
+            left: ${offsetX}px !important;
             transform: scale(${scale}) !important;
             transform-origin: top left !important;
             box-sizing: border-box !important;
             page-break-inside: avoid !important;
             overflow: hidden !important;
+            background: ${backgroundColor} !important;
+            border-radius: 0 !important;
+            /* Ensure container fills entire page */
+            min-width: ${baseWidth}px !important;
+            min-height: ${baseHeight}px !important;
+          }
+          .print-container > * {
+            width: 100% !important;
+            ${signageType === 'safety' ? 'height: auto !important;' : 'height: 100% !important;'}
+            box-sizing: border-box !important;
+          }
+          ${signageType === 'safety' ? `
+          /* Ensure flex containers don't constrain height for safety signage */
+          .print-container .flex-col {
+            min-height: 0 !important;
+            height: auto !important;
+          }
+          ` : ''}
+          /* Remove all rounded corners in print */
+          .print-container,
+          .print-container * {
+            border-radius: 0 !important;
+          }
+          /* Ensure grid layouts are preserved in print */
+          .grid {
+            display: grid !important;
+          }
+          .grid-cols-5 {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
           }
           /* Ensure identification signage background div fills its container */
           .print-container > div[style*="backgroundColor"] {
@@ -2016,38 +2131,63 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
           }
         }
         html, body {
-          margin: 0;
-          padding: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: ${pageWidthPx}px !important;
+          height: ${pageHeightPx}px !important;
+          overflow: hidden !important;
         }
         body {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-          background: white;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-          color-adjust: exact;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: ${pageWidthPx}px !important;
+          height: ${pageHeightPx}px !important;
+          background: ${backgroundColor} !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          display: block !important;
+          overflow: hidden !important;
         }
         .print-container {
-          width: ${containerWidth}px;
-          height: ${containerHeight}px;
-          position: relative;
-          background: ${backgroundColor};
-          border: ${styles.border || 'none'};
-          border-radius: ${styles.borderRadius || '0'};
-          overflow: hidden;
-          box-sizing: border-box;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-          color-adjust: exact;
-          transform-origin: top left;
-          margin: 0;
-          padding: 0;
-          page-break-inside: avoid;
+          width: ${baseWidth}px !important;
+          height: ${baseHeight}px !important;
+          position: absolute !important;
+          top: ${offsetY}px !important;
+          left: ${offsetX}px !important;
+          background: ${backgroundColor} !important;
+          border: ${styles.border || 'none'} !important;
+          border-radius: 0 !important;
+          overflow: hidden !important;
+          box-sizing: border-box !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          transform-origin: top left !important;
+          transform: scale(${scale}) !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          page-break-inside: avoid !important;
+          /* Ensure container fills entire page */
+          min-width: ${baseWidth}px !important;
+          min-height: ${baseHeight}px !important;
+        }
+        .print-container > * {
+          width: 100% !important;
+          ${signageType === 'safety' ? 'height: auto !important;' : 'height: 100% !important;'}
+          box-sizing: border-box !important;
+        }
+        ${signageType === 'safety' ? `
+        /* Ensure flex containers don't constrain height for safety signage */
+        .print-container .flex-col {
+          min-height: 0 !important;
+          height: auto !important;
+        }
+        ` : ''}
+        /* Remove all rounded corners in print */
+        .print-container,
+        .print-container * {
+          border-radius: 0 !important;
         }
         .print-container * {
           -webkit-print-color-adjust: exact !important;
@@ -2108,9 +2248,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         .text-center { text-align: center !important; }
         .font-bold { font-weight: bold !important; }
         .uppercase { text-transform: uppercase !important; }
-        .rounded { border-radius: 0.25rem !important; }
-        .rounded-lg { border-radius: 0.5rem !important; }
-        .rounded-full { border-radius: 9999px !important; }
+        .rounded { border-radius: 0 !important; }
+        .rounded-lg { border-radius: 0 !important; }
+        .rounded-full { border-radius: 0 !important; }
+        .rounded-t-lg { border-radius: 0 !important; }
+        .rounded-b-lg { border-radius: 0 !important; }
         .relative { position: relative !important; }
         .absolute { position: absolute !important; }
         .w-full { width: 100% !important; }
@@ -5500,20 +5642,24 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               </svg>
                             </button>
                             {expandedPPECategories.includes(category) && (
-                              <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 bg-white border-t-2 border-gray-100">
+                              <div className="p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 bg-white border-t-2 border-gray-100">
                                 {items.map((item) => (
                                   <label
                                     key={item.id}
-                                    className="flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 bg-white min-h-[44px]"
+                                    className={`relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 min-h-[100px] sm:min-h-[110px] ${
+                                      formData.ppe.includes(item.id)
+                                        ? 'bg-blue-50 border-blue-500 shadow-md'
+                                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-blue-300'
+                                    }`}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={formData.ppe.includes(item.id)}
                                       onChange={() => togglePPE(item.id)}
-                                      className="w-5 h-5 text-blue-600 rounded border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 cursor-pointer flex-shrink-0"
+                                      className="absolute top-2 right-2 w-5 h-5 text-blue-600 rounded border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 cursor-pointer z-10"
                                     />
-                                    <span className="text-lg sm:text-xl flex-shrink-0">{item.icon}</span>
-                                    <span className="text-xs sm:text-sm font-medium text-gray-700 flex-1 leading-tight">{item.name}</span>
+                                    <span className="text-3xl sm:text-4xl">{item.icon}</span>
+                                    <span className="text-xs sm:text-sm font-semibold text-gray-700 text-center leading-tight px-1 break-words uppercase">{item.name}</span>
                                   </label>
                                 ))}
                               </div>
@@ -5815,28 +5961,85 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                         <div className="space-y-4">
                           {/* QR Code Source Selection */}
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">
                               QR Code Source
                             </label>
-                            <select
-                              value={formData.qrCodeSource || 'custom'}
-                              onChange={(e) => {
-                                const source = e.target.value
-                                setFormData({ 
-                                  ...formData, 
-                                  qrCodeSource: source,
-                                  qrCodeSelectedId: null,
-                                  qrCodeText: source === 'custom' ? formData.qrCodeText : '',
-                                  qrCodeBoxes: source === 'custom' ? formData.qrCodeBoxes : []
-                                })
-                              }}
-                              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                            >
-                              <option value="custom">Custom Link / URL</option>
-                              <option value="authorized-person">Authorized Person</option>
-                              <option value="organization-chart">Organization Chart</option>
-                              <option value="safety-committee">Safety Committee Team</option>
-                            </select>
+                            <div className="space-y-2">
+                              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.qrCodeSource === 'custom'}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: 'custom',
+                                        qrCodeSelectedId: null
+                                      })
+                                    }
+                                  }}
+                                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span className="text-sm sm:text-base text-gray-700 font-medium">Custom Link / URL</span>
+                              </label>
+                              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.qrCodeSource === 'authorized-person'}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: 'authorized-person',
+                                        qrCodeSelectedId: null,
+                                        qrCodeText: '',
+                                        qrCodeBoxes: []
+                                      })
+                                    }
+                                  }}
+                                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span className="text-sm sm:text-base text-gray-700 font-medium">Authorized Person</span>
+                              </label>
+                              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.qrCodeSource === 'organization-chart'}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: 'organization-chart',
+                                        qrCodeSelectedId: null,
+                                        qrCodeText: '',
+                                        qrCodeBoxes: []
+                                      })
+                                    }
+                                  }}
+                                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span className="text-sm sm:text-base text-gray-700 font-medium">Organization Chart</span>
+                              </label>
+                              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.qrCodeSource === 'safety-committee'}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: 'safety-committee',
+                                        qrCodeSelectedId: null,
+                                        qrCodeText: '',
+                                        qrCodeBoxes: []
+                                      })
+                                    }
+                                  }}
+                                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span className="text-sm sm:text-base text-gray-700 font-medium">Safety Committee Team</span>
+                              </label>
+                            </div>
                           </div>
 
                           {/* Authorized Person Selection */}
@@ -6633,7 +6836,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                   <div
                     ref={previewRef}
-                    className="border-2 sm:border-3 md:border-4 border-black rounded-lg overflow-hidden mb-3 sm:mb-4 md:mb-6 bg-white preview-container relative"
+                    className="border-2 sm:border-3 md:border-4 border-black rounded-lg overflow-auto mb-3 sm:mb-4 md:mb-6 bg-white preview-container relative"
                     onMouseMove={handleMouseMove}
                     onMouseUp={() => {
                       handleLogoDragEnd()
@@ -7187,29 +7390,10 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   <div className="bg-blue-600 px-2 py-2">
                                     <div className="grid grid-cols-5 gap-1">
                                       {formData.ppe.slice(0, 15).map((ppeItem, index) => {
-                                        const ppeName = getPPEDisplayName(ppeItem).toLowerCase();
-                                        const getPPEIcon = () => {
-                                          if (ppeName.includes('helmet')) return '🪖';
-                                          if (ppeName.includes('goggle')) return '🥽';
-                                          if (ppeName.includes('ear')) return '🎧';
-                                          if (ppeName.includes('glove') && !ppeName.includes('insulated')) return '🧤';
-                                          if (ppeName.includes('boot') && !ppeName.includes('insulated')) return '👢';
-                                          if (ppeName.includes('high-vis') || ppeName.includes('high vis')) return '👔';
-                                          if (ppeName.includes('respirator')) return '😷';
-                                          if (ppeName.includes('harness')) return '🦺';
-                                          if (ppeName.includes('arc flash') || ppeName.includes('arc flash suit')) return '⚡';
-                                          if (ppeName.includes('insulated glove')) return '🧤';
-                                          if (ppeName.includes('insulated boot')) return '👢';
-                                          if (ppeName.includes('voltage') || ppeName.includes('detector')) return '🔌';
-                                          if (ppeName.includes('face shield')) return '🛡️';
-                                          if (ppeName.includes('arc clothing')) return '👔';
-                                          if (ppeName.includes('mat') || ppeName.includes('safety mat')) return '📖';
-                                          return '🛡️';
-                                        };
                                         return (
                                           <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
                                             <div className="text-base sm:text-lg mb-0.5">
-                                              {getPPEIcon()}
+                                              {getPPEIcon(ppeItem)}
                                             </div>
                                             <div className="text-[7px] sm:text-[8px] font-semibold leading-tight px-0.5">
                                               {getPPEDisplayName(ppeItem).toUpperCase().replace(/\s+/g, ' ')}
@@ -7397,18 +7581,30 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   </div>
                                 )}
 
-                                {/* Mandatory PPE Section */}
+                                {/* Mandatory PPE Section - Blue Header with Grid */}
                                 {formData.ppe && formData.ppe.length > 0 && (
-                                  <div className="mb-4 sm:mb-6">
-                                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
-                                      # MANDATORY PPE ({formData.ppe.length})
-                                    </h4>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
-                                      {formData.ppe.map((ppeItem, index) => (
-                                        <div key={index} className="text-xs sm:text-sm font-medium text-gray-800 border border-gray-300 p-2 text-center">
-                                          {getPPEDisplayName(ppeItem).toUpperCase()}
-                                        </div>
-                                      ))}
+                                  <div className="mb-1.5 sm:mb-2">
+                                    <div className="bg-blue-600 px-3 py-1.5 flex items-center gap-1.5">
+                                      <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
+                                        <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
+                                      </div>
+                                      <h4 className="text-white font-bold text-xs sm:text-sm uppercase">MANDATORY PPE ({formData.ppe.length})</h4>
+                                    </div>
+                                    <div className="bg-blue-600 px-2 py-2">
+                                      <div className="grid grid-cols-5 gap-1">
+                                        {formData.ppe.slice(0, 15).map((ppeItem, index) => {
+                                          return (
+                                            <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
+                                              <div className="text-base sm:text-lg mb-0.5">
+                                                {getPPEIcon(ppeItem)}
+                                              </div>
+                                              <div className="text-[7px] sm:text-[8px] font-semibold leading-tight px-0.5">
+                                                {getPPEDisplayName(ppeItem).toUpperCase().replace(/\s+/g, ' ')}
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
                                     </div>
                                   </div>
                                 )}
