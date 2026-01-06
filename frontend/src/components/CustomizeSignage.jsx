@@ -1161,29 +1161,7 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10">
-          {/* Design Mode Toggle */}
-          <div className="mb-4 flex gap-2">
-            <button
-              onClick={() => setDesignMode('template')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                designMode === 'template' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Template Mode
-            </button>
-            <button
-              onClick={() => setDesignMode('free')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                designMode === 'free' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Free Design Mode
-            </button>
-          </div>
+        
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Left Sidebar - Tools */}
