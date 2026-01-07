@@ -7282,6 +7282,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 uppercase">
                                 {formData.title || 'SIGNAGE TITLE'}
                               </h3>
+                              {formData.location && (
+                                <p className="text-base sm:text-lg text-gray-700 mt-2 font-semibold">
+                                  Location / Area: {formData.location}
+                                </p>
+                              )}
                             </div>
 
                             {/* QR Code */}
@@ -7348,6 +7353,11 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   <p className="text-[10px] sm:text-xs text-black leading-relaxed mb-1">
                                     {formData.description || 'Any operation involving open flames, sparks, or heat that could ignite flammable materials including welding, torch cutting, grinding, brazing.'}
                                   </p>
+                                  {formData.location && (
+                                    <p className="text-[10px] sm:text-xs text-black font-semibold mb-1">
+                                      Location / Area: {formData.location}
+                                    </p>
+                                  )}
                                   <p className="text-[10px] sm:text-xs text-black font-semibold">
                                     Required PPE: Welding helmet with proper shade, Fire-resistant clothing, Welding gloves, Safety boots, Respirator for confined spaces.
                                   </p>
@@ -7565,6 +7575,15 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   <div className="mb-4 sm:mb-6">
                                     <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
                                       {formData.description}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Location / Area */}
+                                {formData.location && (
+                                  <div className="mb-4 sm:mb-6">
+                                    <p className="text-sm sm:text-base text-gray-800 font-semibold">
+                                      <span className="text-gray-600">Location / Area:</span> {formData.location}
                                     </p>
                                   </div>
                                 )}
