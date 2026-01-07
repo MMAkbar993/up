@@ -18,8 +18,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
       { label: 'Safety Officer', phone: '+1 (555) 123-4567' }
     ],
     qrCodeText: '',
-    qrCodeSource: 'custom', // 'custom', 'authorized-person', 'organization-chart', 'safety-committee'
-    qrCodeSelectedId: null, // ID of selected person/chart/committee
+    qrCodeSource: ['custom'], // Array of selected sources: 'custom', 'authorized-person', 'organization-chart', 'safety-committee'
+    qrCodeSelectedId: {}, // Object mapping source types to selected IDs: { 'authorized-person': '123', 'organization-chart': 'chart-1', ... }
     useExistingQR: false,
     existingQRCode: '',
     qrCodeBoxes: [], // Array of boxes with title and url
@@ -139,6 +139,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
   const [saveModalName, setSaveModalName] = useState('')
   const [notification, setNotification] = useState(null)
   const [cropModalOpen, setCropModalOpen] = useState(false)
+  const [qrCodeSelectionModalOpen, setQrCodeSelectionModalOpen] = useState(false)
+  const [qrCodeSelectionType, setQrCodeSelectionType] = useState(null) // 'authorized-person', 'organization-chart', 'safety-committee'
 
   // Notification helper function
   const showNotification = (message, type = 'success') => {
@@ -5968,13 +5970,20 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
                                 <input
                                   type="checkbox"
-                                  checked={formData.qrCodeSource === 'custom'}
+                                  checked={formData.qrCodeSource.includes('custom')}
                                   onChange={(e) => {
                                     if (e.target.checked) {
                                       setFormData({ 
                                         ...formData, 
-                                        qrCodeSource: 'custom',
-                                        qrCodeSelectedId: null
+                                        qrCodeSource: [...(formData.qrCodeSource || []), 'custom'].filter(s => s !== 'authorized-person' && s !== 'organization-chart' && s !== 'safety-committee')
+                                      })
+                                      // Close modal if open
+                                      setQrCodeSelectionModalOpen(false)
+                                      setQrCodeSelectionType(null)
+                                    } else {
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: (formData.qrCodeSource || []).filter(s => s !== 'custom')
                                       })
                                     }
                                   }}
@@ -5985,16 +5994,29 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
                                 <input
                                   type="checkbox"
-                                  checked={formData.qrCodeSource === 'authorized-person'}
+                                  checked={formData.qrCodeSource.includes('authorized-person')}
                                   onChange={(e) => {
                                     if (e.target.checked) {
+                                      const newSources = [...(formData.qrCodeSource || []), 'authorized-person']
                                       setFormData({ 
                                         ...formData, 
-                                        qrCodeSource: 'authorized-person',
-                                        qrCodeSelectedId: null,
-                                        qrCodeText: '',
-                                        qrCodeBoxes: []
+                                        qrCodeSource: newSources,
+                                        qrCodeSelectedId: { ...(formData.qrCodeSelectedId || {}), 'authorized-person': null }
                                       })
+                                      // Open modal immediately when checked
+                                      setQrCodeSelectionType('authorized-person')
+                                      setQrCodeSelectionModalOpen(true)
+                                    } else {
+                                      // Clear selection when unchecked
+                                      const newSelectedIds = { ...(formData.qrCodeSelectedId || {}) }
+                                      delete newSelectedIds['authorized-person']
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: (formData.qrCodeSource || []).filter(s => s !== 'authorized-person'),
+                                        qrCodeSelectedId: newSelectedIds
+                                      })
+                                      setQrCodeSelectionModalOpen(false)
+                                      setQrCodeSelectionType(null)
                                     }
                                   }}
                                   className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
@@ -6004,16 +6026,29 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
                                 <input
                                   type="checkbox"
-                                  checked={formData.qrCodeSource === 'organization-chart'}
+                                  checked={formData.qrCodeSource.includes('organization-chart')}
                                   onChange={(e) => {
                                     if (e.target.checked) {
+                                      const newSources = [...(formData.qrCodeSource || []), 'organization-chart']
                                       setFormData({ 
                                         ...formData, 
-                                        qrCodeSource: 'organization-chart',
-                                        qrCodeSelectedId: null,
-                                        qrCodeText: '',
-                                        qrCodeBoxes: []
+                                        qrCodeSource: newSources,
+                                        qrCodeSelectedId: { ...(formData.qrCodeSelectedId || {}), 'organization-chart': null }
                                       })
+                                      // Open modal immediately when checked
+                                      setQrCodeSelectionType('organization-chart')
+                                      setQrCodeSelectionModalOpen(true)
+                                    } else {
+                                      // Clear selection when unchecked
+                                      const newSelectedIds = { ...(formData.qrCodeSelectedId || {}) }
+                                      delete newSelectedIds['organization-chart']
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: (formData.qrCodeSource || []).filter(s => s !== 'organization-chart'),
+                                        qrCodeSelectedId: newSelectedIds
+                                      })
+                                      setQrCodeSelectionModalOpen(false)
+                                      setQrCodeSelectionType(null)
                                     }
                                   }}
                                   className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
@@ -6023,16 +6058,29 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
                                 <input
                                   type="checkbox"
-                                  checked={formData.qrCodeSource === 'safety-committee'}
+                                  checked={formData.qrCodeSource.includes('safety-committee')}
                                   onChange={(e) => {
                                     if (e.target.checked) {
+                                      const newSources = [...(formData.qrCodeSource || []), 'safety-committee']
                                       setFormData({ 
                                         ...formData, 
-                                        qrCodeSource: 'safety-committee',
-                                        qrCodeSelectedId: null,
-                                        qrCodeText: '',
-                                        qrCodeBoxes: []
+                                        qrCodeSource: newSources,
+                                        qrCodeSelectedId: { ...(formData.qrCodeSelectedId || {}), 'safety-committee': null }
                                       })
+                                      // Open modal immediately when checked
+                                      setQrCodeSelectionType('safety-committee')
+                                      setQrCodeSelectionModalOpen(true)
+                                    } else {
+                                      // Clear selection when unchecked
+                                      const newSelectedIds = { ...(formData.qrCodeSelectedId || {}) }
+                                      delete newSelectedIds['safety-committee']
+                                      setFormData({ 
+                                        ...formData, 
+                                        qrCodeSource: (formData.qrCodeSource || []).filter(s => s !== 'safety-committee'),
+                                        qrCodeSelectedId: newSelectedIds
+                                      })
+                                      setQrCodeSelectionModalOpen(false)
+                                      setQrCodeSelectionType(null)
                                     }
                                   }}
                                   className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
@@ -6043,162 +6091,112 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                           </div>
 
                           {/* Authorized Person Selection */}
-                          {formData.qrCodeSource === 'authorized-person' && (
+                          {formData.qrCodeSource.includes('authorized-person') && (
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Select Authorized Person
                               </label>
-                              <select
-                                value={formData.qrCodeSelectedId || ''}
-                                onChange={(e) => {
-                                  const personId = e.target.value
-                                  if (personId) {
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setQrCodeSelectionType('authorized-person')
+                                  setQrCodeSelectionModalOpen(true)
+                                }}
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
+                              >
+                                <span>
+                                  {formData.qrCodeSelectedId && formData.qrCodeSelectedId['authorized-person'] ? (() => {
                                     try {
                                       const savedPersons = JSON.parse(localStorage.getItem('authorizedPersons') || '[]')
-                                      const person = savedPersons.find(p => p.id === parseInt(personId))
-                                      if (person) {
-                                        const qrUrl = `${window.location.origin}/authorized-person/${personId}`
-                                        setFormData({ 
-                                          ...formData, 
-                                          qrCodeSelectedId: personId,
-                                          qrCodeText: qrUrl
-                                        })
-                                      }
-                                    } catch (error) {
-                                      console.error('Error loading authorized persons:', error)
+                                      const person = savedPersons.find(p => p.id === parseInt(formData.qrCodeSelectedId['authorized-person']))
+                                      return person ? `${person.name} ${person.employeeId ? `(${person.employeeId})` : ''}` : 'Select Authorized Person'
+                                    } catch {
+                                      return 'Select Authorized Person'
                                     }
-                                  } else {
-                                    setFormData({ 
-                                      ...formData, 
-                                      qrCodeSelectedId: null,
-                                      qrCodeText: ''
-                                    })
-                                  }
-                                }}
-                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                              >
-                                <option value="">-- Select Authorized Person --</option>
-                                {(() => {
-                                  try {
-                                    const savedPersons = JSON.parse(localStorage.getItem('authorizedPersons') || '[]')
-                                    return savedPersons.map(person => (
-                                      <option key={person.id} value={person.id}>
-                                        {person.name} {person.employeeId ? `(${person.employeeId})` : ''}
-                                      </option>
-                                    ))
-                                  } catch (error) {
-                                    return <option value="">No authorized persons found</option>
-                                  }
-                                })()}
-                              </select>
+                                  })() : 'Select Authorized Person'}
+                                </span>
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
                               <p className="text-xs text-gray-600 mt-2">
-                                Select an authorized person to generate a QR code linking to their details.
+                                Click to select an authorized person to generate a QR code linking to their details.
                               </p>
                             </div>
                           )}
 
                           {/* Organization Chart Selection */}
-                          {formData.qrCodeSource === 'organization-chart' && (
+                          {formData.qrCodeSource.includes('organization-chart') && (
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Select Organization Chart
                               </label>
-                              <select
-                                value={formData.qrCodeSelectedId || ''}
-                                onChange={(e) => {
-                                  const chartId = e.target.value
-                                  if (chartId) {
-                                    const qrUrl = `${window.location.origin}/organization-chart/${chartId}`
-                                    setFormData({ 
-                                      ...formData, 
-                                      qrCodeSelectedId: chartId,
-                                      qrCodeText: qrUrl
-                                    })
-                                  } else {
-                                    setFormData({ 
-                                      ...formData, 
-                                      qrCodeSelectedId: null,
-                                      qrCodeText: ''
-                                    })
-                                  }
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setQrCodeSelectionType('organization-chart')
+                                  setQrCodeSelectionModalOpen(true)
                                 }}
-                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
                               >
-                                <option value="">-- Select Organization Chart --</option>
-                                {(() => {
-                                  try {
-                                    const savedCharts = JSON.parse(localStorage.getItem('organizationCharts') || '[]')
-                                    if (savedCharts.length === 0) {
-                                      return <option value="default">Default Organization Chart</option>
+                                <span>
+                                  {formData.qrCodeSelectedId && formData.qrCodeSelectedId['organization-chart'] ? (() => {
+                                    try {
+                                      const savedCharts = JSON.parse(localStorage.getItem('organizationCharts') || '[]')
+                                      const chart = savedCharts.find(c => (c.id || `chart-${savedCharts.indexOf(c)}`) === formData.qrCodeSelectedId['organization-chart'])
+                                      return chart ? (chart.name || `Organization Chart ${savedCharts.indexOf(chart) + 1}`) : 'Select Organization Chart'
+                                    } catch {
+                                      return 'Select Organization Chart'
                                     }
-                                    return savedCharts.map((chart, index) => (
-                                      <option key={chart.id || index} value={chart.id || `chart-${index}`}>
-                                        {chart.name || `Organization Chart ${index + 1}`}
-                                      </option>
-                                    ))
-                                  } catch (error) {
-                                    return <option value="default">Default Organization Chart</option>
-                                  }
-                                })()}
-                              </select>
+                                  })() : 'Select Organization Chart'}
+                                </span>
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
                               <p className="text-xs text-gray-600 mt-2">
-                                Select an organization chart to generate a QR code linking to the chart.
+                                Click to select an organization chart to generate a QR code linking to the chart.
                               </p>
                             </div>
                           )}
 
                           {/* Safety Committee Selection */}
-                          {formData.qrCodeSource === 'safety-committee' && (
+                          {formData.qrCodeSource.includes('safety-committee') && (
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Select Safety Committee Team
                               </label>
-                              <select
-                                value={formData.qrCodeSelectedId || ''}
-                                onChange={(e) => {
-                                  const teamId = e.target.value
-                                  if (teamId) {
-                                    const qrUrl = `${window.location.origin}/safety-committee/${teamId}`
-                                    setFormData({ 
-                                      ...formData, 
-                                      qrCodeSelectedId: teamId,
-                                      qrCodeText: qrUrl
-                                    })
-                                  } else {
-                                    setFormData({ 
-                                      ...formData, 
-                                      qrCodeSelectedId: null,
-                                      qrCodeText: ''
-                                    })
-                                  }
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setQrCodeSelectionType('safety-committee')
+                                  setQrCodeSelectionModalOpen(true)
                                 }}
-                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
                               >
-                                <option value="">-- Select Safety Committee Team --</option>
-                                {(() => {
-                                  try {
-                                    const savedTeams = JSON.parse(localStorage.getItem('safetyCommittees') || '[]')
-                                    if (savedTeams.length === 0) {
-                                      return <option value="default">Default Safety Committee</option>
+                                <span>
+                                  {formData.qrCodeSelectedId && formData.qrCodeSelectedId['safety-committee'] ? (() => {
+                                    try {
+                                      const savedTeams = JSON.parse(localStorage.getItem('safetyCommittees') || '[]')
+                                      const team = savedTeams.find(t => (t.id || `team-${savedTeams.indexOf(t)}`) === formData.qrCodeSelectedId['safety-committee'])
+                                      return team ? (team.name || `Safety Committee ${savedTeams.indexOf(team) + 1}`) : 'Select Safety Committee Team'
+                                    } catch {
+                                      return 'Select Safety Committee Team'
                                     }
-                                    return savedTeams.map((team, index) => (
-                                      <option key={team.id || index} value={team.id || `team-${index}`}>
-                                        {team.name || `Safety Committee ${index + 1}`}
-                                      </option>
-                                    ))
-                                  } catch (error) {
-                                    return <option value="default">Default Safety Committee</option>
-                                  }
-                                })()}
-                              </select>
+                                  })() : 'Select Safety Committee Team'}
+                                </span>
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
                               <p className="text-xs text-gray-600 mt-2">
-                                Select a safety committee team to generate a QR code linking to the team details.
+                                Click to select a safety committee team to generate a QR code linking to the team details.
                               </p>
                             </div>
                           )}
 
                           {/* Custom Link Input with Boxes */}
-                          {formData.qrCodeSource === 'custom' && (
+                          {formData.qrCodeSource.includes('custom') && (
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <label className="block text-sm font-semibold text-gray-700">
@@ -7367,20 +7365,20 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               {/* Hazards Section - Red Header */}
                               {formData.hazards && formData.hazards.length > 0 && (
                                 <div className="mb-1.5 sm:mb-2">
-                                  <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
+                                  <div className="bg-red-600 py-1.5 flex items-center gap-1.5 pl-3 pr-3">
                                     <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
-                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">A HAZARDS</h4>
+                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">HAZARDS</h4>
                                   </div>
-                                  <div className="bg-white px-3 py-2">
-                                    <ul className="space-y-0.5">
+                                  <div className="bg-white py-2">
+                                    <ul className="space-y-1.5 sm:space-y-2 pl-3 pr-3">
                                       {formData.hazards.map((hazard, index) => (
-                                        <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
-                                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2L1 21h22L12 2z" />
+                                        <li key={index} className="flex items-start gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-50 border-l-4 border-red-600 rounded">
+                                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" />
                                           </svg>
-                                          <span>{hazard}</span>
+                                          <span className="text-[10px] sm:text-xs text-gray-900 font-medium flex-1">{hazard}</span>
                                         </li>
                                       ))}
                                     </ul>
@@ -7397,8 +7395,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                     </div>
                                     <h4 className="text-white font-bold text-xs sm:text-sm uppercase">MANDATORY PPE ({formData.ppe.length})</h4>
                                   </div>
-                                  <div className="bg-blue-600 px-2 py-2">
-                                    <div className="grid grid-cols-5 gap-1">
+                                  <div className="bg-white px-2 pt-2 pb-2">
+                                    <div className="grid grid-cols-5 gap-2">
                                       {formData.ppe.slice(0, 15).map((ppeItem, index) => {
                                         return (
                                           <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
@@ -7419,18 +7417,18 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               {/* Safety Procedures Section - Green Header */}
                               {formData.procedures && formData.procedures.length > 0 && (
                                 <div className="mb-1.5 sm:mb-2">
-                                  <div className="bg-green-600 px-3 py-1.5 flex items-center gap-1.5">
-                                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
-                                      <span className="text-white text-[8px] sm:text-[10px] font-bold">O</span>
+                                  <div className="bg-green-600 py-1.5 flex items-center gap-1.5 pl-3 pr-3">
+                                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white border-2 border-green-600 flex items-center justify-center flex-shrink-0">
+                                      <span className="text-green-600 text-[8px] sm:text-[10px] font-bold uppercase">O</span>
                                     </div>
                                     <h4 className="text-white font-bold text-xs sm:text-sm uppercase">SAFETY PROCEDURES</h4>
                                   </div>
-                                  <div className="bg-white px-3 py-2">
-                                    <ol className="space-y-0.5">
+                                  <div className="bg-white py-2">
+                                    <ol className="space-y-1.5 sm:space-y-2 pl-3 pr-3">
                                       {formData.procedures.map((procedure, index) => (
-                                        <li key={index} className="text-[10px] sm:text-xs text-black flex items-start gap-1.5">
-                                          <span className="bg-green-600 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[8px] sm:text-[10px] font-bold flex-shrink-0">{index + 1}</span>
-                                          <span>{procedure}</span>
+                                        <li key={index} className="flex items-start gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-green-50 border-2 border-green-200 rounded-lg">
+                                          <span className="bg-green-600 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[8px] sm:text-[10px] font-bold flex-shrink-0 mt-0.5">{index + 1}</span>
+                                          <span className="text-[10px] sm:text-xs text-gray-900 font-medium flex-1">{procedure}</span>
                                         </li>
                                       ))}
                                     </ol>
@@ -7441,33 +7439,36 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                               {/* Permit Required Section - Red Header */}
                               {formData.permitRequired && (
                                 <div className="mb-1.5 sm:mb-2">
-                                  <div className="bg-red-600 px-3 py-1.5 flex items-center gap-1.5">
-                                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white flex items-center justify-center flex-shrink-0">
-                                      <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                                  <div className="bg-red-600 py-2 sm:py-2.5 flex items-center gap-2 sm:gap-3 pl-3 pr-3">
+                                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 relative">
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 absolute" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2L6 10h3l-1 6 4-5 4 5-1-6h3L12 2z" />
+                                      </svg>
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6" />
                                       </svg>
                                     </div>
-                                    <h4 className="text-white font-bold text-xs sm:text-sm uppercase">PERMIT REQUIRED</h4>
-                                  </div>
-                                  <div className="bg-white px-3 py-2 text-center">
-                                    <p className="text-xs sm:text-sm font-bold text-black uppercase">
-                                      {formData.permitType || 'HOT WORK'}
-                                    </p>
+                                    <div className="flex flex-col">
+                                      <h4 className="text-white font-bold text-xs sm:text-sm uppercase leading-tight">PERMIT REQUIRED</h4>
+                                      <p className="text-white font-bold text-xs sm:text-sm uppercase leading-tight">
+                                        {formData.permitType || 'HOT WORK'}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               )}
 
                               {/* Emergency Section - Orange Header */}
                               <div className="mb-1.5 sm:mb-2">
-                                <div className="bg-orange-500 px-3 py-1.5 flex items-center gap-1.5">
+                                <div className="bg-orange-500 py-1.5 flex items-center gap-1.5 pl-3 pr-3">
                                   <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                   </svg>
                                   <h4 className="text-white font-bold text-xs sm:text-sm uppercase">EMERGENCY</h4>
                                 </div>
-                                <div className="bg-orange-100 px-3 py-2">
-                                  <div className="flex gap-3">
-                                    <div className="flex-1 space-y-0.5">
+                                <div className="bg-amber-50 py-2">
+                                  <div className="flex gap-3 pl-3 pr-3">
+                                    <div className="flex-1 space-y-0.5 sm:space-y-1">
                                       {formData.emergencyContacts.length > 0 ? (
                                         formData.emergencyContacts.map((contact, index) => (
                                           <div key={index} className="text-[10px] sm:text-xs font-medium text-black">
@@ -7588,15 +7589,27 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   </div>
                                 )}
 
-                                {/* Hazards Section */}
+                                {/* Hazards Section - Red Header */}
                                 {formData.hazards && formData.hazards.length > 0 && (
                                   <div className="mb-4 sm:mb-6">
-                                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># HAZARDS</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-gray-800">
-                                      {formData.hazards.map((hazard, index) => (
-                                        <li key={index}>{hazard}</li>
-                                      ))}
-                                    </ul>
+                                    <div className="bg-red-600 py-2 sm:py-2.5 flex items-center gap-2 sm:gap-3 pl-4 pr-4">
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                      </svg>
+                                      <h4 className="text-white font-bold text-sm sm:text-base uppercase">HAZARDS</h4>
+                                    </div>
+                                    <div className="bg-white py-3 sm:py-4">
+                                      <ul className="space-y-2 sm:space-y-2.5 pl-4 pr-4">
+                                        {formData.hazards.map((hazard, index) => (
+                                          <li key={index} className="flex items-start gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-red-50 border-l-4 border-red-600 rounded">
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                              <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" />
+                                            </svg>
+                                            <span className="text-sm sm:text-base text-gray-900 font-medium flex-1">{hazard}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
                                   </div>
                                 )}
 
@@ -7609,8 +7622,8 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                       </div>
                                       <h4 className="text-white font-bold text-xs sm:text-sm uppercase">MANDATORY PPE ({formData.ppe.length})</h4>
                                     </div>
-                                    <div className="bg-blue-600 px-2 py-2">
-                                      <div className="grid grid-cols-5 gap-1">
+                                    <div className="bg-white px-2 pt-2 pb-2">
+                                      <div className="grid grid-cols-5 gap-2">
                                         {formData.ppe.slice(0, 15).map((ppeItem, index) => {
                                           return (
                                             <div key={index} className="bg-blue-600 text-white p-1 rounded flex flex-col items-center justify-center text-center min-h-[50px] sm:min-h-[60px] border border-blue-700">
@@ -7628,30 +7641,46 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                   </div>
                                 )}
 
-                                {/* Safety Procedures Section */}
+                                {/* Safety Procedures Section - Green Header */}
                                 {formData.procedures && formData.procedures.length > 0 && (
                                   <div className="mb-4 sm:mb-6">
-                                    <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"># SAFETY PROCEDURES</h4>
-                                    <ol className="list-decimal list-inside space-y-1 text-sm sm:text-base text-gray-800">
-                                      {formData.procedures.map((procedure, index) => (
-                                        <li key={index}>{procedure}</li>
-                                      ))}
-                                    </ol>
+                                    <div className="bg-green-600 py-2 sm:py-2.5 flex items-center gap-2 sm:gap-3 pl-4 pr-4">
+                                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white border-2 border-green-600 flex items-center justify-center flex-shrink-0">
+                                        <span className="text-green-600 text-[10px] sm:text-xs font-bold uppercase">O</span>
+                                      </div>
+                                      <h4 className="text-white font-bold text-sm sm:text-base uppercase">SAFETY PROCEDURES</h4>
+                                    </div>
+                                    <div className="bg-white py-3 sm:py-4">
+                                      <ol className="space-y-2 sm:space-y-2.5 pl-4 pr-4">
+                                        {formData.procedures.map((procedure, index) => (
+                                          <li key={index} className="flex items-start gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-green-50 border-2 border-green-200 rounded-lg">
+                                            <span className="bg-green-600 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 mt-0.5">{index + 1}</span>
+                                            <span className="text-sm sm:text-base text-gray-900 font-medium flex-1">{procedure}</span>
+                                          </li>
+                                        ))}
+                                      </ol>
+                                    </div>
                                   </div>
                                 )}
 
-                                {/* Permit Required Section */}
+                                {/* Permit Required Section - Red Header */}
                                 {formData.permitRequired && (
-                                  <div className="mb-4 sm:mb-6 text-center">
-                                    <div className="bg-yellow-400 border-2 border-black px-4 py-2 sm:py-3 inline-block">
-                                      <p className="text-base sm:text-lg font-bold text-black uppercase">
-                                        # PERMIT REQUIRED
-                                      </p>
-                                      {formData.permitType && (
-                                        <p className="text-sm sm:text-base font-semibold text-black mt-1 uppercase">
-                                          {formData.permitType}
+                                  <div className="mb-4 sm:mb-6">
+                                    <div className="bg-red-600 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 pl-4 pr-4">
+                                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 relative">
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 absolute" fill="currentColor" viewBox="0 0 24 24">
+                                          <path d="M12 2L6 10h3l-1 6 4-5 4 5-1-6h3L12 2z" />
+                                        </svg>
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6" />
+                                        </svg>
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <h4 className="text-white font-bold text-sm sm:text-base uppercase leading-tight">PERMIT REQUIRED</h4>
+                                        <p className="text-white font-bold text-sm sm:text-base uppercase leading-tight">
+                                          {formData.permitType || 'HOT WORK'}
                                         </p>
-                                      )}
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -7659,7 +7688,7 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
 
                               {/* Orange Emergency Section */}
                               {formData.emergencyContacts.length > 0 && (
-                                <div className="bg-orange-500 px-4 py-2 sm:py-3 flex items-center justify-center gap-2">
+                                <div className="bg-orange-500 py-2 sm:py-3 flex items-center gap-2 pl-4 pr-4">
                                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                   </svg>
@@ -7667,21 +7696,49 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                                 </div>
                               )}
 
-                              {/* Light Beige Contact Information Section */}
-                              {formData.emergencyContacts.length > 0 && (
-                                <div className="bg-amber-50 px-4 py-3 sm:py-4 flex-1">
-                                  <div className="space-y-1 sm:space-y-2">
-                                    {formData.emergencyContacts.map((contact, index) => (
-                                      <div key={index} className="text-sm sm:text-base font-medium text-black">
-                                        {contact.label}: {contact.phone}
+                              {/* Light Beige Contact Information Section with QR Code */}
+                              {(formData.emergencyContacts.length > 0 || (formData.qrCodeText || formData.existingQRCode)) && (
+                                <div className="bg-amber-50 py-3 sm:py-4">
+                                  <div className="flex gap-4 sm:gap-6 pl-4 pr-4">
+                                    {formData.emergencyContacts.length > 0 && (
+                                      <div className="flex-1 space-y-1 sm:space-y-2">
+                                        {formData.emergencyContacts.map((contact, index) => (
+                                          <div key={index} className="text-sm sm:text-base font-medium text-black">
+                                            <span className="font-semibold">{contact.label}:</span> {contact.phone}
+                                          </div>
+                                        ))}
                                       </div>
-                                    ))}
+                                    )}
+                                    {((formData.qrCodeText && formData.qrCodeText.trim()) || (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim())) || formData.existingQRCode) && (
+                                      <div className="flex flex-col items-center justify-center flex-shrink-0">
+                                        {formData.useExistingQR && formData.existingQRCode ? (
+                                          <img
+                                            src={formData.existingQRCode}
+                                            alt="QR Code"
+                                            className="w-20 h-20 sm:w-24 sm:h-24 object-contain bg-white p-1"
+                                          />
+                                        ) : ((formData.qrCodeText && formData.qrCodeText.trim()) || (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()))) ? (
+                                          <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center bg-white border border-gray-300 p-1">
+                                            <img
+                                              src={`https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=${encodeURIComponent(
+                                                (formData.qrCodeBoxes && formData.qrCodeBoxes.length > 0 && formData.qrCodeBoxes.some(b => b.url && b.url.trim()))
+                                                  ? (formData.qrCodeText || '')
+                                                  : (formData.qrCodeText || '')
+                                              )}`}
+                                              alt="QR Code"
+                                              className="w-full h-full object-contain"
+                                            />
+                                          </div>
+                                        ) : null}
+                                        <p className="text-xs sm:text-sm text-black font-semibold mt-1">Scan</p>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               )}
 
-                              {/* QR Code Section */}
-                              {(formData.qrCodeText || formData.existingQRCode) && (
+                              {/* QR Code Section - Fallback if no emergency contacts */}
+                              {formData.emergencyContacts.length === 0 && (formData.qrCodeText || formData.existingQRCode) && (
                                 <div className="bg-white px-4 py-4 sm:py-6 flex items-center justify-center border-t-2 border-gray-200">
                                   {formData.useExistingQR && formData.existingQRCode ? (
                                     <img
@@ -8396,6 +8453,218 @@ const SignageGenerator = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Selection Modal */}
+      {qrCodeSelectionModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">
+                {qrCodeSelectionType === 'authorized-person' && 'Select Authorized Person'}
+                {qrCodeSelectionType === 'organization-chart' && 'Select Organization Chart'}
+                {qrCodeSelectionType === 'safety-committee' && 'Select Safety Committee Team'}
+              </h3>
+              <button
+                onClick={() => {
+                  setQrCodeSelectionModalOpen(false)
+                  setQrCodeSelectionType(null)
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              {qrCodeSelectionType === 'authorized-person' && (() => {
+                try {
+                  const savedPersons = JSON.parse(localStorage.getItem('authorizedPersons') || '[]')
+                  if (savedPersons.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No authorized persons found.</p>
+                        <p className="text-sm mt-2">Please add authorized persons first.</p>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {savedPersons.map((person) => (
+                        <button
+                          key={person.id}
+                          onClick={() => {
+                            const qrUrl = `${window.location.origin}/authorized-person/${person.id}`
+                            setFormData({
+                              ...formData,
+                              qrCodeSelectedId: {
+                                ...(formData.qrCodeSelectedId || {}),
+                                'authorized-person': person.id.toString()
+                              }
+                            })
+                            setQrCodeSelectionModalOpen(false)
+                            setQrCodeSelectionType(null)
+                          }}
+                          className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                            formData.qrCodeSelectedId && formData.qrCodeSelectedId['authorized-person'] === person.id.toString()
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="font-semibold text-gray-900">{person.name}</div>
+                          {person.employeeId && (
+                            <div className="text-sm text-gray-600 mt-1">ID: {person.employeeId}</div>
+                          )}
+                          {person.position && (
+                            <div className="text-sm text-gray-600 mt-1">{person.position}</div>
+                          )}
+                          {person.department && (
+                            <div className="text-sm text-gray-500 mt-1">{person.department}</div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )
+                } catch (error) {
+                  return (
+                    <div className="text-center py-8 text-red-500">
+                      <p>Error loading authorized persons.</p>
+                    </div>
+                  )
+                }
+              })()}
+
+              {qrCodeSelectionType === 'organization-chart' && (() => {
+                try {
+                  const savedCharts = JSON.parse(localStorage.getItem('organizationCharts') || '[]')
+                  if (savedCharts.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No organization charts found.</p>
+                        <p className="text-sm mt-2">Please add organization charts first.</p>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {savedCharts.map((chart, index) => {
+                        const chartId = chart.id || `chart-${index}`
+                        return (
+                          <button
+                            key={chartId}
+                            onClick={() => {
+                              const qrUrl = `${window.location.origin}/organization-chart/${chartId}`
+                              setFormData({
+                                ...formData,
+                                qrCodeSelectedId: {
+                                  ...(formData.qrCodeSelectedId || {}),
+                                  'organization-chart': chartId
+                                }
+                              })
+                              setQrCodeSelectionModalOpen(false)
+                              setQrCodeSelectionType(null)
+                            }}
+                            className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                              formData.qrCodeSelectedId && formData.qrCodeSelectedId['organization-chart'] === chartId
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="font-semibold text-gray-900">
+                              {chart.name || `Organization Chart ${index + 1}`}
+                            </div>
+                            {chart.description && (
+                              <div className="text-sm text-gray-600 mt-1">{chart.description}</div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                } catch (error) {
+                  return (
+                    <div className="text-center py-8 text-red-500">
+                      <p>Error loading organization charts.</p>
+                    </div>
+                  )
+                }
+              })()}
+
+              {qrCodeSelectionType === 'safety-committee' && (() => {
+                try {
+                  const savedTeams = JSON.parse(localStorage.getItem('safetyCommittees') || '[]')
+                  if (savedTeams.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No safety committee teams found.</p>
+                        <p className="text-sm mt-2">Please add safety committee teams first.</p>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {savedTeams.map((team, index) => {
+                        const teamId = team.id || `team-${index}`
+                        return (
+                          <button
+                            key={teamId}
+                            onClick={() => {
+                              const qrUrl = `${window.location.origin}/safety-committee/${teamId}`
+                              setFormData({
+                                ...formData,
+                                qrCodeSelectedId: {
+                                  ...(formData.qrCodeSelectedId || {}),
+                                  'safety-committee': teamId
+                                }
+                              })
+                              setQrCodeSelectionModalOpen(false)
+                              setQrCodeSelectionType(null)
+                            }}
+                            className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                              formData.qrCodeSelectedId && formData.qrCodeSelectedId['safety-committee'] === teamId
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="font-semibold text-gray-900">
+                              {team.name || `Safety Committee ${index + 1}`}
+                            </div>
+                            {team.description && (
+                              <div className="text-sm text-gray-600 mt-1">{team.description}</div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                } catch (error) {
+                  return (
+                    <div className="text-center py-8 text-red-500">
+                      <p>Error loading safety committee teams.</p>
+                    </div>
+                  )
+                }
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => {
+                  setQrCodeSelectionModalOpen(false)
+                  setQrCodeSelectionType(null)
+                }}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -1160,10 +1160,10 @@ const CustomizeSignage = ({ activeNav, setActiveNav, sidebarOpen, setSidebarOpen
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 ">
         
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 slg:grid-cols-4 gap-4 sm:gap-6">
             {/* Left Sidebar - Tools */}
             <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-[120px] space-y-4 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pb-4">
